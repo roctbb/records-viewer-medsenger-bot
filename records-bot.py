@@ -48,6 +48,15 @@ def create_plot(category):
         return graphJSON
     return None
 
+@app.route('/status', methods=['POST'])
+def status():
+
+    answer = {
+        "is_tracking_data": False,
+        "supported_scenarios": [],
+    }
+
+    return json.dumps(answer)
 
 @app.route('/init', methods=['POST'])
 def init():
