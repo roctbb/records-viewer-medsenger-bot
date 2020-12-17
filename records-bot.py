@@ -157,4 +157,4 @@ def action():
     return render_template('viewer.html', data=data)
 
 
-app.run(port='9103', host='0.0.0.0')
+app.run(port=PORT, host=HOST)
