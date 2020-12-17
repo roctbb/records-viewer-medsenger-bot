@@ -1,5 +1,7 @@
-pandas==0.24.2
-numpy==1.16.4
-plotly==4.2.1
-Flask==1.1.1
-requests==2.22.0
+pandas
+numpy
+plotly
+Flask
+requests
+git+https://github.com/roctbb/flask-wkhtmltopdf
+transliterate

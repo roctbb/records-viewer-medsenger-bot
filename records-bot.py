@@ -8,9 +8,16 @@ import requests
 import pandas as pd
 import numpy as np
 import json
+from flask_wkhtmltopdf import Wkhtmltopdf
+from transliterate import translit
+
+
 
 app = Flask(__name__)
-contracts = {}
+app.config['WKHTMLTOPDF_BIN_PATH'] = WKHTMLTOPDF_BIN_PATH
+app.config['PDF_DIR_PATH'] = PDF_DIR_PATH
+wkhtmltopdf = Wkhtmltopdf(app)
+
 
 
 def create_plot(category):
@@ -82,6 +89,49 @@ def index():
 def message():
     return "ok"
 
+def get_full_report(contract_id):
+    info = get_patient_info(contract_id)
+    records = get_records(contract_id, full=True)
+    dates = []
+
+    current_date = None
+    for record in records:
+        if record['category_info']['default_representation'] == 'non_zero_dates' and record['value'] == 0:
+            continue
+
+        record['formatted_date'] = datetime.fromtimestamp(record['timestamp']).strftime('%H:%M:%S %d.%m.%Y')
+        record_date = datetime.fromtimestamp(record['timestamp']).strftime('%d.%m.%Y')
+        if not current_date or current_date != record_date:
+            current_date = record_date
+            dates.append({"date": current_date, "records": [], "symptoms": []})
+        if record['category_info']['default_representation'] == 'non_zero_dates':
+            dates[-1]["symptoms"].append(record)
+        else:
+            dates[-1]["records"].append(record)
+
+    return info, dates
+
+@app.route('/report', methods=['POST'])
+def export_report():
+    key = request.args.get('api_key', '')
+    contract_id = str(request.args.get('contract_id', ''))
+
+    if key != APP_KEY:
+        return "<strong>Некорректный ключ доступа.</strong> Свяжитесь с технической поддержкой."
+    info, dates = get_full_report(contract_id)
+    return wkhtmltopdf.render_template_to_pdf('report.html', filename=translit(info['name'] + '.pdf', reversed=True), download=True, save=False,
+                                              dates=dates, info=info, export=True)
+
+@app.route('/report', methods=['GET'])
+def get_report():
+    key = request.args.get('api_key', '')
+    contract_id = str(request.args.get('contract_id', ''))
+
+    if key != APP_KEY:
+        return "<strong>Некорректный ключ доступа.</strong> Свяжитесь с технической поддержкой."
+
+    info, dates = get_full_report(contract_id)
+    return render_template('report.html', export=False, dates=dates, info=info)
 
 @app.route('/view', methods=['GET'])
 def action():
@@ -92,7 +142,6 @@ def action():
         return "<strong>Некорректный ключ доступа.</strong> Свяжитесь с технической поддержкой."
 
     available_categories = get_available_categories(contract_id)
-    print(available_categories)
 
     data = []
 
@@ -105,7 +154,6 @@ def action():
         category['plot'] = create_plot(category)
         category['value_list'] = category['values']
 
-    print(data)
     return render_template('viewer.html', data=data)
 
 

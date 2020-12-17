@@ -28,13 +28,34 @@ def get_available_categories(contract_id):
         print('connection error', e)
         return {}
 
-
-def get_records(contract_id, category_name, time_from=None, time_to=None, limit=None, offset=None):
+def get_patient_info(contract_id):
     data = {
         "contract_id": contract_id,
         "api_key": APP_KEY,
-        "category_name": category_name,
     }
+
+    try:
+        return requests.post(MAIN_HOST + '/api/agents/patient/info', json=data).json()
+    except Exception as e:
+        print('connection error', e)
+        return {
+            'name': '',
+            'sex': '',
+            'birthday': ''
+        }
+
+
+def get_records(contract_id, category_name=None, time_from=None, time_to=None, limit=None, offset=None, full=False):
+
+    if not full and not category_name:
+        return {}
+    data = {
+        "contract_id": contract_id,
+        "api_key": APP_KEY,
+    }
+
+    if not full:
+        data["category_name"] = category_name
 
     if limit:
         data['limit'] = limit
@@ -46,9 +67,15 @@ def get_records(contract_id, category_name, time_from=None, time_to=None, limit=
         data['to'] = time_to
 
     try:
-        result = requests.post(MAIN_HOST + '/api/agents/records/get', json=data)
+        if full:
+            url = "/api/agents/records/get/all"
+        else:
+            url = "/api/agents/records/get"
+
+        result = requests.post(MAIN_HOST + url, json=data)
         return result.json()
     except Exception as e:
+        print(MAIN_HOST + url, data)
         print('connection error', e)
         return {}
 
