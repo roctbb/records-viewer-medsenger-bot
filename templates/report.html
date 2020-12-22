@@ -33,7 +33,7 @@
                 <th>{{ record['category_info']['description'] }}<br><small class="text-muted">{{
                     record['formatted_date']
                     }}</small></th>
-                <td>{{ record['value'] }} ({{ record['category_info']['unit'] }})</td>
+                <td>{{ record['value'] }} {% if record['category_info']['unit'] %}({{ record['category_info']['unit'] }}){% endif %}</td>
             </tr>
             {% endfor %}
             {% if date['symptoms'] %}
