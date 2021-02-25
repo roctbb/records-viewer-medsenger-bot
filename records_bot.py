@@ -156,5 +156,5 @@ def action():
 
     return render_template('viewer.html', data=data)
 
-
-app.run(port=PORT, host=HOST)
+if __name__ == "__main__":
+    app.run(port=PORT, host=HOST)
