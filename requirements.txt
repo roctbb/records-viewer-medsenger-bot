@@ -3,5 +3,6 @@ numpy
 plotly
 Flask
 requests
-git+https://github.com/roctbb/flask-wkhtmltopdf
+requests
+xhtml2pdf
 transliterate
