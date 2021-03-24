@@ -3,6 +3,5 @@ numpy
 plotly
 Flask
 requests
-requests
-xhtml2pdf
 transliterate
+weasyprint
