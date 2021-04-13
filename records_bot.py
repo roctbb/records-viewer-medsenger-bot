@@ -107,7 +107,7 @@ def remove():
 
 @app.route('/settings', methods=['GET'])
 def settings():
-    return "Этот интеллектуальный агент не требует настройки."
+    return get_report()
 
 
 @app.route('/', methods=['GET'])
