@@ -109,6 +109,11 @@ def remove():
 def settings():
     return get_report()
 
+@app.route('/settings', methods=['POST'])
+def post_settings():
+    return export_report()
+
+
 
 @app.route('/', methods=['GET'])
 def index():
