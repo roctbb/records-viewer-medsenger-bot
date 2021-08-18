@@ -1,4 +1,5 @@
-from flask import Flask, request, render_template
+
+from flask import Flask, request, render_template, make_response
 import plotly
 import plotly.graph_objs as go
 from datetime import datetime
@@ -8,15 +9,44 @@ import requests
 import pandas as pd
 import numpy as np
 import json
-from flask_wkhtmltopdf import Wkhtmltopdf
 from transliterate import translit
+import os
+import tempfile
+import weasyprint
+
 
 
 
 app = Flask(__name__)
-app.config['WKHTMLTOPDF_BIN_PATH'] = WKHTMLTOPDF_BIN_PATH
-app.config['PDF_DIR_PATH'] = PDF_DIR_PATH
-wkhtmltopdf = Wkhtmltopdf(app)
+
+
+
+def render_template_to_pdf(template_name_or_list, filename=None, save=False, download=False,
+                           wkhtmltopdf_args=None, **context):
+
+    rendered = render_template(template_name_or_list, **context)
+
+    # Checks to see if the pdf directory exists and generates a random pdf name
+    if PDF_DIR_PATH is None:
+        raise ValueError('PDF_DIR_PATH config variable must be set in the Flask app')
+    if not os.path.isdir(PDF_DIR_PATH):
+        os.makedirs(PDF_DIR_PATH)
+    with tempfile.NamedTemporaryFile(suffix='.pdf', dir=PDF_DIR_PATH, delete=False) as temp_pdf:
+        pass
+
+    pdf = weasyprint.HTML(string=rendered).write_pdf()
+
+    response = make_response(pdf)
+    response.headers['Content-Type'] = 'application/pdf'
+    if download is True:
+        response.headers['Content-Disposition'] = 'attachment; filename=%s.pdf' % filename if filename else temp_pdf.name
+    else:
+        response.headers['Content-Disposition'] = 'inline; filename=%s.pdf' % filename if filename else temp_pdf.name
+
+    if save is False:
+        os.remove(temp_pdf.name)
+
+    return response
 
 
 
@@ -77,7 +107,12 @@ def remove():
 
 @app.route('/settings', methods=['GET'])
 def settings():
-    return "Этот интеллектуальный агент не требует настройки."
+    return get_report()
+
+@app.route('/settings', methods=['POST'])
+def post_settings():
+    return export_report()
+
 
 
 @app.route('/', methods=['GET'])
@@ -119,7 +154,7 @@ def export_report():
     if key != APP_KEY:
         return "<strong>Некорректный ключ доступа.</strong> Свяжитесь с технической поддержкой."
     info, dates = get_full_report(contract_id)
-    return wkhtmltopdf.render_template_to_pdf('report.html', filename=translit(info['name'] + '.pdf', reversed=True), download=True, save=False,
+    return render_template_to_pdf('report.html', filename=translit(info['name'] + '.pdf', reversed=True), download=True, save=False,
                                               dates=dates, info=info, export=True)
 
 @app.route('/report', methods=['GET'])

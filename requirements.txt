@@ -3,5 +3,5 @@ numpy
 plotly
 Flask
 requests
-git+https://github.com/roctbb/flask-wkhtmltopdf
 transliterate
+weasyprint
