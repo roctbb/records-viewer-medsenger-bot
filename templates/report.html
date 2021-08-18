@@ -6,8 +6,25 @@
     <!-- CSS only -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+    <script>
+        function check_mobile()
+        {
+            if (window.innerHeight > window.innerWidth) {
+                document.getElementById('report_button').style.visibility = 'hidden';
+            }
+        }
+
+        function load_report()
+        {
+             document.getElementById('report_button').innerText = "Загрузка..."
+             document.getElementById('report_button').disabled= true
+        }
+    </script>
+
 </head>
-<body>
+
+
+<body onload="check_mobile">
 {% if not export %}
 <div class="container">
     {% else %}
@@ -17,7 +34,7 @@
 
     {% if not export %}
     <form method="post">
-        <p><button class="btn btn-primary btn-sm">Скачать pdf</button></p>
+        <p><button onclick="load_report()" class="btn btn-primary btn-sm" id="report_button">Скачать pdf</button></p>
     </form>
 
     <div class="row">
