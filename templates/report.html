@@ -18,6 +18,7 @@
         {
              document.getElementById('report_button').innerText = "Загрузка..."
              document.getElementById('report_button').disabled= true
+             document.getElementById('report_form').submit()
         }
     </script>
 
@@ -33,7 +34,7 @@
     <h3>Отчет по мониторингу пациента {{ info['name'] }} ({{ info['birthday'] }})</h3>
 
     {% if not export %}
-    <form method="post">
+    <form method="post" id="report_form">
         <p><button onclick="load_report()" class="btn btn-primary btn-sm" id="report_button">Скачать pdf</button></p>
     </form>
 
