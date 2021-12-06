@@ -46,6 +46,10 @@ def remove(data):
 @app.route('/settings', methods=['GET'])
 def settings():
     contract_id = request.args.get('contract_id', '')
+
+    if contract_id not in contracts.keys():
+        init_contract(contract_id)
+
     return get_ui(contract_id)
 
 # @app.route('/settings', methods=['POST'])
