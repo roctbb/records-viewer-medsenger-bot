@@ -49,8 +49,7 @@ Vue.mixin({
                 nothing_found: window.LOCAL_HOST + '/static/icons/icons8-nothing-found-100.png',
             },
             axios: require('axios'),
-            category_list: window.CATEGORY_LIST,
-            to_export: window.TO_EXPORT,
+            category_list: window.CATEGORY_LIST
         }
     }
 })

@@ -28,9 +28,16 @@
                     <span v-html="addition.addition.comment"/></li>
                 </ul>
               </more-info-block>
-              <more-info-block title="Технические параметры" :id="'params' + record.id" v-if="record.params">
+              <more-info-block title="Технические параметры" :id="'params' + record.id" v-if="record.params && !to_export">
                 <span class="text-muted" style="font-size: small">{{ record.params }}</span>
               </more-info-block>
+
+              <div class="text-muted" v-if="to_export">
+                <ul>
+                  <li v-for="addition in record.additions" class="text-muted" style="font-size: small">
+                    <span v-html="addition.addition.comment"/></li>
+                </ul>
+              </div>
             </td>
           </tr>
 
@@ -55,7 +62,7 @@ import MoreInfoBlock from "./MoreInfoBlock";
 export default {
   name: "RecordsList",
   components: {MoreInfoBlock},
-  props: ['data']
+  props: ['data', 'to_export']
 }
 </script>
 

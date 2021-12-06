@@ -7,8 +7,8 @@
         <date-picker format="по DD.MM.YYYY" v-model="dates.range[1]" @change="select_dates()"></date-picker>
       </div>
       <div class="form-group row" style="margin-left: 0">
-        <button class="btn btn-primary btn-sm" @click="scroll_dates(true)">&#8592;</button>
-        <button class="btn btn-primary btn-sm" @click="scroll_dates(false)">&#8594;</button>
+        <button class="btn btn-primary btn-sm" @click="scroll_dates(true)" :disabled="!dates.range[0] || !dates.range[1]">&#8592;</button>
+        <button class="btn btn-primary btn-sm" @click="scroll_dates(false)" :disabled="!dates.range[0] || !dates.range[1]">&#8594;</button>
       </div>
       <div class="form-group row">
         <label class="col-sm-1 col-form-label">Период:</label>
@@ -66,17 +66,17 @@
           </div>
         </div>
       </form>
-      <form class="col">
+      <div class="col">
         <!-- Даты -->
         <div class="form-group row" style="margin-left: 0;">
           <date-picker format="c DD.MM.YYYY" v-model="dates.range[0]" @change="select_dates()"></date-picker>
           <date-picker format="по DD.MM.YYYY" v-model="dates.range[1]" @change="select_dates()"></date-picker>
         </div>
         <div class="form-group row" style="margin-left: 0">
-          <button class="btn btn-primary btn-sm" @click="scroll_dates(true)">&#8592;</button>
-          <button class="btn btn-primary btn-sm" @click="scroll_dates(false)">&#8594;</button>
+          <button class="btn btn-primary btn-sm" @click="scroll_dates(true)" :disabled="!dates.range[0] || !dates.range[1]">&#8592;</button>
+          <button class="btn btn-primary btn-sm" @click="scroll_dates(false)" :disabled="!dates.range[0] || !dates.range[1]">&#8594;</button>
         </div>
-      </form>
+      </div>
     </div>
 
     <!--
@@ -144,11 +144,11 @@ export default {
       }
 
       this.$forceUpdate()
-      this.update_dates()
+      // this.update_dates()
     },
     select_dates: function () {
       let duration = moment(this.dates.range[1]).diff(moment(this.dates.range[0]), 'day')
-      this.dates.period = [30, 14, 7, 3, 1].includes(duration) ? duration : -1
+      this.dates.period = [30, 14, 7, 3, 1].includes(duration) ? duration : undefined
 
       this.$forceUpdate()
       this.update_dates()

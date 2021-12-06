@@ -1,5 +1,5 @@
 <template>
-  <div style="padding-bottom: 15px;" :style="to_export ? 'background-color: white':''">
+  <div style="padding-bottom: 15px;">
     <loading v-if="!patient"/>
     <div style="padding-bottom: 5px;" v-else>
       <dashboard-header :patient="patient"/>
@@ -27,11 +27,10 @@
       </div>
 
       <div v-show="false">
-        <div ref="to-export">
-          <img :src="images.logo" alt="">
+        <div ref="to-export" class="to-export">
           <h3>Отчет по мониторингу пациента {{ patient.name }} ({{ patient.birthday }})</h3>
           <hr>
-          <records-list :data="records"/>
+          <records-list :data="records" :to_export="true"/>
         </div>
       </div>
 
@@ -164,5 +163,9 @@ a {
 
 body {
   background-color: #f8f8fb;
+}
+
+.to-export {
+  font-size: smaller;
 }
 </style>

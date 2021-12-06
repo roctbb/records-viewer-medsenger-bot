@@ -138,13 +138,12 @@ def get_report_page(contract_id, dates, page=0, category=None):
                                         limit=RECORDS_LIMIT, offset=page * RECORDS_LIMIT)
 
     if not records:
-        return data, None
+        return data, 0
 
     if page == 0:
-        all_records = medsenger_api.get_records(contract_id, time_from=dates[0], time_to=dates[1], category_name=category)
-        if category:
-            all_records = all_records['values']
-        page_cnt = math.ceil(len(all_records) / RECORDS_LIMIT)
+        all_records = medsenger_api.get_records(contract_id, time_from=dates[0], time_to=dates[1],
+                                                category_name=category, return_count=True)
+        page_cnt = math.ceil(all_records['count'] / RECORDS_LIMIT)
     else:
         page_cnt = None
 
