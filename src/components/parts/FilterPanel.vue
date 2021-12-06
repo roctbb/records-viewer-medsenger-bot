@@ -144,7 +144,7 @@ export default {
       }
 
       this.$forceUpdate()
-      // this.update_dates()
+      this.update_dates()
     },
     select_dates: function () {
       let duration = moment(this.dates.range[1]).diff(moment(this.dates.range[0]), 'day')
