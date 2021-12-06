@@ -14,6 +14,7 @@ def get_categories():
         print('connection error', e)
         return {}
 
+
 def get_available_categories(contract_id):
     data = {
         "contract_id": contract_id,
@@ -26,6 +27,7 @@ def get_available_categories(contract_id):
     except Exception as e:
         print('connection error', e)
         return {}
+
 
 def get_patient_info(contract_id):
     data = {
@@ -43,8 +45,8 @@ def get_patient_info(contract_id):
             'birthday': ''
         }
 
-def get_records(contract_id, category_name=None, time_from=None, time_to=None, limit=None, offset=None, full=False):
 
+def get_records(contract_id, category_name=None, time_from=None, time_to=None, limit=None, offset=None, full=False):
     if not full and not category_name:
         return {}
     data = {
@@ -77,6 +79,7 @@ def get_records(contract_id, category_name=None, time_from=None, time_to=None, l
         print('connection error', e)
         return {}
 
+
 def add_record(contract_id, category_name, value, record_time=None):
     data = {
         "contract_id": contract_id,
@@ -92,6 +95,7 @@ def add_record(contract_id, category_name, value, record_time=None):
         requests.post(MAIN_HOST + '/api/agents/records/add', json=data)
     except Exception as e:
         print('connection error', e)
+
 
 def add_records(contract_id, values, record_time=None):
     data = {
