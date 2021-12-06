@@ -1,45 +1,13 @@
-from flask import Flask, jsonify, request, render_template, make_response
-import plotly
-import plotly.graph_objs as go
-from helpers import *
-from agents_api import *
-import pandas as pd
-import numpy as np
 import json
-from transliterate import translit
 import os
 import tempfile
+
 import weasyprint
+from flask import Flask, jsonify, make_response
+
+from helpers import *
 
 app = Flask(__name__)
-
-
-def render_template_to_pdf(template_name_or_list, filename=None, save=False, download=False,
-                           wkhtmltopdf_args=None, **context):
-
-    rendered = render_template(template_name_or_list, **context)
-
-    # Checks to see if the pdf directory exists and generates a random pdf name
-    if PDF_DIR_PATH is None:
-        raise ValueError('PDF_DIR_PATH config variable must be set in the Flask app')
-    if not os.path.isdir(PDF_DIR_PATH):
-        os.makedirs(PDF_DIR_PATH)
-    with tempfile.NamedTemporaryFile(suffix='.pdf', dir=PDF_DIR_PATH, delete=False) as temp_pdf:
-        pass
-
-    pdf = weasyprint.HTML(string=rendered).write_pdf()
-
-    response = make_response(pdf)
-    response.headers['Content-Type'] = 'application/pdf'
-    if download is True:
-        response.headers['Content-Disposition'] = 'attachment; filename=%s.pdf' % filename if filename else temp_pdf.name
-    else:
-        response.headers['Content-Disposition'] = 'inline; filename=%s.pdf' % filename if filename else temp_pdf.name
-
-    if save is False:
-        os.remove(temp_pdf.name)
-
-    return response
 
 
 @app.route('/status', methods=['POST'])
@@ -99,6 +67,10 @@ def message():
 @verify_args
 def get_report(args, form):
     contract_id = args.get('contract_id', '')
+
+    if contract_id not in contracts.keys():
+        init_contract(contract_id)
+
     return get_ui(contract_id)
 
 
