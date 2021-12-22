@@ -1,37 +1,17 @@
 <template>
   <div style="padding-bottom: 15px;">
     <loading v-if="!patient"/>
-    <div style="padding-bottom: 5px;" v-else>
+    <load-error v-else-if="state == 'load-error'"></load-error>
+    <div v-else>
       <dashboard-header :patient="patient"/>
-      <div class="container">
-        <h3>Отчет по мониторингу пациента</h3>
-        <filter-panel/>
-        <button class="btn btn-sm btn-primary" v-if="!mobile" :disabled="state != 'loaded'"
-                @click="generateReport()">Скачать PDF</button>
-        <hr>
 
-        <loading v-if="state == 'loading'"/>
-        <div v-else>
-          <records-list :data="records"/>
-
-          <div class="row" v-if="page_cnt">
-            <button class="btn btn-link btn-sm" @click="select_page(selected_page - 1)" v-if="selected_page > 0">&#8592;
-            </button>
-            <a class="btn btn-link btn-sm" @click="select_page(p)" v-for="(o, p) in new Array(page_cnt)"
-               :style="p == selected_page ? 'font-weight: bold; text-decoration: underline; color: black;' : ''">{{ p + 1 }}</a>
-            <button class="btn btn-link btn-sm" @click="select_page(selected_page + 1)" v-if="selected_page < page_cnt - 1">
-              &#8594;
-            </button>
-          </div>
+      <div v-if="mode == 'settings' || mode == 'graph' || mode == 'report'">
+        <div class="container" style="margin-top: 15px;">
+          <dashboard :patient="patient" :categories="category_list" :mode="mode"
+                     v-show="state == 'dashboard' || state == 'graph-category-chooser'"/>
+          <report :patient="patient" :categories="category_list" :data="data" v-show="state == 'report'"/>
         </div>
-      </div>
-
-      <div v-show="false">
-        <div ref="to-export" class="to-export">
-          <h3>Отчет по мониторингу пациента {{ patient.name }} ({{ patient.birthday }})</h3>
-          <hr>
-          <records-list :data="records" :to_export="true"/>
-        </div>
+        <graph-presenter :patient="patient" v-show="state == 'graph'"/>
       </div>
 
     </div>
@@ -39,106 +19,103 @@
 </template>
 
 <script>
-import html2pdf from 'html2pdf.js'
 import DashboardHeader from "./components/parts/DashboardHeader";
-import Loading from "./components/Loading";
-import FilterPanel from "./components/parts/FilterPanel";
-import RecordsList from "./components/parts/RecordsList";
+import Loading from "./components/parts/Loading";
+import Report from "./components/Report";
+import Dashboard from "./components/Dashboard";
+import LoadError from "./components/LoadError";
+import GraphPresenter from "./components/GraphPresenter";
+import * as moment from "moment/moment";
 
 export default {
   name: 'App',
   components: {
-    FilterPanel,
-    RecordsList,
+    GraphPresenter,
+    LoadError,
+    Dashboard,
+    Report,
     Loading,
     DashboardHeader,
   },
   data() {
     return {
+      mode: undefined,
       state: "loading",
       patient: undefined,
-      records: undefined,
-      page_cnt: undefined,
-      selected_page: undefined,
-      selected_category: undefined,
-      selected_categories: undefined,
-      selected_dates: undefined
+      data: undefined,
     }
   },
   methods: {
     load: function () {
-      this.axios.get(this.url('/api/settings/get_patient')).then((response) => {
-        this.patient = response.data;
-        this.selected_page = 0
-        this.selected_dates = [undefined, undefined]
-        this.selected_categories = []
-        this.load_records()
-      });
+      this.axios.get(this.url('/api/settings/get_patient')).then(response => {
+            this.patient = response.data
+            this.axios.get(this.url('/api/categories')).then(this.process_load_answer);
+          }
+      );
     },
-    load_records: function () {
-      this.state = 'loading'
+    process_load_answer: function (response) {
+      this.category_list = response.data;
 
-      let data = {
-        dates: this.selected_dates.map(date => date ? date.getTime() / 1000 : date),
-        categories: this.selected_categories,
-        page: this.selected_page,
-        category: this.selected_category
+      if (this.mode == 'settings') {
+        this.state = 'dashboard';
       }
 
-      this.axios.post(this.url('/api/report'), data).then(response => {
-        this.records = response.data.dates
+      if (this.mode == 'graph') {
+        this.state = 'graph-category-chooser'
+      }
 
-        if (response.data.page_cnt != null) {
-          this.page_cnt = response.data.page_cnt
+      if (this.mode == 'report') {
+        Event.fire('load-report')
+      }
+    },
+    process_load_error: function (response) {
+      this.state = 'load-error'
+    },
+
+    load_records: function (data) {
+      this.data = null
+
+      this.axios.post(this.url('/api/report'), data).then(response => {
+        this.data = {
+          records: response.data.dates,
+          page: data.page,
+          pages: response.data.page_cnt
         }
 
-        this.state = 'loaded'
+        this.state = 'report'
       });
     },
-    select_page: function (p) {
-      this.selected_page = p
-      this.load_records()
-    },
-    generateReport: function () {
-      this.state = 'exporting'
-
-      let element = this.$refs['to-export']
-      console.log(element)
-      let opt = {
-        margin:       0.5,
-        filename:     this.patient.name + '.pdf',
-        page_break:   { mode: 'css' },
-        // image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { dpi: 192, letterRendering: true },
-        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-      };
-
-      html2pdf().set(opt).from(element).save();
-
-      this.state = "loaded"
-    }
   },
   created() {
+    this.mode = window.MODE
+
     console.log("running created");
     this.load();
 
-    Event.listen('update-dates', (dates) => {
-      this.selected_page = 0
-      this.selected_dates = dates
-      this.load_records()
+    Event.listen('back-to-dashboard', () => this.state = 'dashboard');
+
+    Event.listen('load-records', (data) => {
+      this.load_records(data)
     })
 
-    Event.listen('update-categories', (categories) => {
-      this.selected_page = 0
-      this.selected_categories = categories
-      this.load_records()
+    Event.listen('load-report', () => {
+      let data = {
+        dates: [undefined, undefined],
+        page: 0,
+        category: undefined
+      }
+
+      this.load_records(data)
+      this.state = 'report'
     })
 
-    Event.listen('update-category', (category) => {
-      this.selected_page = 0
-      this.selected_category = category
-      this.load_records()
-    })
+    Event.listen('load-graph', (params) => {
+      this.state = 'graph'
+    });
+    Event.listen('load-heatmap', (params) => {
+      this.state = 'graph'
+    });
+
   },
 }
 </script>
@@ -163,9 +140,5 @@ a {
 
 body {
   background-color: #f8f8fb;
-}
-
-.to-export {
-  font-size: smaller;
 }
 </style>

@@ -1,10 +1,4 @@
-import json
-import os
-import tempfile
-
-import weasyprint
-from flask import Flask, jsonify, make_response
-
+from flask import Flask, jsonify
 from helpers import *
 
 app = Flask(__name__)
@@ -75,7 +69,7 @@ def get_report(args, form):
     if contract_id not in contracts.keys():
         init_contract(contract_id)
 
-    return get_ui(contract_id)
+    return get_ui(contract_id, 'report')
 
 
 @app.route('/api/report', methods=['POST'])
@@ -89,7 +83,53 @@ def get_data(args, form):
     category = data.get('category', None)
 
     result, page_cnt = get_report_page(contract_id, dates, page, category)
-    return jsonify({'dates': result, 'page_cnt': page_cnt})
+    return jsonify({'dates': result, 'page': page, 'page_cnt': page_cnt})
+
+
+@app.route('/graph', methods=['GET'])
+@verify_args
+def graph_page(args, form):
+    contract_id = int(request.args.get('contract_id'))
+    return get_ui(contract_id, 'graph')
+
+
+@app.route('/graph/<category_id>', methods=['GET'])
+@verify_args
+def graph_page_with_args(args, form, category_id):
+    contract_id = int(request.args.get('contract_id'))
+    return get_ui(contract_id, 'graph', object_id=category_id)
+
+
+@app.route('/api/categories', methods=['GET'])
+@verify_args
+def graph_categories(args, form):
+    contract_id = args.get('contract_id')
+    categories = medsenger_api.get_available_categories(contract_id)
+
+    return jsonify(categories)
+
+
+@app.route('/api/graph/group', methods=['POST'])
+@verify_args
+def graph_data(args, form):
+    contract_id = args.get('contract_id')
+    data = request.json
+    group = data.get('group')
+    dates = data.get('dates', None)
+
+    answer = [(medsenger_api.get_records(contract_id, category_name) if dates is None
+               else medsenger_api.get_records(contract_id, category_name, time_from=dates['start'], time_to=dates['end']))
+              for category_name in group['categories']]
+    answer = list(filter(lambda x: x is not None, answer))
+
+    return jsonify(answer)
+
+
+@app.route('/params', methods=['GET'])
+@verify_args
+def get_params(args, data):
+    contract_id = args.get('contract_id')
+    return jsonify(search_params(contract_id))
 
 
 @app.route('/api/settings/get_patient', methods=['GET'])

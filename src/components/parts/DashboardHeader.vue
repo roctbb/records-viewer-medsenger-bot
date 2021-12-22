@@ -3,7 +3,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-12">
-                    <p><strong>Пациент:</strong> {{ patient.name }} ({{ patient.birthday }})</p>
+                    <p><strong>Отчет по мониторингу пациента</strong> {{ patient.name }} ({{ patient.birthday }})</p>
                 </div>
             </div>
         </div>

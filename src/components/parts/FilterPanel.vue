@@ -1,14 +1,34 @@
 <template>
   <div>
-    <form v-if="mobile">
+    <div class="form-group row" style="margin-left: 0">
+      <button class="btn btn-sm btn-danger" @click="go_back()">Назад</button>
+      <button class="btn btn-sm btn-primary" v-if="!mobile && mode == 'report'" :disabled="disable_downloading"
+              @click="generate_report()">Скачать PDF</button>
+      <!-- Категории -->
+      <label class="col-1 col-form-label" v-if="!mobile && mode == 'report'">Категория:</label>
+      <div class="col" v-if="!mobile && mode == 'report'" style="margin-left: 10px">
+        <select class="form-control form-control-sm" id="category" v-model="category" @change="update_category()">
+          <option :value="undefined">Не выбрана</option>
+          <optgroup v-for="(group, name) in group_by(categories, 'subcategory')" :label="name">
+            <option v-for="category in group" :value="category.name">{{ category.description }}</option>
+          </optgroup>
+        </select>
+      </div>
+    </div>
+
+    <div v-if="mobile">
       <!-- Даты -->
       <div class="form-group row" style="margin-left: 0;grid-column-gap: 30px;">
         <date-picker format="c DD.MM.YYYY" v-model="dates.range[0]" @change="select_dates()"></date-picker>
         <date-picker format="по DD.MM.YYYY" v-model="dates.range[1]" @change="select_dates()"></date-picker>
       </div>
       <div class="form-group row" style="margin-left: 0">
-        <button class="btn btn-primary btn-sm" @click="scroll_dates(true)" :disabled="!dates.range[0] || !dates.range[1]">&#8592;</button>
-        <button class="btn btn-primary btn-sm" @click="scroll_dates(false)" :disabled="!dates.range[0] || !dates.range[1]">&#8594;</button>
+        <button class="btn btn-primary btn-sm" @click="scroll_dates(true)" :disabled="!dates.range[0] || !dates.range[1]">
+          &#8592;
+        </button>
+        <button class="btn btn-primary btn-sm" @click="scroll_dates(false)" :disabled="!dates.range[0] || !dates.range[1]">
+          &#8594;
+        </button>
       </div>
       <div class="form-group row">
         <label class="col-sm-1 col-form-label">Период:</label>
@@ -24,22 +44,23 @@
         </div>
       </div>
       <!-- Категории -->
-      <div class="form-group row">
+      <div class="form-group row" v-if="categories">
         <label for="category" class="col-sm-1 col-form-label">Категория:</label>
         <div class="col">
           <select class="form-control form-control-sm" v-model="category" @change="update_category()">
             <option :value="undefined">Не выбрана</option>
-            <optgroup v-for="(group, name) in group_by(category_list, 'subcategory')" :label="name">
+            <optgroup v-for="(group, name) in group_by(categories, 'subcategory')" :label="name">
               <option v-for="category in group" :value="category.name">{{ category.description }}</option>
             </optgroup>
           </select>
         </div>
       </div>
-    </form>
+    </div>
 
 
     <div class="row" v-else>
-      <form class="col-5">
+
+      <div class="col-4">
         <div class="form-group row" style="grid-column-gap: 0;">
           <label class="col-1 col-form-label">Период:</label>
           <div class="col offset-2">
@@ -53,53 +74,25 @@
             </select>
           </div>
         </div>
-        <!-- Категории -->
-        <div class="form-group row" style="grid-column-gap: 0;">
-          <label class="col-sm-1 col-form-label">Категория:</label>
-          <div class="col offset-2">
-            <select class="form-control form-control-sm" id="category" v-model="category"  @change="update_category()">
-              <option :value="undefined">Не выбрана</option>
-              <optgroup v-for="(group, name) in group_by(category_list, 'subcategory')" :label="name">
-                <option v-for="category in group" :value="category.name">{{ category.description }}</option>
-              </optgroup>
-            </select>
-          </div>
-        </div>
-      </form>
+      </div>
+      <!-- Даты -->
       <div class="col">
-        <!-- Даты -->
-        <div class="form-group row" style="margin-left: 0;">
-          <date-picker format="c DD.MM.YYYY" v-model="dates.range[0]" @change="select_dates()"></date-picker>
-          <date-picker format="по DD.MM.YYYY" v-model="dates.range[1]" @change="select_dates()"></date-picker>
-        </div>
-        <div class="form-group row" style="margin-left: 0">
-          <button class="btn btn-primary btn-sm" @click="scroll_dates(true)" :disabled="!dates.range[0] || !dates.range[1]">&#8592;</button>
-          <button class="btn btn-primary btn-sm" @click="scroll_dates(false)" :disabled="!dates.range[0] || !dates.range[1]">&#8594;</button>
-        </div>
+        <button class="btn btn-primary btn-sm" @click="scroll_dates(true)" :disabled="!dates.range[0] || !dates.range[1]">
+          &#8592;
+        </button>
+
+        <date-picker format="c DD.MM.YYYY" v-model="dates.range[0]" @change="select_dates()"></date-picker>
+        <date-picker format="по DD.MM.YYYY" v-model="dates.range[1]" @change="select_dates()"></date-picker>
+
+        <button class="btn btn-primary btn-sm" @click="scroll_dates(false)" :disabled="!dates.range[0] || !dates.range[1]">
+          &#8594;
+        </button>
       </div>
     </div>
-
-    <!--
-    <div>
-      <input class="btn btn-link" type="button" data-toggle="collapse" aria-expanded="false"
-             value="+ Выбрать категории" data-target="#collapse" aria-controls="collapse" style="margin-left: -5px">
-      <div class="collapse" id="collapse">
-        <div class="card card-body">
-
-          <div class="row">
-            <div v-for="(category, i) in category_list">
-              <input type="checkbox" :id="category.name" @change="update_categories()" v-model="category_choice[i]"/>
-              <label :for="category.name">{{ category.description }}</label>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </div>
-    -->
 
     <!-- Ошибки -->
     <error-block :errors="errors" v-if="errors.length"></error-block>
+    <hr>
   </div>
 </template>
 
@@ -112,23 +105,26 @@ import ErrorBlock from "./ErrorBlock";
 
 export default {
   name: "FilterPanel",
-  props: ['data'],
+  props: ['data', 'categories', 'mode', 'disable_downloading'],
   components: {DatePicker, ErrorBlock},
   data() {
     return {
-      dates: [],
+      dates: undefined,
       errors: [],
       category: undefined
       // category_choice: [],
     }
   },
   methods: {
-    update_dates: function () {
-      Event.fire('update-dates', this.dates.range)
+    go_back: function () {
+      Event.fire('back-to-dashboard')
     },
-    update_categories: function () {
-      let chosen = this.category_list.filter((category, index) => this.category_choice[index])
-      Event.fire('update-categories', chosen)
+    generate_report: function () {
+      Event.fire('generate-report')
+    },
+    update_dates: function () {
+      let action = this.mode + '-update-dates'
+      Event.fire(action, this.dates.range)
     },
     update_category: function () {
       Event.fire('update-category', this.category)
@@ -159,7 +155,10 @@ export default {
       this.update_dates()
     },
     group_by: function (categories, field) {
-      return categories.reduce((groups, item) => {
+      if (!this.categories)
+        return []
+
+      return this.categories.reduce((groups, item) => {
         const group = (groups[item[field]] || []);
         group.push(item);
         groups[item[field]] = group;
@@ -168,12 +167,13 @@ export default {
     }
   },
   created() {
+    let range = this.mode == 'report' ?
+        [undefined, new Date(moment().format('YYYY-MM-DD'))] :
+        [new Date(moment().add(-14, 'days').format('YYYY-MM-DD')), new Date(moment().format('YYYY-MM-DD'))]
     this.dates = {
-      range: [undefined, new Date(moment().format('YYYY-MM-DD'))],
-      period: undefined,
+      range: range,
+      period: this.mode == 'report' ? undefined : 14,
     }
-
-    // this.category_choice = this.category_list.map(() => false)
   }
 
 }

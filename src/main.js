@@ -47,9 +47,13 @@ Vue.mixin({
                 ok: window.LOCAL_HOST + '/static/icons/icons8-ok-128.png',
                 error: window.LOCAL_HOST + '/static/icons/icons8-delete-128.png',
                 nothing_found: window.LOCAL_HOST + '/static/icons/icons8-nothing-found-100.png',
+                warning: window.LOCAL_HOST + '/static/icons/icons8-error-18.png',
+                report: window.LOCAL_HOST + '/static/icons/icons8-search-property-96.png',
+                graph: window.LOCAL_HOST + '/static/icons/icons8-graph-96.png',
+                heatmap: window.LOCAL_HOST + '/static/icons/icons8-heat-map-96.png',
             },
             axios: require('axios'),
-            category_list: window.CATEGORY_LIST
+            category_list: undefined
         }
     }
 })

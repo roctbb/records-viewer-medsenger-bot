@@ -32,7 +32,8 @@
                 <span class="text-muted" style="font-size: small">{{ record.params }}</span>
               </more-info-block>
 
-              <div class="text-muted" v-if="to_export">
+              <div class="text-muted" v-if="to_export && record.additions">
+                <h6>Комментарии агентов:</h6>
                 <ul>
                   <li v-for="addition in record.additions" class="text-muted" style="font-size: small">
                     <span v-html="addition.addition.comment"/></li>

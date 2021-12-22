@@ -97,10 +97,10 @@ def verify_json(func):
     return wrapper
 
 
-def get_ui(contract_id, to_export=0):
-    categories = medsenger_api.get_categories()
+def get_ui(contract_id, mode='settings', object_id=None):
+    print('test')
     return render_template('index.html', contract_id=contract_id, agent_token=contracts[str(contract_id)]['agent_token'],
-                           categories=json.dumps(categories), to_export=to_export,
+                           mode=mode, object_id=object_id,
                            api_host=MAIN_HOST.replace('8001', '8000'), local_host=LOCALHOST,
                            agent_id=AGENT_ID, lc=dir_last_updated('static'))
 
@@ -140,12 +140,9 @@ def get_report_page(contract_id, dates, page=0, category=None):
     if not records:
         return data, 0
 
-    if page == 0:
-        all_records = medsenger_api.get_records(contract_id, time_from=dates[0], time_to=dates[1],
+    all_records = medsenger_api.get_records(contract_id, time_from=dates[0], time_to=dates[1],
                                                 category_name=category, return_count=True)
-        page_cnt = math.ceil(all_records['count'] / RECORDS_LIMIT)
-    else:
-        page_cnt = None
+    page_cnt = math.ceil(all_records['count'] / RECORDS_LIMIT)
 
     category_info = records['category'] if category else None
     if category:
@@ -168,3 +165,9 @@ def get_report_page(contract_id, dates, page=0, category=None):
         else:
             data[-1]["records"].append(record)
     return data, page_cnt
+
+
+def search_params(contract):
+    params = {}
+    # fixme
+    return []
