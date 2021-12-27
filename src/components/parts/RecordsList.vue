@@ -25,12 +25,30 @@
               <more-info-block title="Комментарии" :id="'additions' + record.id" v-if="record.additions">
                 <ul>
                   <li v-for="addition in record.additions" class="text-muted" style="font-size: small">
-                    <span v-html="addition.addition.comment"/></li>
+                    <span v-html="addition.addition.comment"/>{{ addition }}
+                  </li>
+                </ul>
+              </more-info-block>
+              <more-info-block title="Результаты по группам" :id="'group_results' + record.id"
+                               v-if="record.params && record.params.group_scores  && !to_export">
+                <ul>
+                  <li v-for="(score, group) in record.params.group_scores" class="text-muted" style="font-size: small">
+                    <strong>{{ group }}:</strong> {{ score }}
+                  </li>
                 </ul>
               </more-info-block>
               <more-info-block title="Технические параметры" :id="'params' + record.id" v-if="record.params && !to_export">
                 <span class="text-muted" style="font-size: small">{{ record.params }}</span>
               </more-info-block>
+
+              <div class="text-muted" v-if="record.params && record.params.group_scores && to_export">
+                <h6>Результаты по группам:</h6>
+                <ul>
+                  <li v-for="(score, group) in record.params.group_scores" class="text-muted" style="font-size: small">
+                    <strong>{{ group }}:</strong> {{ score }}
+                  </li>
+                </ul>
+              </div>
 
               <div class="text-muted" v-if="to_export && record.additions">
                 <h6>Комментарии агентов:</h6>
@@ -60,6 +78,7 @@
 
 <script>
 import MoreInfoBlock from "./MoreInfoBlock";
+
 export default {
   name: "RecordsList",
   components: {MoreInfoBlock},
@@ -80,11 +99,11 @@ body {
   background-color: #f8f8fb;
 }
 
-table.fixed-columns th{
+table.fixed-columns th {
   width: 20%;
 }
 
-table.fixed-columns td{
+table.fixed-columns td {
   width: 80%;
 }
 
