@@ -3,7 +3,8 @@
     <div class="form-group row" style="margin-left: 0">
       <button class="btn btn-sm btn-danger" @click="go_back()">Назад</button>
       <button class="btn btn-sm btn-primary" v-if="!mobile && mode == 'report'" :disabled="disable_downloading"
-              @click="generate_report()">Скачать PDF</button>
+              @click="generate_report()">Скачать PDF
+      </button>
       <!-- Категории -->
       <label class="col-1 col-form-label" v-if="!mobile && mode == 'report'">Категория:</label>
       <div class="col" v-if="!mobile && mode == 'report'" style="margin-left: 10px">
@@ -23,10 +24,10 @@
         <date-picker format="по DD.MM.YYYY" v-model="dates.range[1]" @change="select_dates()"></date-picker>
       </div>
       <div class="form-group row" style="margin-left: 0">
-        <button class="btn btn-primary btn-sm" @click="scroll_dates(true)" :disabled="!dates.range[0] || !dates.range[1]">
+        <button class="btn btn-primary btn-sm" @click="scroll_dates(true)" :disabled="dates.range.some(d => !d)">
           &#8592;
         </button>
-        <button class="btn btn-primary btn-sm" @click="scroll_dates(false)" :disabled="!dates.range[0] || !dates.range[1]">
+        <button class="btn btn-primary btn-sm" @click="scroll_dates(false)" :disabled="dates.range.some(d => !d)">
           &#8594;
         </button>
       </div>
@@ -34,12 +35,13 @@
         <label class="col-sm-1 col-form-label">Период:</label>
         <div :class="mobile ? 'col' :'col-4'">
           <select class="form-control form-control-sm" v-model="dates.period" @change="select_period()">
-            <option :value="30">Месяц</option>
-            <option :value="14">Две недели</option>
-            <option :value="7">Неделя</option>
-            <option :value="3">Три дня</option>
-            <option :value="1">День</option>
-            <option :value="undefined">Не выбран</option>
+            <option :value="30" :disabled="!dates.range[1]">Месяц</option>
+            <option :value="14" :disabled="!dates.range[1]">Две недели</option>
+            <option :value="7" :disabled="!dates.range[1]">Неделя</option>
+            <option :value="3" :disabled="!dates.range[1]">Три дня</option>
+            <option :value="1" :disabled="!dates.range[1]">День</option>
+            <option :value="-1">Все данные</option>
+            <option :value="undefined" disabled>Не выбран</option>
           </select>
         </div>
       </div>
@@ -65,26 +67,27 @@
           <label class="col-1 col-form-label">Период:</label>
           <div class="col offset-2">
             <select class="form-control form-control-sm" v-model="dates.period" @change="select_period()">
-              <option :value="30">Месяц</option>
-              <option :value="14">Две недели</option>
-              <option :value="7">Неделя</option>
-              <option :value="3">Три дня</option>
-              <option :value="1">День</option>
-              <option :value="undefined">Не выбран</option>
+              <option :value="30" :disabled="!dates.range[1]">Месяц</option>
+              <option :value="14" :disabled="!dates.range[1]">Две недели</option>
+              <option :value="7" :disabled="!dates.range[1]">Неделя</option>
+              <option :value="3" :disabled="!dates.range[1]">Три дня</option>
+              <option :value="1" :disabled="!dates.range[1]">День</option>
+              <option :value="-1">Все данные</option>
+              <option :value="undefined" disabled>Не выбран</option>
             </select>
           </div>
         </div>
       </div>
       <!-- Даты -->
       <div class="col">
-        <button class="btn btn-primary btn-sm" @click="scroll_dates(true)" :disabled="!dates.range[0] || !dates.range[1]">
+        <button class="btn btn-primary btn-sm" @click="scroll_dates(true)" :disabled="dates.range.some(d => !d)">
           &#8592;
         </button>
 
         <date-picker format="c DD.MM.YYYY" v-model="dates.range[0]" @change="select_dates()"></date-picker>
         <date-picker format="по DD.MM.YYYY" v-model="dates.range[1]" @change="select_dates()"></date-picker>
 
-        <button class="btn btn-primary btn-sm" @click="scroll_dates(false)" :disabled="!dates.range[0] || !dates.range[1]">
+        <button class="btn btn-primary btn-sm" @click="scroll_dates(false)" :disabled="dates.range.some(d => !d)">
           &#8594;
         </button>
       </div>
@@ -92,7 +95,6 @@
 
     <!-- Ошибки -->
     <error-block :errors="errors" v-if="errors.length"></error-block>
-    <hr>
   </div>
 </template>
 
@@ -143,15 +145,21 @@ export default {
       this.update_dates()
     },
     select_dates: function () {
-      let duration = moment(this.dates.range[1]).diff(moment(this.dates.range[0]), 'day')
-      this.dates.period = [30, 14, 7, 3, 1].includes(duration) ? duration : undefined
+      if (!this.dates.range.some(d => d == undefined)) {
+        let duration = moment(this.dates.range[1]).diff(moment(this.dates.range[0]), 'day')
+        this.dates.period = [30, 14, 7, 3, 1].includes(duration) ? duration : undefined
+      }
 
       this.$forceUpdate()
       this.update_dates()
     },
     select_period: function () {
-      let end = moment(this.dates.range[1])
-      this.dates.range[0] = new Date(end.add(-this.dates.period, 'days').format('YYYY-MM-DD'))
+      if (this.dates.period > 0) {
+        let end = moment(this.dates.range[1])
+        this.dates.range[0] = new Date(end.add(-this.dates.period, 'days').format('YYYY-MM-DD'))
+      } else {
+        this.dates.range = [undefined, new Date()]
+      }
       this.update_dates()
     },
     group_by: function (categories, field) {
@@ -183,10 +191,5 @@ export default {
 .row {
   grid-column-gap: 10px;
   margin-bottom: 5px;
-}
-
-.card-body {
-  background-color: transparent;
-  border-color: transparent;
 }
 </style>

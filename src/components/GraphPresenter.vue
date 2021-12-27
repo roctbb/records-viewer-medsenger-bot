@@ -4,56 +4,6 @@
       <filter-panel mode="graph"/>
     </div>
 
-    <!--
-    <!- выбор периода  ->
-    <div v-if="!mobile">
-      <div class="row">
-        <a class="btn btn-danger btn-sm" @click="go_back()">Назад</a>
-
-        <button class="btn btn-primary btn-sm" @click="scroll_dates(true)">&#8592;</button>
-
-        <date-picker format="с YYYY-MM-DD" v-model="dates.range[0]" @change="select_dates()"></date-picker>
-        <date-picker format="по YYYY-MM-DD" v-model="dates.range[1]" @change="select_dates()"></date-picker>
-
-        <button class="btn btn-primary btn-sm" @click="scroll_dates(false)">&#8594;</button>
-
-        <select class="form-control form-control-sm col-2" v-model="dates.period" @change="select_period()">
-          <option :value="30">Месяц</option>
-          <option :value="14">Две недели</option>
-          <option :value="7">Неделя</option>
-          <option :value="3" v-if="type == 'line'">Три дня</option>
-          <option :value="1" v-if="type == 'line'">День</option>
-          <option :value="-1">Не выбран</option>
-        </select>
-      </div>
-    </div>
-    <div v-else>
-      <div class="row" style="margin-left: 0">
-        <a class="btn btn-danger btn-sm" @click="go_back()">Назад</a>
-      </div>
-      <div class="row">
-        <date-picker class="col" format="с YYYY-MM-DD" v-model="dates.range[0]" @change="select_dates()"></date-picker>
-      </div>
-      <div class="row">
-        <date-picker class="col" format="по YYYY-MM-DD" v-model="dates.range[1]" @change="select_dates()"></date-picker>
-      </div>
-
-      <div class="row" style="margin-left: 0; grid-column-gap: 3px;">
-        <button class="btn btn-primary btn-sm" @click="scroll_dates(true)">&#8592;</button>
-        <button class="btn btn-primary btn-sm" @click="scroll_dates(false)">&#8594;</button>
-
-        <select class="form-control form-control-sm col" style="margin-right: 15px;"
-                v-model="dates.period" @change="select_period()">
-          <option :value="30">Месяц</option>
-          <option :value="14">Две недели</option>
-          <option :value="7">Неделя</option>
-          <option :value="3" v-if="type == 'line'">Три дня</option>
-          <option :value="1" v-if="type == 'line'">День</option>
-          <option :value="-1">Не выбран</option>
-        </select>
-      </div>
-    </div>
--->
     <!-- Ошибки -->
     <error-block :errors="errors" v-if="errors.length"></error-block>
 
@@ -180,7 +130,7 @@ export default {
     }
   },
   methods: {
-    load_data: function (dates) {
+    load_data: function () {
       this.loaded = false
       this.no_data = true
       this.errors = []
@@ -192,8 +142,8 @@ export default {
       let data = {
         group: this.group,
         dates: {
-          start: this.dates[0].getTime() / 1000,
-          end: (this.dates[1].getTime() + this.day) / 1000 - 1,
+          start: this.dates[0] ? this.dates[0].getTime() / 1000 : null,
+          end: this.dates[1] ? (this.dates[1].getTime() + this.day) / 1000 - 1 : null,
         }
       }
 
@@ -206,8 +156,16 @@ export default {
 
     process_load_answer: function (response) {
       this.data = response.data
-      let start = this.dates[0].getTime()
-      let end = this.dates[1].getTime() + this.day - 1
+      let start = this.dates[0] ? this.dates[0].getTime() : undefined
+      let end = this.dates[1] ? this.dates[1].getTime() + this.day - 1 : new Date()
+
+      if (!start) {
+        this.data.forEach(category => {
+          if (!start || start > category.values[0].timestamp * 1000)
+            start = category.values[0].timestamp * 1000
+        })
+        this.dates[0] = new Date(start)
+      }
 
       this.options = {
         chart: this.get_chart(),
