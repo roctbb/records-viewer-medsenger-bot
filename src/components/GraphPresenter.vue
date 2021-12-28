@@ -333,7 +333,7 @@ export default {
       if (!(this.type == 'heatmap' && this.group.categories.includes('symptom') && !this.heatmap_data.show_medicines)) {
         series = series.concat(this.get_medicine_series())
       }
-      if (this.type == 'heatmap' ) {
+      if (this.type == 'heatmap') {
         this.heatmap_data.medicine_series = this.get_medicine_series()
       }
 
@@ -898,23 +898,6 @@ export default {
       if (this.type == 'heatmap' && this.group.categories.includes('symptom') &&
           !this.heatmap_data.categories.symptoms.length) this.no_data = true
     },
-    show_medicines: function () {
-      console.log('axis', this.options.yAxis)
-      if (this.heatmap_data.show_medicines) {
-        this.options.series = this.options.series.concat(this.heatmap_data.medicine_series)
-
-        this.options.yAxis[1].title.text = 'Лекарства'
-
-        this.options.chart.height += 20 * this.heatmap_data.categories.medicines.length
-      } else {
-        let index = this.heatmap_data.categories.symptoms.length
-        this.options.series.splice(index, this.heatmap_data.categories.medicines.length)
-
-        this.options.yAxis[1].title.text = ''
-        this.options.chart.height -= 20 * this.heatmap_data.categories.medicines.length
-      }
-
-    },
 
     fill_nulls: function (data, y) {
       let start = moment(this.dates[0]).set({"hour": 12, "minute": 0, "second": 0}).add(this.offset, 'seconds')
@@ -925,7 +908,7 @@ export default {
       let res = []
 
       while (end >= start) {
-        if (i >= data.length || !end.isSame(moment.unix(data[i].x/ 1000), 'day')) {
+        if (i >= data.length || !end.isSame(moment.unix(data[i].x / 1000), 'day')) {
           res.push({
             dataLabels: {
               enabled: true,
@@ -1010,7 +993,6 @@ export default {
     Event.listen('update-medicines', (mode) => {
       this.heatmap_data.show_medicines = !mode
       this.load_data()
-      // this.show_medicines()
     });
   }
 }

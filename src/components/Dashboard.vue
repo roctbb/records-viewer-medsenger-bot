@@ -1,5 +1,5 @@
 <template>
-  <div v-if="patient && categories">
+  <div v-if="patient && categories && !object_id">
     <div v-if="window_mode != 'graph'">
       <h5>Доступные отчеты</h5>
       <div class="row">
@@ -146,22 +146,24 @@ export default {
     }
   },
   mounted() {
-    if (window.OBJECT_ID) {
-      try {
-        let data = this.categories.filter(c => c.id == window.OBJECT_ID)
-        if (data.length) {
-          let name = data[0].name;
-          let params = this.plottable_categories.filter(c => c.categories.includes(name))[0];
-          let data = {
-            group: params,
-            dates: [new Date(moment().add(-14, 'days').format('YYYY-MM-DD')), new Date(moment().format('YYYY-MM-DD'))]
-          }
+    if (this.object_id) {
+      this.axios.get(this.url('/api/categories')).then(response => {
+        try {
+          let category = response.data.filter(c => c.id == this.object_id)
+          if (category.length) {
+            let name = category[0].name;
+            let params = this.plottable_categories.filter(c => c.categories.includes(name))[0];
+            let data = {
+              group: params,
+              dates: [new Date(moment().add(-14, 'days').format('YYYY-MM-DD')), new Date(moment().format('YYYY-MM-DD'))]
+            }
 
-          Event.fire('load-graph', data);
+            Event.fire('load-graph', data);
+          }
+        } catch (e) {
+          console.log(e);
         }
-      } catch (e) {
-        console.log(e);
-      }
+      });
     }
   }
 }

@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="form-group row" style="margin-left: 0">
-      <button class="btn btn-sm btn-danger" @click="go_back()" v-if="window_mode != 'report'">Назад</button>
+      <button class="btn btn-sm btn-danger" @click="go_back()" v-if="!object_id && window_mode != 'report'">Назад</button>
       <button class="btn btn-sm btn-primary" v-if="!mobile && page == 'report'" :disabled="disable_downloading"
               @click="generate_report()">Скачать PDF
       </button>
@@ -18,13 +18,13 @@
       </div>
 
       <!-- Показать легенду -->
-      <div v-if="page == 'graph'" style="margin-left: 25px">
+      <div v-if="page == 'graph'" :style="object_id ? '' : 'margin-left: 25px'">
         <input type="checkbox" id="hide_legend" v-model="mode" @change="change_mode('legend')"/>
         <label for="hide_legend">Скрыть легенду</label>
       </div>
 
       <!-- Тепловая карта -->
-      <div v-if="page == 'symptoms-heatmap'" style="margin-left: 25px;">
+      <div v-if="page == 'symptoms-heatmap'" :style="object_id ? '' : 'margin-left: 25px'">
         <input type="checkbox" id="show_medicines" @change="change_mode('medicines')" v-model="mode"/>
         <label for="show_medicines">Показать лекарства</label>
       </div>
