@@ -53,7 +53,8 @@ Vue.mixin({
                 heatmap: window.LOCAL_HOST + '/static/icons/icons8-heat-map-96.png',
             },
             axios: require('axios'),
-            category_list: undefined
+            category_list: undefined,
+            window_mode: window.MODE
         }
     }
 })

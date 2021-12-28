@@ -1,13 +1,14 @@
 <template>
   <div>
     <div class="form-group row" style="margin-left: 0">
-      <button class="btn btn-sm btn-danger" @click="go_back()">Назад</button>
-      <button class="btn btn-sm btn-primary" v-if="!mobile && mode == 'report'" :disabled="disable_downloading"
+      <button class="btn btn-sm btn-danger" @click="go_back()" v-if="window_mode != 'report'">Назад</button>
+      <button class="btn btn-sm btn-primary" v-if="!mobile && page == 'report'" :disabled="disable_downloading"
               @click="generate_report()">Скачать PDF
       </button>
+
       <!-- Категории -->
-      <label class="col-1 col-form-label" v-if="!mobile && mode == 'report'">Категория:</label>
-      <div class="col" v-if="!mobile && mode == 'report'" style="margin-left: 10px">
+      <label class="col-1 col-form-label" v-if="!mobile && page == 'report'">Категория:</label>
+      <div class="col" v-if="!mobile && page == 'report'" style="margin-left: 10px">
         <select class="form-control form-control-sm" id="category" v-model="category" @change="update_category()">
           <option :value="undefined">Не выбрана</option>
           <optgroup v-for="(group, name) in group_by(categories, 'subcategory')" :label="name">
@@ -15,6 +16,19 @@
           </optgroup>
         </select>
       </div>
+
+      <!-- Показать легенду -->
+      <div v-if="page == 'graph'" style="margin-left: 25px">
+        <input type="checkbox" id="hide_legend" v-model="mode" @change="change_mode('legend')"/>
+        <label for="hide_legend">Скрыть легенду</label>
+      </div>
+
+      <!-- Тепловая карта -->
+      <div v-if="page == 'symptoms-heatmap'" style="margin-left: 25px;">
+        <input type="checkbox" id="show_medicines" @change="change_mode('medicines')" v-model="mode"/>
+        <label for="show_medicines">Показать лекарства</label>
+      </div>
+
     </div>
 
     <div v-if="mobile">
@@ -107,13 +121,14 @@ import ErrorBlock from "./ErrorBlock";
 
 export default {
   name: "FilterPanel",
-  props: ['data', 'categories', 'mode', 'disable_downloading'],
+  props: ['data', 'categories', 'page', 'disable_downloading'],
   components: {DatePicker, ErrorBlock},
   data() {
     return {
       dates: undefined,
       errors: [],
-      category: undefined
+      category: undefined,
+      mode: false
       // category_choice: [],
     }
   },
@@ -125,11 +140,14 @@ export default {
       Event.fire('generate-report')
     },
     update_dates: function () {
-      let action = this.mode + '-update-dates'
+      let action = (this.page == 'report' ? this.page : 'graph') + '-update-dates'
       Event.fire(action, this.dates.range)
     },
     update_category: function () {
       Event.fire('update-category', this.category)
+    },
+    change_mode: function (target) {
+      Event.fire('update-' + target, !this.mode)
     },
     scroll_dates: function (back) {
       let start = moment(this.dates.range[0])
@@ -175,13 +193,26 @@ export default {
     }
   },
   created() {
-    let range = this.mode == 'report' ?
+    let range = this.page == 'report' ?
         [undefined, new Date(moment().format('YYYY-MM-DD'))] :
         [new Date(moment().add(-14, 'days').format('YYYY-MM-DD')), new Date(moment().format('YYYY-MM-DD'))]
     this.dates = {
       range: range,
-      period: this.mode == 'report' ? undefined : 14,
+      period: this.page == 'report' ? undefined : 14,
     }
+
+    Event.listen('back-to-dashboard', () => {
+      this.dates = {
+        range: range,
+        period: this.page == 'report' ? undefined : 14,
+      }
+      this.mode = false
+    });
+
+    Event.listen('set-start-date', date => {
+      this.dates.range[0] = date
+      this.$forceUpdate()
+    })
   }
 
 }

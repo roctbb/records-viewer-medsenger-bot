@@ -1,26 +1,15 @@
 <template>
   <div>
     <div class="container">
-      <filter-panel mode="graph"/>
+      <filter-panel :page="type == 'line' ? 'graph' :
+      (group.categories &&group.categories.includes('symptom') ? 'symptoms-' : '') + type "/>
     </div>
 
     <!-- Ошибки -->
     <error-block :errors="errors" v-if="errors.length"></error-block>
 
-    <!-- Тепловая карта -->
-    <div style="margin-left: 10px;" class="container" v-if="type == 'heatmap' && group.categories.includes('symptom')">
-      <input type="checkbox" id="show_medicines" @change="load_data()" v-model="heatmap_data.show_medicines"/>
-      <label for="show_medicines">Показать лекарства</label>
-    </div>
-
     <!-- Основная часть -->
     <div v-if="loaded">
-      <!-- График -->
-      <div class="container" v-if="type == 'line' && !no_data">
-        <input type="checkbox" v-model="options.legend.enabled" id="show_legend"/>
-        <label for="show_legend">Показать легенду</label>
-      </div>
-
       <div v-if="no_data" style="margin-top: 100px">
         <p style="text-align: center"><img :src="images.nothing_found"/></p>
 
@@ -118,7 +107,8 @@ export default {
       statistics: [],
       type: undefined,
       loaded: false,
-      no_data: true
+      no_data: true,
+      show_legend: true
     }
   },
   computed: {
@@ -161,10 +151,16 @@ export default {
 
       if (!start) {
         this.data.forEach(category => {
-          if (!start || start > category.values[0].timestamp * 1000)
-            start = category.values[0].timestamp * 1000
+          if (category.values.length) {
+            if (!start || start > category.values[0].timestamp * 1000)
+              start = category.values[0].timestamp * 1000
+            if (start > category.values[category.values.length - 1].timestamp * 1000)
+              start = category.values[category.values.length - 1].timestamp * 1000
+          }
+
         })
         this.dates[0] = new Date(start)
+        Event.fire('set-start-date', this.dates[0])
       }
 
       this.options = {
@@ -248,7 +244,7 @@ export default {
           }
         }
         this.options.legend = {
-          enabled: true,
+          enabled: this.show_legend,
           itemDistance: 70,
           labelFormatter: function () {
             return this.name
@@ -314,14 +310,11 @@ export default {
           this.options.yAxis[1].height = 20 * this.heatmap_data.categories.medicines.length
 
           if (!this.heatmap_data.show_medicines || !this.heatmap_data.categories.medicines.length) {
-            this.options.yAxis.splice(1, 2)
+            this.heatmap_data.axis = this.options.yAxis.splice(1, 2)
             let count = this.heatmap_data.categories.medicines.length
             this.options.chart.height -= count * 20
           }
 
-          // if (this.heatmap_data.categories.symptoms.length) {
-          //     this.heatmap_data.show_medicines = false
-          // }
         } else {
           this.options.yAxis.splice(0, 1)
         }
@@ -339,6 +332,9 @@ export default {
 
       if (!(this.type == 'heatmap' && this.group.categories.includes('symptom') && !this.heatmap_data.show_medicines)) {
         series = series.concat(this.get_medicine_series())
+      }
+      if (this.type == 'heatmap' ) {
+        this.heatmap_data.medicine_series = this.get_medicine_series()
       }
 
       if (this.type == 'line') {
@@ -717,7 +713,7 @@ export default {
         animation: false,
         zoomType: '',
         backgroundColor: "#f8f8fb",
-        height: window.innerHeight,
+        height: `${window.innerHeight - 200}px`,
         width: window.innerWidth,
         renderTo: 'container'
       }
@@ -903,6 +899,7 @@ export default {
           !this.heatmap_data.categories.symptoms.length) this.no_data = true
     },
     show_medicines: function () {
+      console.log('axis', this.options.yAxis)
       if (this.heatmap_data.show_medicines) {
         this.options.series = this.options.series.concat(this.heatmap_data.medicine_series)
 
@@ -920,21 +917,15 @@ export default {
     },
 
     fill_nulls: function (data, y) {
-      let start = this.dates[0]
-      start.setHours(12, 0, 0)
-      start = start.getTime() + this.offset * 1000
-
-      let end = this.dates[1]
-      end.setDate(end.getDate() + 1)
-      end.setHours(12, 0, 0)
-      end = end.getTime() + this.offset * 1000
+      let start = moment(this.dates[0]).set({"hour": 12, "minute": 0, "second": 0}).add(this.offset, 'seconds')
+      let end = moment(this.dates[1]).add(2, 'day').set({"hour": 12, "minute": 0, "second": 0}).add(this.offset, 'seconds')
 
 
       let i = 0
       let res = []
 
       while (end >= start) {
-        if (i >= data.length || end != data[i].x) {
+        if (i >= data.length || !end.isSame(moment.unix(data[i].x/ 1000), 'day')) {
           res.push({
             dataLabels: {
               enabled: true,
@@ -942,7 +933,7 @@ export default {
                 return ''
               },
             },
-            x: end,
+            x: end.valueOf(),
             y: y,
             value: null,
             comment: 'Нет данных',
@@ -951,7 +942,7 @@ export default {
           res.push(data[i])
           i += 1
         }
-        end -= this.day
+        end.subtract(1, 'day')
       }
       return res
     },
@@ -1008,6 +999,18 @@ export default {
     Event.listen('graph-update-dates', (dates) => {
       this.dates = dates
       this.load_data()
+    });
+
+    Event.listen('update-legend', (mode) => {
+      this.show_legend = mode
+      if (this.options)
+        this.options.legend.enabled = mode
+    });
+
+    Event.listen('update-medicines', (mode) => {
+      this.heatmap_data.show_medicines = !mode
+      this.load_data()
+      // this.show_medicines()
     });
   }
 }

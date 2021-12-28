@@ -1,6 +1,6 @@
 <template>
   <div>
-    <filter-panel mode="report" :categories="categories" :disable_downloading="!data || !data.records.length"/>
+    <filter-panel page="report" :categories="categories" :disable_downloading="!data || !data.records.length"/>
     <loading v-if="!data"/>
     <div v-else>
       <records-list :data="data.records"/>
