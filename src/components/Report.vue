@@ -3,8 +3,13 @@
     <filter-panel page="report" :categories="categories" :disable_downloading="!data || !data.records.length"/>
     <loading v-if="!data"/>
     <div v-else>
+      <!-- Ошибки -->
+      <error-block :errors="errors" v-if="errors.length"></error-block>
+
+      <!-- Записи -->
       <records-list :data="data.records"/>
 
+      <!-- Список страниц -->
       <div class="row" v-if="data.pages">
         <button class="btn btn-link btn-sm" @click="select_page(page - 1)" v-if="page > 0">&#8592;
         </button>
@@ -15,6 +20,7 @@
         </button>
       </div>
 
+      <!-- Для экспорта -->
       <div v-show="false">
         <div ref="to-export" class="to-export">
           <h3>Отчет по мониторингу пациента {{ patient.name }} ({{ patient.birthday }})</h3>
@@ -32,10 +38,11 @@ import RecordsList from "./parts/RecordsList";
 import FilterPanel from "./parts/FilterPanel";
 import html2pdf from "html2pdf.js";
 import Loading from "./parts/Loading";
+import ErrorBlock from "./parts/ErrorBlock";
 
 export default {
   name: "Report",
-  components: {Loading, FilterPanel, RecordsList},
+  components: {Loading, FilterPanel, ErrorBlock, RecordsList},
   props: {
     patient: {
       required: true
@@ -51,11 +58,13 @@ export default {
     return {
       page: undefined,
       category: undefined,
-      dates: undefined
+      dates: undefined,
+      errors: []
     }
   },
   methods: {
     load: function () {
+      this.errors = []
       let data = {
         dates: this.dates.map(date => date ? date.getTime() / 1000 : date),
         page: this.page,
@@ -102,6 +111,11 @@ export default {
     Event.listen('generate-report', () => {
       this.generate_report()
     })
+
+    Event.listen('incorrect-dates', () => {
+      this.errors = ['Выбран некорректный период']
+    })
+
   },
 }
 </script>

@@ -123,7 +123,6 @@ export default {
     load_data: function () {
       this.loaded = false
       this.no_data = true
-      this.errors = []
 
       if (this.type == 'line' && !this.group.categories.includes('symptom')) {
         this.group.categories = this.group.categories.concat(['symptom', 'medicine'])
@@ -137,11 +136,10 @@ export default {
         }
       }
 
-      if (data.dates.start > data.dates.end) {
-        this.errors = ['Выбран некорректный период']
-        return
+      if (data.dates.start < data.dates.end) {
+        this.errors = []
+        this.axios.post(this.url('/api/graph/group'), data).then(this.process_load_answer);
       }
-      this.axios.post(this.url('/api/graph/group'), data).then(this.process_load_answer);
     },
 
     process_load_answer: function (response) {
@@ -994,6 +992,10 @@ export default {
       this.heatmap_data.show_medicines = !mode
       this.load_data()
     });
+
+    Event.listen('incorrect-dates', () => {
+      this.errors.unshift('Выбран некорректный период')
+    })
   }
 }
 </script>

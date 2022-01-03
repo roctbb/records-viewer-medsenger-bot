@@ -1,53 +1,12 @@
 <template>
   <div>
-    <div class="form-group row" style="margin-left: 0">
-      <button class="btn btn-sm btn-danger" @click="go_back()" v-if="!object_id && window_mode != 'report'">Назад</button>
-      <button class="btn btn-sm btn-primary" v-if="!mobile && page == 'report'" :disabled="disable_downloading"
-              @click="generate_report()">Скачать PDF
-      </button>
-
-      <!-- Категории -->
-      <label class="col-1 col-form-label" v-if="!mobile && page == 'report'">Категория:</label>
-      <div class="col" v-if="!mobile && page == 'report'" style="margin-left: 10px">
-        <select class="form-control form-control-sm" id="category" v-model="category" @change="update_category()">
-          <option :value="undefined">Не выбрана</option>
-          <optgroup v-for="(group, name) in group_by(categories, 'subcategory')" :label="name">
-            <option v-for="category in group" :value="category.name">{{ category.description }}</option>
-          </optgroup>
-        </select>
-      </div>
-
-      <!-- Показать легенду -->
-      <div v-if="page == 'graph'" :style="object_id ? '' : 'margin-left: 25px'">
-        <input type="checkbox" id="hide_legend" v-model="mode" @change="change_mode('legend')"/>
-        <label for="hide_legend">Скрыть легенду</label>
-      </div>
-
-      <!-- Тепловая карта -->
-      <div v-if="page == 'symptoms-heatmap'" :style="object_id ? '' : 'margin-left: 25px'">
-        <input type="checkbox" id="show_medicines" @change="change_mode('medicines')" v-model="mode"/>
-        <label for="show_medicines">Показать лекарства</label>
-      </div>
-
-    </div>
-
-    <div v-if="mobile">
-      <!-- Даты -->
-      <div class="form-group row" style="margin-left: 0;grid-column-gap: 30px;">
-        <date-picker format="c DD.MM.YYYY" v-model="dates.range[0]" @change="select_dates()"></date-picker>
-        <date-picker format="по DD.MM.YYYY" v-model="dates.range[1]" @change="select_dates()"></date-picker>
-      </div>
-      <div class="form-group row" style="margin-left: 0">
-        <button class="btn btn-primary btn-sm" @click="scroll_dates(true)" :disabled="dates.range.some(d => !d)">
-          &#8592;
+    <div v-if="!mobile" style="margin: 0 15px">
+      <div class="row">
+        <button class="btn btn-sm btn-danger col-sm-1" @click="go_back()" v-if="!object_id && window_mode == 'settings'">Назад
         </button>
-        <button class="btn btn-primary btn-sm" @click="scroll_dates(false)" :disabled="dates.range.some(d => !d)">
-          &#8594;
-        </button>
-      </div>
-      <div class="form-group row">
-        <label class="col-sm-1 col-form-label">Период:</label>
-        <div :class="mobile ? 'col' :'col-4'">
+
+        <!-- Период -->
+        <div class="col" :style="window_mode != 'settings' ? 'margin-left: -15px' : ''">
           <select class="form-control form-control-sm" v-model="dates.period" @change="select_period()">
             <option :value="30" :disabled="!dates.range[1]">Месяц</option>
             <option :value="14" :disabled="!dates.range[1]">Две недели</option>
@@ -55,16 +14,47 @@
             <option :value="3" :disabled="!dates.range[1]">Три дня</option>
             <option :value="1" :disabled="!dates.range[1]">День</option>
             <option :value="-1">Все данные</option>
-            <option :value="undefined" disabled>Не выбран</option>
+            <option :value="undefined" disabled>Период не выбран</option>
           </select>
         </div>
+        <!-- Даты -->
+        <div>
+          <button class="btn btn-primary btn-sm" @click="scroll_dates(true)" :disabled="dates.range.some(d => !d)">
+            &#8592;
+          </button>
+
+          <date-picker format="c DD.MM.YYYY" v-model="dates.range[0]" @change="select_dates()"/>
+          <date-picker format="по DD.MM.YYYY" v-model="dates.range[1]" @change="select_dates()"/>
+
+          <button class="btn btn-primary btn-sm" @click="scroll_dates(false)" :disabled="dates.range.some(d => !d)">
+            &#8594;
+          </button>
+        </div>
+
+        <!-- Показать легенду -->
+        <div v-if="page == 'graph'" style="padding-top: 5px;">
+          <input type="checkbox" id="hide_legend" v-model="mode" @change="change_mode('legend')"/>
+          <label for="hide_legend">Скрыть легенду</label>
+        </div>
+
+        <!-- Тепловая карта -->
+        <div v-if="page == 'symptoms-heatmap'" style="padding-top: 5px;">
+          <input type="checkbox" id="show_medicines" @change="change_mode('medicines')" v-model="mode"/>
+          <label for="show_medicines">Показать лекарства</label>
+        </div>
+
+        <!-- Отчет -->
+        <button class="btn btn-sm btn-primary" v-if="page == 'report'" :disabled="disable_downloading"
+                @click="generate_report()">Скачать PDF
+        </button>
       </div>
+
       <!-- Категории -->
-      <div class="form-group row" v-if="categories">
-        <label for="category" class="col-sm-1 col-form-label">Категория:</label>
-        <div class="col">
+      <div class="row" v-if="page == 'report' && categories">
+        <div :class="`${window_mode == 'report' ? '' : 'offset-1'} col`"
+             :style="`padding-left: ${window_mode == 'report' ? 0 : 25}px; padding-right: 0px`">
           <select class="form-control form-control-sm" v-model="category" @change="update_category()">
-            <option :value="undefined">Не выбрана</option>
+            <option :value="undefined">Категория не выбрана</option>
             <optgroup v-for="(group, name) in group_by(categories, 'subcategory')" :label="name">
               <option v-for="category in group" :value="category.name">{{ category.description }}</option>
             </optgroup>
@@ -73,42 +63,62 @@
       </div>
     </div>
 
-
-    <div class="row" v-else>
-
-      <div class="col-4">
-        <div class="form-group row" style="grid-column-gap: 0;">
-          <label class="col-1 col-form-label">Период:</label>
-          <div class="col offset-2">
-            <select class="form-control form-control-sm" v-model="dates.period" @change="select_period()">
-              <option :value="30" :disabled="!dates.range[1]">Месяц</option>
-              <option :value="14" :disabled="!dates.range[1]">Две недели</option>
-              <option :value="7" :disabled="!dates.range[1]">Неделя</option>
-              <option :value="3" :disabled="!dates.range[1]">Три дня</option>
-              <option :value="1" :disabled="!dates.range[1]">День</option>
-              <option :value="-1">Все данные</option>
-              <option :value="undefined" disabled>Не выбран</option>
-            </select>
-          </div>
+    <!-- Мобильная версия -->
+    <div v-else>
+      <div class="row" :style="`margin-left: ${window_mode != 'settings' ? -15 : 0}px`">
+        <button class="btn btn-sm btn-danger" @click="go_back()" v-if="!object_id && window_mode == 'settings'">Назад</button>
+        <!-- Период -->
+        <div class="col">
+          <select class="form-control form-control-sm" v-model="dates.period" @change="select_period()">
+            <option :value="30" :disabled="!dates.range[1]">Месяц</option>
+            <option :value="14" :disabled="!dates.range[1]">Две недели</option>
+            <option :value="7" :disabled="!dates.range[1]">Неделя</option>
+            <option :value="3" :disabled="!dates.range[1]">Три дня</option>
+            <option :value="1" :disabled="!dates.range[1]">День</option>
+            <option :value="-1">Все данные</option>
+            <option :value="undefined" disabled>Период не выбран</option>
+          </select>
         </div>
       </div>
+
       <!-- Даты -->
-      <div class="col">
+      <div class="row" style="margin-left: -15px; column-gap: 0">
+        <date-picker class="col" format="c DD.MM.YYYY" placeholder="Выбрать начало периода" v-model="dates.range[0]" @change="select_dates()"/>
+        <date-picker class="col" format="по DD.MM.YYYY" placeholder="Выбрать конец периода" v-model="dates.range[1]" @change="select_dates()"/>
+      </div>
+
+      <div class="row" style="margin-left: 0">
         <button class="btn btn-primary btn-sm" @click="scroll_dates(true)" :disabled="dates.range.some(d => !d)">
           &#8592;
         </button>
-
-        <date-picker format="c DD.MM.YYYY" v-model="dates.range[0]" @change="select_dates()"></date-picker>
-        <date-picker format="по DD.MM.YYYY" v-model="dates.range[1]" @change="select_dates()"></date-picker>
-
         <button class="btn btn-primary btn-sm" @click="scroll_dates(false)" :disabled="dates.range.some(d => !d)">
           &#8594;
         </button>
+
+        <!-- Показать легенду -->
+        <div v-if="page == 'graph'" style="padding-top: 5px;">
+          <input type="checkbox" id="hide_legend_mobile" v-model="mode" @change="change_mode('legend')"/>
+          <label for="hide_legend_mobile">Скрыть легенду</label>
+        </div>
+
+        <!-- Тепловая карта -->
+        <div v-if="page == 'symptoms-heatmap'" style="padding-top: 5px;">
+          <input type="checkbox" id="show_medicines_mobile" @change="change_mode('medicines')" v-model="mode"/>
+          <label for="show_medicines_mobile">Показать лекарства</label>
+        </div>
+
+        <!-- Категории -->
+        <div class="col" v-if="page == 'report' && categories">
+          <select class="form-control form-control-sm" v-model="category" @change="update_category()">
+            <option :value="undefined">Категория не выбрана</option>
+            <optgroup v-for="(group, name) in group_by(categories, 'subcategory')" :label="name">
+              <option v-for="category in group" :value="category.name">{{ category.description }}</option>
+            </optgroup>
+          </select>
+        </div>
+
       </div>
     </div>
-
-    <!-- Ошибки -->
-    <error-block :errors="errors" v-if="errors.length"></error-block>
   </div>
 </template>
 
@@ -117,16 +127,14 @@ import * as moment from "moment/moment";
 import DatePicker from 'vue2-datepicker';
 import 'vue2-datepicker/index.css';
 import 'vue2-datepicker/locale/ru';
-import ErrorBlock from "./ErrorBlock";
 
 export default {
   name: "FilterPanel",
   props: ['data', 'categories', 'page', 'disable_downloading'],
-  components: {DatePicker, ErrorBlock},
+  components: {DatePicker},
   data() {
     return {
       dates: undefined,
-      errors: [],
       category: undefined,
       mode: false
       // category_choice: [],
@@ -166,6 +174,11 @@ export default {
       if (!this.dates.range.some(d => d == undefined)) {
         let duration = moment(this.dates.range[1]).diff(moment(this.dates.range[0]), 'day')
         this.dates.period = [30, 14, 7, 3, 1].includes(duration) ? duration : undefined
+
+        if (duration < 0) {
+          Event.fire('incorrect-dates')
+          return
+        }
       }
 
       this.$forceUpdate()
