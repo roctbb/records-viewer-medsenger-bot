@@ -57,18 +57,17 @@ export default {
   data() {
     return {
       page: undefined,
-      category: undefined,
       dates: undefined,
       errors: []
     }
   },
   methods: {
-    load: function () {
+    load: function (categories) {
       this.errors = []
       let data = {
         dates: this.dates.map(date => date ? date.getTime() / 1000 : date),
         page: this.page,
-        category: this.category
+        categories: categories.length ? categories.map(c => c.name) : null
       }
 
       Event.fire('load-records', data)
@@ -102,10 +101,9 @@ export default {
       this.load()
     })
 
-    Event.listen('update-category', (category) => {
+    Event.listen('update-categories', (categories) => {
       this.page = 0
-      this.category = category
-      this.load()
+      this.load(categories)
     })
 
     Event.listen('generate-report', () => {

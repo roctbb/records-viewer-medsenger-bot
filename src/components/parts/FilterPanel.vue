@@ -53,12 +53,14 @@
       <div class="row" v-if="page == 'report' && categories">
         <div :class="`${window_mode == 'report' ? '' : 'offset-1'} col`"
              :style="`padding-left: ${window_mode == 'report' ? 0 : 25}px; padding-right: 0px`">
-          <select class="form-control form-control-sm" v-model="category" @change="update_category()">
-            <option :value="undefined">Категория не выбрана</option>
-            <optgroup v-for="(group, name) in group_by(categories, 'subcategory')" :label="name">
-              <option v-for="category in group" :value="category.name">{{ category.description }}</option>
-            </optgroup>
-          </select>
+          <multiselect v-model="selected_categories" :options="category_groups" :multiple="true"
+                       :close-on-select="false" :clear-on-select="false" :preserve-search="true"
+                       group-values="categories" group-label="group" :group-select="true"
+                       label="description" track-by="description"
+                       placeholder="Введите название категории..."
+                       select-label="Выбрать" selected-label="Выбрано" select-group-label="Выбрать всю группу"
+                       deselect-group-label="Убрать всю группу" deselect-label="Убрать"
+                       @input="update_categories"></multiselect>
         </div>
       </div>
     </div>
@@ -83,15 +85,19 @@
 
       <!-- Даты -->
       <div class="row" style="margin-left: -15px; column-gap: 0">
-        <date-picker class="col" format="c DD.MM.YYYY" placeholder="Выбрать начало периода" v-model="dates.range[0]" @change="select_dates()"/>
-        <date-picker class="col" format="по DD.MM.YYYY" placeholder="Выбрать конец периода" v-model="dates.range[1]" @change="select_dates()"/>
+        <date-picker class="col" format="c DD.MM.YYYY" placeholder="Выбрать начало периода" v-model="dates.range[0]"
+                     @change="select_dates()"/>
+        <date-picker class="col" format="по DD.MM.YYYY" placeholder="Выбрать конец периода" v-model="dates.range[1]"
+                     @change="select_dates()"/>
       </div>
 
       <div class="row" style="margin-left: 0">
-        <button class="btn btn-primary btn-sm" @click="scroll_dates(true)" :disabled="dates.range.some(d => !d)">
+        <button class="btn btn-primary btn-sm" @click="scroll_dates(true)" :disabled="dates.range.some(d => !d)"
+                style="height: 42px">
           &#8592;
         </button>
-        <button class="btn btn-primary btn-sm" @click="scroll_dates(false)" :disabled="dates.range.some(d => !d)">
+        <button class="btn btn-primary btn-sm" @click="scroll_dates(false)" :disabled="dates.range.some(d => !d)"
+                style="height: 42px">
           &#8594;
         </button>
 
@@ -109,12 +115,14 @@
 
         <!-- Категории -->
         <div class="col" v-if="page == 'report' && categories">
-          <select class="form-control form-control-sm" v-model="category" @change="update_category()">
-            <option :value="undefined">Категория не выбрана</option>
-            <optgroup v-for="(group, name) in group_by(categories, 'subcategory')" :label="name">
-              <option v-for="category in group" :value="category.name">{{ category.description }}</option>
-            </optgroup>
-          </select>
+          <multiselect v-model="selected_categories" :options="category_groups" :multiple="true"
+                       :close-on-select="false" :clear-on-select="false" :preserve-search="true"
+                       group-values="categories" group-label="group" :group-select="true"
+                       label="description" track-by="description"
+                       placeholder="Введите название категории..."
+                       select-label="Выбрать" selected-label="Выбрано" select-group-label="Выбрать всю группу"
+                       deselect-group-label="Убрать всю группу" deselect-label="Убрать"
+                       @input="update_categories"></multiselect>
         </div>
 
       </div>
@@ -125,19 +133,32 @@
 <script>
 import * as moment from "moment/moment";
 import DatePicker from 'vue2-datepicker';
+import Multiselect from 'vue-multiselect'
 import 'vue2-datepicker/index.css';
 import 'vue2-datepicker/locale/ru';
 
 export default {
   name: "FilterPanel",
   props: ['data', 'categories', 'page', 'disable_downloading'],
-  components: {DatePicker},
+  components: {DatePicker, Multiselect},
   data() {
     return {
       dates: undefined,
       category: undefined,
+      selected_categories: [],
       mode: false
-      // category_choice: [],
+    }
+  },
+  computed: {
+    category_groups() {
+      let groups = []
+      Object.entries(this.group_by(this.categories, 'subcategory')).forEach(([group, categories]) => {
+        groups.push({
+          group: group,
+          categories: categories
+        })
+      })
+      return groups
     }
   },
   methods: {
@@ -151,8 +172,8 @@ export default {
       let action = (this.page == 'report' ? this.page : 'graph') + '-update-dates'
       Event.fire(action, this.dates.range)
     },
-    update_category: function () {
-      Event.fire('update-category', this.category)
+    update_categories: function (value) {
+      Event.fire('update-categories', this.selected_categories)
     },
     change_mode: function (target) {
       Event.fire('update-' + target, !this.mode)
@@ -200,7 +221,7 @@ export default {
       return this.categories.reduce((groups, item) => {
         const group = (groups[item[field]] || []);
         group.push(item);
-        groups[item[field]] = group;
+        groups[item[field] ? item[field] : 'Общее'] = group;
         return groups;
       }, {});
     }
@@ -231,9 +252,19 @@ export default {
 }
 </script>
 
-<style scoped>
+<style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
+<style>
 .row {
   grid-column-gap: 10px;
   margin-bottom: 5px;
+}
+
+.multiselect__tag {
+  white-space: unset;
+  margin-bottom: 0;
+}
+
+.multiselect__option {
+  white-space: unset;
 }
 </style>

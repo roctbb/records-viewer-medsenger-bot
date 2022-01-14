@@ -131,25 +131,26 @@ def get_patient_data(contract_id):
     return patient
 
 
-def get_report_page(contract_id, dates, page=0, category=None):
+def get_report_page(contract_id, dates, page=0, categories=None):
     data = []
-    records = medsenger_api.get_records(contract_id, time_from=dates[0], time_to=dates[1], category_name=category,
+    records = medsenger_api.get_records(contract_id, time_from=dates[0], time_to=dates[1],
+                                        category_name=','.join(categories) if categories else None,
                                         limit=RECORDS_LIMIT, offset=page * RECORDS_LIMIT)
 
     if not records:
         return data, 0
 
-    all_records = medsenger_api.get_records(contract_id, time_from=dates[0], time_to=dates[1],
-                                                category_name=category, return_count=True)
+    all_records = medsenger_api.get_records(contract_id, time_from=dates[0], time_to=dates[1], return_count=True,
+                                            category_name=','.join(categories) if categories else None)
     page_cnt = math.ceil(all_records['count'] / RECORDS_LIMIT)
 
-    category_info = records['category'] if category else None
-    if category:
+    category_info = records['category'] if categories and len(categories) == 1 else None
+    if category_info:
         records = records['values']
 
     current_date = None
     for record in records:
-        if category:
+        if categories and len(categories) == 1:
             record['category_info'] = category_info
         elif record['category_info']['default_representation'] == 'non_zero_dates' and record['value'] == 0:
             continue
@@ -159,7 +160,7 @@ def get_report_page(contract_id, dates, page=0, category=None):
         if not current_date or current_date != record_date:
             current_date = record_date
             data.append({"date": current_date, "records": [], "symptoms": []})
-        if not category and record['category_info']['default_representation'] == 'non_zero_dates':
+        if not categories and record['category_info']['default_representation'] == 'non_zero_dates':
             data[-1]["symptoms"].append(record)
         else:
             data[-1]["records"].append(record)

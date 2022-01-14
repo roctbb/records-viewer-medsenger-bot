@@ -80,9 +80,9 @@ def get_data(args, form):
 
     page = data.get('page', 0)
     dates = data.get('dates', None)
-    category = data.get('category', None)
+    categories = data.get('categories', None)
 
-    result, page_cnt = get_report_page(contract_id, dates, page, category)
+    result, page_cnt = get_report_page(contract_id, dates, page, categories)
     return jsonify({'dates': result, 'page': page, 'page_cnt': page_cnt})
 
 
