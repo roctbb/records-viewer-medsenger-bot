@@ -69,7 +69,7 @@ def get_report(args, form):
     if contract_id not in contracts.keys():
         init_contract(contract_id)
 
-    return get_ui(contract_id, 'report')
+    return get_ui(contract_id)
 
 
 @app.route('/api/report', methods=['POST'])
