@@ -93,11 +93,11 @@
 
       <div class="row" style="margin-left: 0">
         <button class="btn btn-primary btn-sm" @click="scroll_dates(true)" :disabled="dates.range.some(d => !d)"
-                style="height: 42px">
+                style="height: 40px">
           &#8592;
         </button>
         <button class="btn btn-primary btn-sm" @click="scroll_dates(false)" :disabled="dates.range.some(d => !d)"
-                style="height: 42px">
+                style="height: 40px">
           &#8594;
         </button>
 
