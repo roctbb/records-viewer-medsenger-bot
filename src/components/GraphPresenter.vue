@@ -125,7 +125,7 @@ export default {
       this.no_data = true
 
       if (this.type == 'line' && !this.group.categories.includes('symptom')) {
-        this.group.categories = this.group.categories.concat(['symptom', 'medicine'])
+        this.group.categories = this.group.categories.concat(['symptom', 'medicine', 'patient_comment'])
       }
 
       let data = {
@@ -326,7 +326,7 @@ export default {
     },
     get_series: function () {
       let series = []
-      series = series.concat(this.get_symptom_series())
+      series = series.concat(this.get_text_series({name: 'symptom', description: 'Симптом', y: -3}))
 
       if (!(this.type == 'heatmap' && this.group.categories.includes('symptom') && !this.heatmap_data.show_medicines)) {
         series = series.concat(this.get_medicine_series())
@@ -337,6 +337,8 @@ export default {
 
       if (this.type == 'line') {
         let graph_series = this.get_graph_series()
+        let comment_series = this.get_text_series({name: 'patient_comment', description:'Комментарий', y: -5})
+        series = comment_series.concat(series)
         series = graph_series.concat(series)
 
         if (graph_series.length && graph_series.map(s => s.data.length).reduce((a, b) => a + b) > 500) {
@@ -457,17 +459,17 @@ export default {
 
       return series
     },
-    get_symptom_series: function () {
+    get_text_series: function (data) {
       let series
 
       if (this.type == 'line') {
-        series = this.data.filter((graph) => graph.category.name == 'symptom').map((graph) => {
+        series = this.data.filter((graph) => graph.category.name == data.name).map((graph) => {
           let series_data = {
-            name: 'Симптом',
-            code: 'symptom',
+            name: data.description,
+            code: data.name,
             values: graph.values,
             marker: 'triangle',
-            y: -3
+            y: data.y
           }
 
           return this.prepare_series(series_data)
@@ -476,7 +478,7 @@ export default {
         let symptoms = {}
         let y = 0;
 
-        this.data.filter((graph) => graph.category.name == 'symptom').forEach((graph) => {
+        this.data.filter((graph) => graph.category.name == category.name).forEach((graph) => {
           graph.values.forEach((symptom) => {
             let x = new Date((symptom.timestamp) * 1000)
             x.setHours(12, 0, 0)
@@ -558,11 +560,15 @@ export default {
           enabled: false
         }
 
-        if (['symptom', 'medicine'].includes(data.code)) {
+        if (['symptom', 'medicine', 'patient_comment'].includes(data.code)) {
           series.yAxis = 1
           series.lineWidth = 0
           if (data.code == 'symptom') {
             series.color = '#ad0eca'
+            series.marker.radius = 5
+          }
+          if (data.code == 'patient_comment') {
+            series.color = '#0e17ca'
             series.marker.radius = 5
           }
         } else {
@@ -576,7 +582,7 @@ export default {
         series.colsize = this.day
         series.connectNulls = true
 
-        series.nullColor = '#50B432'
+        series.nullColor = 'rgba(80,180,50,0.5)'
         series.borderWidth = 1
         series.borderColor = '#555555'
       }
@@ -600,7 +606,7 @@ export default {
               }, `Прием лекарства`),
             }
           })
-        } else if (data.code == 'symptom') {
+        } else if (['symptom', 'patient_comment'].includes(data.code)) {
           res = data.values.map((value) => {
             let x = new Date((value.timestamp) * 1000)
             x.setHours(12, 0, 0)
@@ -681,7 +687,8 @@ export default {
 
         axis.labels = {
           align: 'right',
-          x: -3
+          x: -5,
+          enabled: !index
         }
         axis.height = index ? '15%' : '80%'
         if (index) axis.top = '85%'
