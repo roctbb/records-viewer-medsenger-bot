@@ -382,10 +382,12 @@ export default {
         this.export_options.title.align = 'left'
 
         this.export_options.chart.width = 700
-        this.export_options.chart.height = 450
         this.export_options.chart.backgroundColor = '#ffffff'
-
         this.export_options.legend.width = '100%'
+
+        if (this.type == 'line') {
+          this.export_options.chart.height = 450
+        }
 
         this.export_options.series.forEach(series => {
           series.data.forEach(val => {
