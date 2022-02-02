@@ -2,7 +2,8 @@
   <div>
     <div class="container">
       <filter-panel :page="type == 'line' ? 'graph' :
-      (group.categories &&group.categories.includes('symptom') ? 'symptoms-' : '') + type "/>
+      (group.categories &&group.categories.includes('symptom') ? 'symptoms-' : '') + type "
+                    :disable_downloading="no_data || exporting"/>
     </div>
 
     <!-- Ошибки -->
@@ -26,6 +27,13 @@
         <h5 class="text-center">Значения параметров за выбранный период</h5>
 
         <table class="table table-hover table-striped" v-if="!mobile">
+          <colgroup>
+            <col span="1" style="width: 55%;">
+            <col span="1" style="width: 15%;">
+            <col span="1" style="width: 15%;">
+            <col span="1" style="width: 15%;">
+          </colgroup>
+
           <thead>
           <tr>
             <th scope="col" class="bg-info text-light">Параметр</th>
@@ -70,6 +78,47 @@
     <loading v-else-if="!errors.length"></loading>
     <br>
 
+    <!-- Для экспорта -->
+
+    <div v-show="false">
+      <div ref="to-export">
+        <h4>Отчет по мониторингу пациента {{ patient.name }} ({{ patient.birthday }})</h4>
+        <hr>
+
+        <div style="margin-left: 20px">
+          <highcharts :constructor-type="'stockChart'" :options="export_options"></highcharts>
+        </div>
+
+        <div class="container center" v-if="type == 'line' && this.statistics.length">
+          <h6>Значения параметров за выбранный период</h6>
+          <table class="table table-hover table-striped">
+            <colgroup>
+              <col span="1" style="width: 55%;">
+              <col span="1" style="width: 15%;">
+              <col span="1" style="width: 15%;">
+              <col span="1" style="width: 15%;">
+            </colgroup>
+            <thead>
+            <tr>
+              <th scope="col" class="bg-info text-light">Параметр</th>
+              <th scope="col" class="bg-info text-light">Среднее</th>
+              <th scope="col" class="bg-info text-light">Мин</th>
+              <th scope="col" class="bg-info text-light">Макс</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="stat in this.statistics">
+              <th scope="row" style="text-align: left;">{{ stat.name }}</th>
+              <td>{{ stat.avg.toFixed(2) * 1 }}</td>
+              <td>{{ stat.min.toFixed(2) * 1 }}</td>
+              <td>{{ stat.max.toFixed(2) * 1 }}</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -87,6 +136,7 @@ import boost from "highcharts/modules/boost";
 import heatmap from "highcharts/modules/heatmap";
 import 'highcharts/modules/heatmap.src.js';
 import FilterPanel from "./parts/FilterPanel";
+import html2pdf from "html2pdf.js";
 
 stockInit(Highcharts)
 heatmap(Highcharts);
@@ -108,7 +158,9 @@ export default {
       type: undefined,
       loaded: false,
       no_data: true,
-      show_legend: true
+      show_legend: true,
+      exporting: false,
+      export_options: {}
     }
   },
   computed: {
@@ -322,6 +374,29 @@ export default {
         this.set_bands()
 
       this.is_empty()
+
+      if (!this.no_data) {
+        this.export_options = JSON.parse(JSON.stringify(this.options))
+        this.export_options.navigator.enabled = false
+
+        this.export_options.title.align = 'left'
+
+        this.export_options.chart.width = 700
+        this.export_options.chart.height = 450
+        this.export_options.chart.backgroundColor = '#ffffff'
+
+        this.export_options.legend.width = '100%'
+
+        this.export_options.series.forEach(series => {
+          series.data.forEach(val => {
+            if (val.marker && val.marker.symbol && val.marker.symbol.includes('url')) {
+              val.marker.symbol = 'circle'
+              val.marker.fillColor = '#FF0000'
+            }
+          })
+        })
+      }
+
       this.loaded = true
     },
     get_series: function () {
@@ -337,7 +412,7 @@ export default {
 
       if (this.type == 'line') {
         let graph_series = this.get_graph_series()
-        let comment_series = this.get_text_series({name: 'patient_comment', description:'Комментарий', y: -5})
+        let comment_series = this.get_text_series({name: 'patient_comment', description: 'Комментарий', y: -5})
         series = comment_series.concat(series)
         series = graph_series.concat(series)
 
@@ -934,6 +1009,23 @@ export default {
       }
       return res
     },
+    generate_report: function () {
+      this.exporting = true
+
+      let element = this.$refs['to-export']
+
+      let opt = {
+        margin: 0.5,
+        filename: `${this.group.title}_${this.patient.name}.pdf`,
+        page_break: {mode: 'css'},
+        // image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas: {dpi: 192, letterRendering: true},
+        jsPDF: {unit: 'in', format: 'letter', orientation: 'portrait'}
+      };
+
+      html2pdf().set(opt).from(element).save();
+      this.exporting = false
+    }
   },
   created() {
     this.dates = {
@@ -1003,6 +1095,10 @@ export default {
     Event.listen('incorrect-dates', () => {
       this.errors.unshift('Выбран некорректный период')
     })
+
+    Event.listen('generate-report', () => {
+      this.generate_report()
+    })
   }
 }
 </script>
@@ -1022,5 +1118,9 @@ export default {
 .row {
   grid-column-gap: 10px;
   margin-bottom: 5px;
+}
+
+table tr {
+  break-inside: avoid;
 }
 </style>

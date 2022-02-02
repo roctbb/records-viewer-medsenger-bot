@@ -44,7 +44,7 @@
         </div>
 
         <!-- Отчет -->
-        <button class="btn btn-sm btn-primary" v-if="page == 'report'" :disabled="disable_downloading"
+        <button class="btn btn-sm btn-primary" :disabled="disable_downloading"
                 @click="generate_report()">Скачать PDF
         </button>
       </div>
