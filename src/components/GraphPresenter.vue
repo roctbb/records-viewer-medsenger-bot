@@ -556,7 +556,7 @@ export default {
         let symptoms = {}
         let y = 0;
 
-        this.data.filter((graph) => graph.category.name == category.name).forEach((graph) => {
+        this.data.filter((graph) => graph.category.name == data.name).forEach((graph) => {
           graph.values.forEach((symptom) => {
             let x = new Date((symptom.timestamp) * 1000)
             x.setHours(12, 0, 0)
