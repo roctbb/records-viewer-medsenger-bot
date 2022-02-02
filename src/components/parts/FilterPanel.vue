@@ -31,6 +31,11 @@
           </button>
         </div>
 
+        <!-- PDF -->
+        <button class="btn btn-sm btn-primary" :disabled="disable_downloading"
+                @click="generate_report()">Скачать PDF
+        </button>
+
         <!-- Показать легенду -->
         <div v-if="page == 'graph'" style="padding-top: 5px;">
           <input type="checkbox" id="hide_legend" v-model="mode" @change="change_mode('legend')"/>
@@ -42,11 +47,6 @@
           <input type="checkbox" id="show_medicines" @change="change_mode('medicines')" v-model="mode"/>
           <label for="show_medicines">Показать лекарства</label>
         </div>
-
-        <!-- Отчет -->
-        <button class="btn btn-sm btn-primary" :disabled="disable_downloading"
-                @click="generate_report()">Скачать PDF
-        </button>
       </div>
 
       <!-- Категории -->
