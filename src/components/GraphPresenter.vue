@@ -177,7 +177,7 @@ export default {
       this.no_data = true
 
       if (this.type == 'line' && !this.group.categories.includes('symptom')) {
-        this.group.categories = this.group.categories.concat(['symptom', 'medicine', 'patient_comment'])
+        this.group.categories = this.group.categories.concat(['symptom', 'medicine', 'patient_comment', 'information'])
       }
 
       let data = {
@@ -401,7 +401,7 @@ export default {
     },
     get_series: function () {
       let series = []
-      series = series.concat(this.get_text_series({name: 'symptom', description: 'Симптом', y: -3}))
+      series = series.concat(this.get_text_series({name: 'symptom', description: 'Симптом', color: '#ad0eca', y: -3}))
 
       if (!(this.type == 'heatmap' && this.group.categories.includes('symptom') && !this.heatmap_data.show_medicines)) {
         series = series.concat(this.get_medicine_series())
@@ -412,8 +412,10 @@ export default {
 
       if (this.type == 'line') {
         let graph_series = this.get_graph_series()
-        let comment_series = this.get_text_series({name: 'patient_comment', description: 'Комментарий', y: -5})
+        let comment_series = this.get_text_series({name: 'patient_comment', description: 'Комментарий', color: '#0e17ca', y: -5})
+        let info_series = this.get_text_series({name: 'information', description: 'Общая информация', color: '#00ffe1', y: -7})
         series = comment_series.concat(series)
+        series = info_series.concat(series)
         series = graph_series.concat(series)
 
         if (graph_series.length && graph_series.map(s => s.data.length).reduce((a, b) => a + b) > 500) {
@@ -542,6 +544,7 @@ export default {
           let series_data = {
             name: data.description,
             code: data.name,
+            color: data.color,
             values: graph.values,
             marker: 'triangle',
             y: data.y
@@ -635,15 +638,11 @@ export default {
           enabled: false
         }
 
-        if (['symptom', 'medicine', 'patient_comment'].includes(data.code)) {
+        if (['symptom', 'medicine', 'patient_comment', 'information'].includes(data.code)) {
           series.yAxis = 1
           series.lineWidth = 0
-          if (data.code == 'symptom') {
-            series.color = '#ad0eca'
-            series.marker.radius = 5
-          }
-          if (data.code == 'patient_comment') {
-            series.color = '#0e17ca'
+          if (data.code != 'medicine') {
+            series.color = data.color
             series.marker.radius = 5
           }
         } else {
@@ -681,7 +680,7 @@ export default {
               }, `Прием лекарства`),
             }
           })
-        } else if (['symptom', 'patient_comment'].includes(data.code)) {
+        } else if (['symptom', 'patient_comment', 'information'].includes(data.code)) {
           res = data.values.map((value) => {
             let x = new Date((value.timestamp) * 1000)
             x.setHours(12, 0, 0)
