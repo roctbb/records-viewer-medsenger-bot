@@ -11,6 +11,11 @@
     <div v-else>
       <div v-for="date in data">
         <table class="table table-hover table-striped fixed-columns">
+          <colgroup>
+            <col span="1" style="width: 40%;">
+            <col span="1" style="width: 60%;">
+          </colgroup>
+
           <tr class="table-info">
             <th colspan="2">{{ date.date }}</th>
           </tr>
@@ -97,14 +102,6 @@ a {
 
 body {
   background-color: #f8f8fb;
-}
-
-table.fixed-columns th {
-  width: 20%;
-}
-
-table.fixed-columns td {
-  width: 80%;
 }
 
 table tr {

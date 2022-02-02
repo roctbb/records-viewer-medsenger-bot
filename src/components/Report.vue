@@ -23,7 +23,7 @@
       <!-- Для экспорта -->
       <div v-show="false">
         <div ref="to-export" class="to-export">
-          <h3>Отчет по мониторингу пациента {{ patient.name }} ({{ patient.birthday }})</h3>
+          <h4>Отчет по мониторингу пациента {{ patient.name }} ({{ patient.birthday }})</h4>
           <hr>
           <records-list :data="data.records" :to_export="true"/>
         </div>
