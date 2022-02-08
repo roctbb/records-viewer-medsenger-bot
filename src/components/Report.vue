@@ -1,6 +1,6 @@
 <template>
   <div>
-    <filter-panel page="report" :categories="categories" :disable_downloading="!data || !data.records.length"/>
+    <filter-panel page="report" :categories="categories" :disable_downloading="!data || !data.records || !data.records.length"/>
     <loading v-if="!data"/>
     <div v-else>
       <!-- Ошибки -->
@@ -58,16 +58,17 @@ export default {
     return {
       page: undefined,
       dates: undefined,
+      selected_categories: [],
       errors: []
     }
   },
   methods: {
-    load: function (categories) {
+    load: function () {
       this.errors = []
       let data = {
         dates: this.dates.map(date => date ? date.getTime() / 1000 : date),
         page: this.page,
-        categories: categories.length ? categories.map(c => c.name) : null
+        categories: this.selected_categories.length ? this.selected_categories.map(c => c.name) : null
       }
 
       Event.fire('load-records', data)
@@ -103,7 +104,8 @@ export default {
 
     Event.listen('update-categories', (categories) => {
       this.page = 0
-      this.load(categories)
+      this.selected_categories = categories
+      this.load()
     })
 
     Event.listen('generate-report', () => {
