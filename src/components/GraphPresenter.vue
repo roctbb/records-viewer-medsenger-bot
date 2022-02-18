@@ -83,6 +83,8 @@
     <div v-show="false">
       <div ref="to-export">
         <h4>Отчет по мониторингу пациента {{ patient.name }} ({{ patient.birthday }})</h4>
+        <span><strong>Период: </strong>
+          {{dates[0] ? ` с ${dates[0].toLocaleDateString()}` : ''}} {{dates[1] ? ` по ${dates[1].toLocaleDateString()}` : ''}}</span>
         <hr>
 
         <div style="margin-left: 20px">
