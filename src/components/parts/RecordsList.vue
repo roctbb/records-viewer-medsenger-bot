@@ -26,8 +26,14 @@
               <small class="text-muted">{{ record.formatted_date }}</small>
             </th>
             <td>{{ record.value }} {{ record.category_info.unit ? ` (${record.category_info.unit})` : '' }}
+              {{
+                record.category_info.name == 'medicine' && record.params && record.params.dose ? ` (${record.params.dose})` : ''
+              }}
+              <div v-if="record.params && record.params.comment">
+                <strong>Комментарий: </strong> {{ record.params.comment }}
+              </div>
               <br>
-              <more-info-block title="Комментарии" :id="'additions' + record.id" v-if="record.additions">
+              <more-info-block title="Комментарии агентов" :id="'additions' + record.id" v-if="record.additions">
                 <ul>
                   <li v-for="addition in record.additions" class="text-muted" style="font-size: small">
                     <span v-html="addition.addition.comment"/>{{ addition }}
@@ -42,7 +48,8 @@
                   </li>
                 </ul>
               </more-info-block>
-              <more-info-block title="Технические параметры" :id="'params' + record.id" v-if="record.params && !to_export">
+              <more-info-block title="Технические параметры" :id="'params' + record.id"
+                               v-if="record.params && !to_export">
                 <span class="text-muted" style="font-size: small">{{ record.params }}</span>
               </more-info-block>
 
