@@ -25,7 +25,9 @@
               {{ record.category_info.description }}<br>
               <small class="text-muted">{{ record.formatted_date }}</small>
             </th>
-            <td>{{ record.value }} {{ record.category_info.unit ? ` (${record.category_info.unit})` : '' }}
+            <td>
+              <a href="#" v-if="record.category_info.type == 'file'" @click="downloadFile(record.attached_files[0])">{{ record.value }}</a>
+              <span v-else>{{ record.value }}</span> {{ record.category_info.unit ? ` (${record.category_info.unit})` : '' }}
               {{
                 record.category_info.name == 'medicine' && record.params && record.params.dose ? ` (${record.params.dose})` : ''
               }}
@@ -90,21 +92,25 @@
 
 <script>
 import MoreInfoBlock from "./MoreInfoBlock";
+import downloadjs from "downloadjs";
 
 export default {
   name: "RecordsList",
   components: {MoreInfoBlock},
-  props: ['data', 'to_export']
+  props: ['data', 'to_export'],
+  methods: {
+    downloadFile: function (file) {
+      this.axios.post(this.url('/api/settings/get_file'), file).then(response => {
+        downloadjs(`data:${file.type};base64,${response.data.base64}`, file.name, file.type);
+      }).catch(() => Event.fire('load-error'));
+    }
+  }
 }
 </script>
 
 <style scoped>
 h1, h2 {
   font-weight: normal;
-}
-
-a {
-  color: #42b983;
 }
 
 body {

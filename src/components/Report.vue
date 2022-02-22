@@ -128,8 +128,12 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 .to-export {
   font-size: smaller;
+}
+
+a {
+
 }
 </style>

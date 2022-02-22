@@ -139,6 +139,20 @@ def get_patient(args, form):
     return jsonify(get_patient_data(contract_id))
 
 
+@app.route('/api/settings/get_file', methods=['POST'])
+@verify_args
+def get_file(args, form):
+    contract_id = request.args.get('contract_id')
+    data = request.json
+    file_id = data.get('id')
+
+    file = medsenger_api.get_file(contract_id, file_id)
+    if not file or file['state'] != 'ok':
+        abort(404)
+
+    return jsonify(medsenger_api.get_file(contract_id, file_id))
+
+
 if __name__ == "__main__":
     load()
     app.run(HOST, PORT, debug=API_DEBUG)
