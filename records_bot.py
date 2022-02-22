@@ -44,7 +44,7 @@ def settings():
     if contract_id not in contracts.keys():
         init_contract(contract_id)
 
-    return get_ui(contract_id)
+    return get_ui(contract_id, source=request.args.get('source'))
 
 # @app.route('/settings', methods=['POST'])
 # def post_settings():
@@ -69,7 +69,7 @@ def get_report(args, form):
     if contract_id not in contracts.keys():
         init_contract(contract_id)
 
-    return get_ui(contract_id)
+    return get_ui(contract_id, source=args.get('source'))
 
 
 @app.route('/api/report', methods=['POST'])

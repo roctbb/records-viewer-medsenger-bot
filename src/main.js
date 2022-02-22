@@ -55,7 +55,8 @@ Vue.mixin({
             axios: require('axios'),
             category_list: undefined,
             window_mode: window.MODE,
-            object_id: window.OBJECT_ID
+            object_id: window.OBJECT_ID,
+            source: window.SOURCE
         }
     }
 })

@@ -3,12 +3,12 @@
     <div v-if="window_mode != 'graph'">
       <h5>Доступные отчеты</h5>
       <div class="row">
-        <card key="main_report" :image="images.report" class="col-lg-3 col-md-4">
-          <h6>Общий отчет по датам</h6>
-          <a @click="load_report()" href="#" class="btn btn-primary">Открыть</a>
+        <card v-for="(report, i) in report_categories" :key="'report_' + i" :image="images.report"
+              class="col-lg-3 col-md-4">
+          <h6>{{ report.title }}</h6>
+          <a @click="load_report(report)" href="#" class="btn btn-primary">Открыть</a>
         </card>
       </div>
-
     </div>
 
     <div v-if="plottable_categories.length">
@@ -35,14 +35,17 @@
       <div style="margin-top: 15px;" class="alert alert-info" role="alert">
         <p>В этом разделе можно посмотреть внесенные данные разных представлениях:</p>
         <ul>
-          <li v-if="window_mode == 'settings'"><strong>В виде отчета</strong>. Таблица записей фильтруются по датам и категориям.
+          <li v-if="window_mode == 'settings'"><strong>В виде отчета</strong>. Таблица записей фильтруются по датам и
+            категориям.
             Отчет доступен для скачивания в формате PDF.
           </li>
-          <li><strong>В виде графиков.</strong> Числовые данные отображаются в виде кривых, а текстовые (симптомы и лекарства) на
+          <li><strong>В виде графиков.</strong> Числовые данные отображаются в виде кривых, а текстовые (симптомы и
+            лекарства) на
             линии в нижней
             части графика. Чтобы посмотреть подробную информацию, наведите мышку на нужную точку графика.
           </li>
-          <li><strong>В виде тепловых карт.</strong> Симптомы и приемы лекарств отображаются с частотой появления за день.
+          <li><strong>В виде тепловых карт.</strong> Симптомы и приемы лекарств отображаются с частотой появления за
+            день.
             Чтобы посмотреть подробную информацию, наведите мышку на нужную ячейку карты.
           </li>
         </ul>
@@ -69,28 +72,40 @@ export default {
   },
   data() {
     return {
+      custom_reports: [
+        {
+          title: 'Отчет по мониторингу',
+          categories: [],
+          filters: []
+        },
+        {
+          title: 'История назначений',
+          categories: ['doctor_action'],
+          filters: undefined
+        },
+      ],
       groups: [
         {
-          "title": "Давление и пульс",
-          "categories": ['systolic_pressure', 'diastolic_pressure', 'pulse'],
+          title: "Давление и пульс",
+          categories: ['systolic_pressure', 'diastolic_pressure', 'pulse'],
         },
         {
-          "title": "Обхват голеней",
-          "categories": ['leg_circumference_right', 'leg_circumference_left'],
+          title: "Обхват голеней",
+          categories: ['leg_circumference_right', 'leg_circumference_left'],
         },
         {
-          "title": "Глюкоза",
-          "categories": ['glukose', 'glukose_fasting'],
+          title: "Глюкоза",
+          categories: ['glukose', 'glukose_fasting'],
         }
       ],
       heatmaps: [
         {
-          "title": "Симптомы",
-          "categories": ['symptom', 'medicine'],
+          title: "Симптомы",
+          categories: ['symptom', 'medicine'],
         },
         {
-          "title": "Приемы лекарств",
-          "categories": ['medicine'],
+          title: "Приемы лекарств",
+          categories: ['medicine'],
         }
       ]
     }
@@ -98,7 +113,8 @@ export default {
   computed: {
     plottable_categories: function () {
       let plottable = this.categories.filter((category) => {
-        return !category.is_legacy && ['scatter', 'values'].includes(category.default_representation) && category.type != 'string'
+        return !category.is_legacy && ['scatter', 'values'].includes(category.default_representation) &&
+            !['string', 'file'].includes(category.type)
       })
 
       let custom = this.groups.filter((group) => {
@@ -106,8 +122,6 @@ export default {
           return plottable.filter((category) => category.name == category_name).length > 0
         })
       })
-
-      console.log("custom", custom)
 
       let not_custom = plottable.filter((category) => {
         return !this.groups.some((group) => {
@@ -123,8 +137,30 @@ export default {
       })
 
       return custom
-    }
+    },
+    report_categories: function () {
+      this.custom_reports[0].categories = this.categories.map(c => c.name).filter(c => c != 'doctor_action')
+      this.custom_reports[0].filters = this.categories.filter(c => c.name != 'doctor_action')
 
+      let categories = this.categories.filter((category) => {
+        return category.type == 'file'
+      })
+
+      let custom = this.custom_reports
+      categories.forEach((category) => {
+        custom.push({
+          title: category.description,
+          categories: [category.name],
+          filters: undefined
+        })
+      })
+
+      if (this.source == 'patient') {
+        custom = custom.filter(c => c.title != 'История назначений')
+      }
+
+      return custom
+    }
   },
   methods: {
     load_report: function (params) {

@@ -62,10 +62,6 @@ export default {
       if (this.window_mode == 'graph') {
         this.state = 'graph-category-chooser'
       }
-
-      if (this.window_mode == 'report') {
-        Event.fire('load-report')
-      }
     },
     process_load_error: function (response) {
       this.state = 'load-error'
@@ -78,7 +74,8 @@ export default {
         this.data = {
           records: response.data.dates,
           page: data.page,
-          pages: response.data.page_cnt
+          pages: response.data.page_cnt,
+          report: data.report
         }
 
         this.state = 'report'
@@ -86,6 +83,7 @@ export default {
     },
   },
   created() {
+    console.log(window.SOURCE)
     this.window_mode = window.MODE
 
     console.log("running created");
@@ -97,11 +95,12 @@ export default {
       this.load_records(data)
     })
 
-    Event.listen('load-report', () => {
+    Event.listen('load-report', (report) => {
       let data = {
         dates: [undefined, undefined],
         page: 0,
-        category: undefined
+        categories: report.categories,
+        report: report
       }
 
       this.load_records(data)

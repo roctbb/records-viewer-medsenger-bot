@@ -1,6 +1,7 @@
 <template>
   <div>
-    <filter-panel page="report" :categories="categories" :disable_downloading="!data || !data.records || !data.records.length"/>
+    <filter-panel page="report" :categories="filters"
+                  :disable_downloading="!data || !data.records || !data.records.length"/>
     <loading v-if="!data"/>
     <div v-else>
       <!-- Ошибки -->
@@ -21,9 +22,11 @@
       </div>
 
       <!-- Для экспорта -->
-      <div v-show="false">
+      <div v-show="false" v-if="data">
         <div ref="to-export" class="to-export">
-          <h4>Отчет по мониторингу пациента {{ patient.name }} ({{ patient.birthday }})</h4>
+          <h4>{{ data.report.title }}</h4>
+          <br>
+          <h6>Пациент: {{ patient.name }} ({{ patient.birthday }})</h6>
           <hr>
           <records-list :data="data.records" :to_export="true"/>
         </div>
@@ -58,6 +61,7 @@ export default {
     return {
       page: undefined,
       dates: undefined,
+      filters: undefined,
       selected_categories: [],
       errors: []
     }
@@ -68,7 +72,8 @@ export default {
       let data = {
         dates: this.dates.map(date => date ? date.getTime() / 1000 : date),
         page: this.page,
-        categories: this.selected_categories.length ? this.selected_categories.map(c => c.name) : null
+        categories: this.selected_categories.length ? this.selected_categories.map(c => c.name) : this.data.report.categories,
+        report: this.data.report
       }
 
       Event.fire('load-records', data)
@@ -116,6 +121,9 @@ export default {
       this.errors = ['Выбран некорректный период']
     })
 
+    Event.listen('load-report', (report) => {
+      this.filters = report.filters
+    })
   },
 }
 </script>
