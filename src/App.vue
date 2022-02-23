@@ -168,12 +168,12 @@ body {
   border-color: rgba(0, 108, 136, 0.3);
 }
 
-.btn-primary, .btn-primary:active, .btn-primary:hover, .btn-primary:focus {
+.btn-primary, .btn-primary:active, .btn-primary:hover, .btn-primary:focus, .btn-primary:disabled{
   border-color: #006c88;
   background-color: #006c88;
 }
 
-.btn-success, .btn-success:active, .btn-success:hover, .btn-success:focus {
+.btn-success, .btn-success:active, .btn-success:hover, .btn-success:focus, .btn-success:disabled {
   border-color: #24a8b4;
   background-color: #24a8b4;
 }

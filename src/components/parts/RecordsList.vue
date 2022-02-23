@@ -26,8 +26,14 @@
               <small class="text-muted">{{ record.formatted_date }}</small>
             </th>
             <td>
-              <a href="#" v-if="record.category_info.type == 'file'" @click="downloadFile(record.attached_files[0])">{{ record.value }}</a>
-              <span v-else>{{ record.value }}</span> {{ record.category_info.unit ? ` (${record.category_info.unit})` : '' }}
+              <div v-if="record.category_info.type == 'file'">
+                <div class="row" v-for="file in record.attached_files">
+                  <img :src="images.file" height="20">
+                  <a href="#" @click="downloadFile(file)">{{ record.value }} (скачать)</a>
+                </div>
+              </div>
+              <span v-else>{{ record.value }}</span>
+              {{ record.category_info.unit ? ` (${record.category_info.unit})` : '' }}
               {{
                 record.category_info.name == 'medicine' && record.params && record.params.dose ? ` (${record.params.dose})` : ''
               }}
