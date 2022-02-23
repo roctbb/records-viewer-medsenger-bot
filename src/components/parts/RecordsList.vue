@@ -9,7 +9,7 @@
     </div>
 
     <div v-else>
-      <div v-for="date in data">
+      <div v-for="(date,i) in data">
         <table class="table table-hover table-striped fixed-columns">
           <colgroup>
             <col span="1" style="width: 40%;">
@@ -26,17 +26,20 @@
               <small class="text-muted">{{ record.formatted_date }}</small>
             </th>
             <td>
-              <div v-if="record.category_info.type == 'file'">
-                <div class="row" v-for="file in record.attached_files">
-                  <img :src="images.file" height="20">
-                  <a href="#" @click="downloadFile(file)">{{ record.value }} (скачать)</a>
-                </div>
-              </div>
-              <span v-else>{{ record.value }}</span>
+              <span v-if="record.category_info.type != 'file'">{{ record.value }}</span>
               {{ record.category_info.unit ? ` (${record.category_info.unit})` : '' }}
               {{
                 record.category_info.name == 'medicine' && record.params && record.params.dose ? ` (${record.params.dose})` : ''
               }}
+              <div class="row" v-for="file in record.attached_files">
+                <img :src="images.file" height="20"/>
+                <a href="#" @click="get_file(file, 'download')">{{ file.name }} (скачать)</a>
+                <more-info-block title="Просмотр" :id="`file_${i}_${record.id}_${file.id}`"
+                                 v-if="file.type.includes('image')" class="col-12">
+                  <loading v-if="!files_to_show[file.id]"/>
+                  <img :width="img_width" :src="`data:${file.type};base64,${files_to_show[file.id].base64}`" v-else/>
+                </more-info-block>
+              </div>
               <div v-if="record.params && record.params.comment">
                 <strong>Комментарий: </strong> {{ record.params.comment }}
               </div>
@@ -99,17 +102,44 @@
 <script>
 import MoreInfoBlock from "./MoreInfoBlock";
 import downloadjs from "downloadjs";
+import Loading from "./Loading";
 
 export default {
   name: "RecordsList",
-  components: {MoreInfoBlock},
+  components: {Loading, MoreInfoBlock},
   props: ['data', 'to_export'],
+  data() {
+    return {
+      files_to_show: {}
+    }
+  },
+  computed: {
+    img_width() {
+      return window.innerWidth * 0.5
+    }
+  },
   methods: {
-    downloadFile: function (file) {
+    get_file: function (file, action) {
       this.axios.post(this.url('/api/settings/get_file'), file).then(response => {
-        downloadjs(`data:${file.type};base64,${response.data.base64}`, file.name, file.type);
+        if (action == 'download')
+          downloadjs(`data:${file.type};base64,${response.data.base64}`, file.name, file.type);
+        else if (action == 'show')
+          this.files_to_show[file.id] = response.data
+        this.$forceUpdate()
+        console.log(this.files_to_show)
       }).catch(() => Event.fire('load-error'));
     }
+  },
+  created() {
+    Event.listen('open-more-info', (id) => {
+      if (id.includes('file')) {
+        let ids = id.split('_').filter(p => p != 'file').map(p => parseInt(p))
+        if (!this.files_to_show[ids[2]]) {
+          let file = this.data[ids[0]].records.find(r => r.id == ids[1]).attached_files.find(f => f.id == ids[2])
+          this.get_file(file, 'show')
+        }
+      }
+    })
   }
 }
 </script>
