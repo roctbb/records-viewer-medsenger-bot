@@ -32,7 +32,7 @@
                 record.category_info.name == 'medicine' && record.params && record.params.dose ? ` (${record.params.dose})` : ''
               }}
               <div class="row" v-for="file in record.attached_files">
-                <img :src="images.file" height="20"/>
+                <img :src="images.file" height="20" style="margin-right: 5px"/>
                 <a href="#" @click="get_file(file, 'download')">{{ file.name }} (скачать)</a>
                 <more-info-block title="Просмотр" :id="`file_${i}_${record.id}_${file.id}`"
                                  v-if="file.type.includes('image')" class="col-12">

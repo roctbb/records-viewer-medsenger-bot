@@ -1,7 +1,8 @@
 <template>
   <div>
     <input class="btn btn-link btn-sm text-muted" type="button" data-toggle="collapse" aria-expanded="false"
-           :value="`+ ${title}:`" :data-target="'#collapse' + id" :aria-controls="'collapse' + id" @click="open()">
+           :value="`${closed ? '+' : '–'} ${title}:`" :data-target="'#collapse' + id"
+           :aria-controls="'collapse' + id" @click="click()">
     <div class="collapse" :id="'collapse' + id">
       <div class="card card-body" style="padding: -20px">
         <slot></slot>
@@ -14,9 +15,16 @@
 export default {
   name: "MoreInfoBlock",
   props: ['title', 'id'],
+  data(){
+    return{
+    closed: true
+  }
+  },
   methods: {
-    open: function () {
-      Event.fire('open-more-info', this.id)
+    click: function () {
+      if (this.closed)
+        Event.fire('open-more-info', this.id)
+      this.closed = !this.closed
     }
   }
 }
