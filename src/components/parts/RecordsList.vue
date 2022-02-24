@@ -37,7 +37,8 @@
                 <more-info-block title="Просмотр" :id="`file_${i}_${record.id}_${file.id}`"
                                  v-if="file.type.includes('image')" class="col-12">
                   <loading v-if="!files_to_show[file.id]"/>
-                  <img :width="img_width" :src="`data:${file.type};base64,${files_to_show[file.id].base64}`" v-else/>
+                  <img :src="`data:${file.type};base64,${files_to_show[file.id].base64}`"
+                       :style="`max-width: ${img_width}px; max-height: ${img_height}px;`" v-else/>
                 </more-info-block>
               </div>
               <div v-if="record.params && record.params.comment">
@@ -115,7 +116,10 @@ export default {
   },
   computed: {
     img_width() {
-      return window.innerWidth * 0.5
+      return Math.floor(window.innerWidth * 0.6)
+    },
+    img_height() {
+      return Math.floor(window.innerHeight * 0.6)
     }
   },
   methods: {
@@ -157,4 +161,8 @@ table tr {
   break-inside: avoid;
 }
 
+img {
+  object-fit: contain;
+  object-position: left top;
+}
 </style>
