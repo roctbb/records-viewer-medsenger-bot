@@ -61,6 +61,17 @@ def message():
     return "ok"
 
 
+@app.route('/log', methods=['GET'])
+@verify_args
+def get_log(args, form):
+    contract_id = args.get('contract_id', '')
+
+    if contract_id not in contracts.keys():
+        init_contract(contract_id)
+
+    return get_ui(contract_id, 'log')
+
+
 @app.route('/report', methods=['GET'])
 @verify_args
 def get_report(args, form):

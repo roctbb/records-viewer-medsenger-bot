@@ -5,11 +5,12 @@
     <div v-else>
       <dashboard-header :patient="patient"/>
 
-      <div v-if="window_mode == 'settings' || window_mode == 'graph' || window_mode == 'report'">
+      <div v-if="window_mode == 'settings' || window_mode == 'graph' || window_mode == 'log'">
         <div class="container" style="margin-top: 15px;">
           <dashboard :patient="patient" :categories="category_list"
                      v-show="state == 'dashboard' || state == 'graph-category-chooser'"/>
           <report :patient="patient" :categories="category_list" :data="data" v-show="state == 'report'"/>
+          <report :patient="patient" :categories="category_list" :data="data" v-show="state == 'log'"/>
         </div>
         <graph-presenter :patient="patient" v-show="state == 'graph'"/>
       </div>
@@ -62,6 +63,16 @@ export default {
       if (this.window_mode == 'graph') {
         this.state = 'graph-category-chooser'
       }
+
+      if (this.window_mode == 'log') {
+        this.state = 'log'
+        let params = {
+          title: 'История назначений',
+          categories: ['doctor_action'],
+          filters: undefined
+        }
+        Event.fire('load-report', params)
+      }
     },
     process_load_error: function (response) {
       this.state = 'load-error'
@@ -83,7 +94,6 @@ export default {
     },
   },
   created() {
-    console.log(window.SOURCE)
     this.window_mode = window.MODE
 
     console.log("running created");

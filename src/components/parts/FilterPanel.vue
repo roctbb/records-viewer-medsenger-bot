@@ -7,7 +7,7 @@
         </button>
 
         <!-- Период -->
-        <div class="col" :style="window_mode != 'settings' ? 'margin-left: -15px' : ''">
+        <div class="col" :style="window_mode != 'settings' ? 'margin-left: -5px' : ''">
           <select class="form-control form-control-sm" style="height: 33px"
                   v-model="dates.period" @change="select_period()">
             <option :value="30" :disabled="!dates.range[1]">Месяц</option>
@@ -71,7 +71,7 @@
 
     <!-- Мобильная версия -->
     <div v-else>
-      <div class="row" :style="`margin-left: ${window_mode != 'settings' ? -15 : 0}px`">
+      <div class="row" :style="`margin-left: ${window_mode != 'settings' ? -5 : 0}px`">
         <button class="btn btn-sm btn-danger" @click="go_back()" v-if="!object_id && window_mode == 'settings'">Назад
         </button>
         <!-- Период -->
