@@ -104,7 +104,7 @@
         </button>
       </div>
 
-      <div class="row" style="margin-left: -5px; margin-right: -10px">
+      <div class="row" style="margin-left: -5px; margin-right: -5px">
         <!-- Категории -->
         <div class="col" v-if="page == 'report' && categories">
           <multiselect v-model="selected_categories" :options="category_groups" :multiple="true"
@@ -117,7 +117,7 @@
                        @input="update_categories"></multiselect>
         </div>
 
-        <div style="padding-top: 5px; margin-left: 10px">
+        <div style="padding-top: 5px; margin-left: 10px" v-else>
           <!-- Показать легенду -->
           <div v-if="page == 'graph'" >
             <input type="checkbox" id="hide_legend_mobile" v-model="mode" @change="change_mode('legend')"/>
@@ -224,7 +224,7 @@ export default {
         return []
 
       return this.categories.reduce((groups, item) => {
-        const group = (groups[item[field]] || []);
+        const group = (groups[item[field] ? item[field] : 'Общее'] || []);
         group.push(item);
         groups[item[field] ? item[field] : 'Общее'] = group;
         return groups;

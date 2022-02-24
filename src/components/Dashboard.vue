@@ -142,6 +142,7 @@ export default {
       this.custom_reports[0].categories = this.categories.map(c => c.name).filter(c => c != 'doctor_action')
       this.custom_reports[0].filters = this.categories.filter(c => c.name != 'doctor_action')
 
+      /*
       let categories = this.categories.filter((category) => {
         return category.type == 'file'
       })
@@ -154,6 +155,9 @@ export default {
           filters: undefined
         })
       })
+      */
+
+      let custom = this.custom_reports
 
       if (this.source == 'patient') {
         custom = custom.filter(c => c.title != 'История назначений')
