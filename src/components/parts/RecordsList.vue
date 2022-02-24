@@ -12,8 +12,8 @@
       <div v-for="(date,i) in data">
         <table class="table table-hover table-striped fixed-columns">
           <colgroup>
-            <col span="1" style="width: 40%;">
-            <col span="1" style="width: 60%;">
+            <col span="1" style="width: 25%;">
+            <col span="1" style="width: 75%;">
           </colgroup>
 
           <tr class="table-info">
@@ -44,7 +44,6 @@
               <div v-if="record.params && record.params.comment">
                 <strong>Комментарий: </strong> {{ record.params.comment }}
               </div>
-              <br>
               <more-info-block title="Комментарии агентов" :id="'additions' + record.id" v-if="record.additions">
                 <ul>
                   <li v-for="addition in record.additions" class="text-muted" style="font-size: small">

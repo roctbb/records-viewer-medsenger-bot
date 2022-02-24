@@ -1,13 +1,15 @@
 <template>
   <div>
-    <div v-if="!mobile" style="margin: 0 15px">
-      <div class="row">
-        <button class="btn btn-sm btn-danger col-sm-1" @click="go_back()" v-if="!object_id && window_mode == 'settings'">Назад
+    <div v-if="!mobile" style="margin: 0 5px">
+      <div class="row" style="grid-column-gap: 10px;">
+        <button class="btn btn-sm btn-danger col-sm-1" @click="go_back()"
+                v-if="!object_id && window_mode == 'settings'">Назад
         </button>
 
         <!-- Период -->
         <div class="col" :style="window_mode != 'settings' ? 'margin-left: -15px' : ''">
-          <select class="form-control form-control-sm" v-model="dates.period" @change="select_period()">
+          <select class="form-control form-control-sm" style="height: 33px"
+                  v-model="dates.period" @change="select_period()">
             <option :value="30" :disabled="!dates.range[1]">Месяц</option>
             <option :value="14" :disabled="!dates.range[1]">Две недели</option>
             <option :value="7" :disabled="!dates.range[1]">Неделя</option>
@@ -19,14 +21,16 @@
         </div>
         <!-- Даты -->
         <div>
-          <button class="btn btn-primary btn-sm" @click="scroll_dates(true)" :disabled="dates.range.some(d => !d)">
+          <button class="btn btn-primary btn-sm" style="margin-top: -2px"
+                  @click="scroll_dates(true)" :disabled="dates.range.some(d => !d)">
             &#8592;
           </button>
 
           <date-picker format="c DD.MM.YYYY" v-model="dates.range[0]" @change="select_dates()"/>
           <date-picker format="по DD.MM.YYYY" v-model="dates.range[1]" @change="select_dates()"/>
 
-          <button class="btn btn-primary btn-sm" @click="scroll_dates(false)" :disabled="dates.range.some(d => !d)">
+          <button class="btn btn-primary btn-sm" style="margin-top: -2px"
+                  @click="scroll_dates(false)" :disabled="dates.range.some(d => !d)">
             &#8594;
           </button>
         </div>
@@ -52,7 +56,7 @@
       <!-- Категории -->
       <div class="row" v-if="page == 'report' && categories">
         <div :class="`${window_mode == 'report' ? '' : 'offset-1'} col`"
-             :style="`padding-left: ${window_mode == 'report' ? 0 : 25}px; padding-right: 0px`">
+             :style="`padding-left: ${window_mode == 'settings' ? 15 : 0}px; padding-right: 0px`">
           <multiselect v-model="selected_categories" :options="category_groups" :multiple="true"
                        :close-on-select="false" :clear-on-select="false" :preserve-search="true"
                        group-values="categories" group-label="group" :group-select="true"
@@ -68,7 +72,8 @@
     <!-- Мобильная версия -->
     <div v-else>
       <div class="row" :style="`margin-left: ${window_mode != 'settings' ? -15 : 0}px`">
-        <button class="btn btn-sm btn-danger" @click="go_back()" v-if="!object_id && window_mode == 'settings'">Назад</button>
+        <button class="btn btn-sm btn-danger" @click="go_back()" v-if="!object_id && window_mode == 'settings'">Назад
+        </button>
         <!-- Период -->
         <div class="col">
           <select class="form-control form-control-sm" v-model="dates.period" @change="select_period()">
@@ -84,35 +89,22 @@
       </div>
 
       <!-- Даты -->
-      <div class="row" style="margin-left: -15px; column-gap: 0">
+      <div class="row" style="margin: 0">
+        <button class="btn btn-primary btn-sm" @click="scroll_dates(true)" :disabled="dates.range.some(d => !d)">
+          &#8592;
+        </button>
+
         <date-picker class="col" format="c DD.MM.YYYY" placeholder="Выбрать начало периода" v-model="dates.range[0]"
                      @change="select_dates()"/>
         <date-picker class="col" format="по DD.MM.YYYY" placeholder="Выбрать конец периода" v-model="dates.range[1]"
                      @change="select_dates()"/>
-      </div>
 
-      <div class="row" style="margin-left: 0">
-        <button class="btn btn-primary btn-sm" @click="scroll_dates(true)" :disabled="dates.range.some(d => !d)"
-                style="height: 40px">
-          &#8592;
-        </button>
-        <button class="btn btn-primary btn-sm" @click="scroll_dates(false)" :disabled="dates.range.some(d => !d)"
-                style="height: 40px">
+        <button class="btn btn-primary btn-sm" @click="scroll_dates(false)" :disabled="dates.range.some(d => !d)">
           &#8594;
         </button>
+      </div>
 
-        <!-- Показать легенду -->
-        <div v-if="page == 'graph'" style="padding-top: 5px;">
-          <input type="checkbox" id="hide_legend_mobile" v-model="mode" @change="change_mode('legend')"/>
-          <label for="hide_legend_mobile">Скрыть легенду</label>
-        </div>
-
-        <!-- Тепловая карта -->
-        <div v-if="page == 'symptoms-heatmap'" style="padding-top: 5px;">
-          <input type="checkbox" id="show_medicines_mobile" @change="change_mode('medicines')" v-model="mode"/>
-          <label for="show_medicines_mobile">Показать лекарства</label>
-        </div>
-
+      <div class="row" style="margin-left: -5px; margin-right: -10px">
         <!-- Категории -->
         <div class="col" v-if="page == 'report' && categories">
           <multiselect v-model="selected_categories" :options="category_groups" :multiple="true"
@@ -125,6 +117,19 @@
                        @input="update_categories"></multiselect>
         </div>
 
+        <div style="padding-top: 5px; margin-left: 10px">
+          <!-- Показать легенду -->
+          <div v-if="page == 'graph'" >
+            <input type="checkbox" id="hide_legend_mobile" v-model="mode" @change="change_mode('legend')"/>
+            <label for="hide_legend_mobile">Скрыть легенду</label>
+          </div>
+
+          <!-- Тепловая карта -->
+          <div v-if="page == 'symptoms-heatmap'">
+            <input type="checkbox" id="show_medicines_mobile" @change="change_mode('medicines')" v-model="mode"/>
+            <label for="show_medicines_mobile">Показать лекарства</label>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -255,7 +260,6 @@ export default {
 <style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
 <style>
 .row {
-  grid-column-gap: 10px;
   margin-bottom: 5px;
 }
 
@@ -266,5 +270,11 @@ export default {
 
 .multiselect__option {
   white-space: unset;
+}
+</style>
+
+<style scoped>
+.btn {
+  height: 32px;
 }
 </style>
