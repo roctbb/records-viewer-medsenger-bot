@@ -26,11 +26,16 @@
               <small class="text-muted">{{ record.formatted_date }}</small>
             </th>
             <td>
-              <span v-if="record.category_info.type != 'file'">{{ record.value }}</span>
-              {{ record.category_info.unit ? ` (${record.category_info.unit})` : '' }}
-              {{
-                record.category_info.name == 'medicine' && record.params && record.params.dose ? ` (${record.params.dose})` : ''
-              }}
+              <span v-if="!(record.attached_files[0] && record.value == record.attached_files[0].name)">{{
+                  record.value
+                }}</span>
+              <span v-if="record.category_info.unit"> ({{ record.category_info.unit }})</span>
+
+              <!-- Лекарства -->
+              <span
+                  v-if="record.category_info.name == 'medicine' && record.params && record.params.dose"> ({{ record.params.dose }})</span>
+
+              <!-- Файлы -->
               <div class="row" v-for="file in record.attached_files">
                 <img :src="images.file" height="20" style="margin-right: 5px"/>
                 <a href="#" @click="get_file(file, 'download')">{{ file.name }} (скачать)</a>
@@ -41,6 +46,8 @@
                        :style="`max-width: ${img_width}px; max-height: ${img_height}px;`" v-else/>
                 </more-info-block>
               </div>
+
+              <!-- Комментарии -->
               <div v-if="record.params && record.params.comment">
                 <strong>Комментарий: </strong> {{ record.params.comment }}
               </div>
@@ -51,6 +58,8 @@
                   </li>
                 </ul>
               </more-info-block>
+
+              <!-- Интегральная оценка -->
               <more-info-block title="Результаты по группам" :id="'group_results' + record.id"
                                v-if="record.params && record.params.group_scores  && !to_export">
                 <ul>
@@ -59,6 +68,19 @@
                   </li>
                 </ul>
               </more-info-block>
+
+              <!-- Настройки алгоритма -->
+              <more-info-block title="Настройки алгоритма" :id="'algorithm_params' + record.id"
+                               v-if="record.params && record.params.object_type == 'algorithm' &&
+                                     record.params.algorithm_params  && record.params.algorithm_params.length && !to_export">
+                <ul>
+                  <li v-for="param in record.params.algorithm_params" class="text-muted" style="font-size: small">
+                    <strong>{{ param.name }}:</strong> {{ param.value }}
+                  </li>
+                </ul>
+              </more-info-block>
+
+              <!-- Технические параметры -->
               <more-info-block title="Технические параметры" :id="'params' + record.id"
                                v-if="record.params && !to_export">
                 <span class="text-muted" style="font-size: small">{{ record.params }}</span>
