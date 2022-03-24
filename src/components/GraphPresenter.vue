@@ -84,7 +84,7 @@
       <div ref="to-export">
         <h4>Отчет по мониторингу пациента {{ patient.name }} ({{ patient.birthday }})</h4>
         <span><strong>Период: </strong>
-          {{dates[0] ? ` с ${dates[0].toLocaleDateString()}` : ''}} {{dates[1] ? ` по ${dates[1].toLocaleDateString()}` : ''}}</span>
+          {{ dates[0] ? ` с ${dates[0].toLocaleDateString()}` : '' }} {{ dates[1] ? ` по ${dates[1].toLocaleDateString()}` : '' }}</span>
         <hr>
 
         <div style="margin-left: 20px">
@@ -389,6 +389,7 @@ export default {
 
         if (this.type == 'line') {
           this.export_options.chart.height = 450
+          this.options.chart.height = Math.max(this.options.chart.height, 500)
         }
 
         this.export_options.series.forEach(series => {
@@ -416,8 +417,18 @@ export default {
 
       if (this.type == 'line') {
         let graph_series = this.get_graph_series()
-        let comment_series = this.get_text_series({name: 'patient_comment', description: 'Комментарий', color: '#0e17ca', y: -5})
-        let info_series = this.get_text_series({name: 'information', description: 'Общая информация', color: '#00ffe1', y: -7})
+        let comment_series = this.get_text_series({
+          name: 'patient_comment',
+          description: 'Комментарий',
+          color: '#0e17ca',
+          y: -5
+        })
+        let info_series = this.get_text_series({
+          name: 'information',
+          description: 'Общая информация',
+          color: '#00ffe1',
+          y: -7
+        })
         series = comment_series.concat(series)
         series = info_series.concat(series)
         series = graph_series.concat(series)
@@ -984,7 +995,11 @@ export default {
 
     fill_nulls: function (data, y) {
       let start = moment(this.dates[0]).set({"hour": 12, "minute": 0, "second": 0}).add(this.offset, 'seconds')
-      let end = moment(this.dates[1]).add(2, 'day').set({"hour": 12, "minute": 0, "second": 0}).add(this.offset, 'seconds')
+      let end = moment(this.dates[1]).add(2, 'day').set({
+        "hour": 12,
+        "minute": 0,
+        "second": 0
+      }).add(this.offset, 'seconds')
 
 
       let i = 0
