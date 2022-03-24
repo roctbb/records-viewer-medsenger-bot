@@ -95,7 +95,7 @@ export default {
         },
         {
           title: "Глюкоза",
-          categories: ['glukose', 'glukose_fasting'],
+          categories: ['glukose', 'glukose_fasting', 'glukose_food'],
         }
       ],
       heatmaps: [
