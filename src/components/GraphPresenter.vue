@@ -687,7 +687,7 @@ export default {
         } else if (['symptom', 'patient_comment', 'information'].includes(data.code)) {
           res = data.values.map((value) => {
             let x = new Date((value.timestamp) * 1000)
-            x.setHours(12, 0, 0)
+            // x.setHours(12, 0, 0)
             return {
               dataLabels: {
                 enabled: false,
