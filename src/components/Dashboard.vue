@@ -1,7 +1,7 @@
 <template>
   <div v-if="patient && categories && !object_id">
     <div v-if="window_mode != 'graph'">
-      <h5>Доступные отчеты</h5>
+      <h5>Отчеты</h5>
       <div class="row">
         <card v-for="(report, i) in report_categories" :key="'report_' + i" :image="images.report"
               class="col-lg-3 col-md-4">
@@ -12,46 +12,59 @@
     </div>
 
     <div v-if="plottable_categories.length">
-      <h5>Доступные графики</h5>
+      <h5>Графики</h5>
       <div class="row">
         <card v-for="(category, i) in plottable_categories" :key="'graph_' + i" :image="images.graph"
               class="col-lg-3 col-md-4">
           <h6>{{ category.title }}</h6>
 
-          <a @click="load_graph(category)" href="#" class="btn btn-primary">Открыть</a>
+          <a @click="load_graph(category, 'graph')" href="#" class="btn btn-primary">Открыть</a>
         </card>
       </div>
     </div>
 
-    <div v-if="heatmaps.length">
-      <h5>Доступные тепловые карты</h5>
+    <div v-if="plottable_day_graphs.length">
+      <h5>Графики по суткам</h5>
       <div class="row">
-        <card v-for="(category, i) in heatmaps" :key="'heatmap_' + i" :image="images.heatmap" class="col-lg-3 col-md-4">
-          <h6>{{ category.title }}</h6>
-          <a @click="load_heatmap(category)" href="#" class="btn btn-primary">Открыть</a>
+        <card v-for="(category, i) in plottable_day_graphs" :key="'day_graph_' + i" :image="images.graph"
+              class="col-lg-3 col-md-4">
+          <h6>{{ category.title }} (сутки)</h6>
+          <a @click="load_graph(category, 'day-graph')" href="#" class="btn btn-primary">Открыть</a>
         </card>
       </div>
-
-      <div style="margin-top: 15px;" class="alert alert-info" role="alert">
-        <p>В этом разделе можно посмотреть внесенные данные разных представлениях:</p>
-        <ul>
-          <li v-if="window_mode == 'settings'"><strong>В виде отчета</strong>. Таблица записей фильтруются по датам и
-            категориям.
-            Отчет доступен для скачивания в формате PDF.
-          </li>
-          <li><strong>В виде графиков.</strong> Числовые данные отображаются в виде кривых, а текстовые (симптомы и
-            лекарства) на
-            линии в нижней
-            части графика. Чтобы посмотреть подробную информацию, наведите мышку на нужную точку графика.
-          </li>
-          <li><strong>В виде тепловых карт.</strong> Симптомы и приемы лекарств отображаются с частотой появления за
-            день.
-            Чтобы посмотреть подробную информацию, наведите мышку на нужную ячейку карты.
-          </li>
-        </ul>
-      </div>
-
     </div>
+
+    <div v-if="plottable_heatmap_categories.length">
+      <h5>Тепловые карты</h5>
+      <div class="row">
+        <card v-for="(category, i) in plottable_heatmap_categories" :key="'heatmap_' + i" :image="images.heatmap"
+              class="col-lg-3 col-md-4">
+          <h6>{{ category.title }}</h6>
+          <a @click="load_graph(category, 'heatmap')" href="#" class="btn btn-primary">Открыть</a>
+        </card>
+      </div>
+    </div>
+
+    <div style="margin-top: 15px;" class="alert alert-info" role="alert">
+      <p>В этом разделе можно посмотреть внесенные данные разных представлениях:</p>
+      <ul>
+        <li v-if="window_mode == 'settings'"><strong>В виде отчета</strong>. Таблица записей фильтруются по датам и
+          категориям.
+          Отчет доступен для скачивания в формате PDF.
+        </li>
+        <li><strong>В виде графиков.</strong> Числовые данные отображаются в виде кривых, а текстовые (симптомы,
+          лекарства и комментарии) на линии в нижней части графика. Чтобы посмотреть подробную информацию, наведите
+          мышку на нужную точку графика.
+        </li>
+        <li><strong>В виде суточных графиков.</strong> Числовые данные отображаются в виде кривых, а текстовые
+          (симптомы, лекарства и комментарии) – при наведении на нужную точку графика.
+        </li>
+        <li><strong>В виде тепловых карт.</strong> Симптомы и приемы лекарств отображаются с частотой появления за
+          день. Чтобы посмотреть подробную информацию, наведите мышку на нужную ячейку карты.
+        </li>
+      </ul>
+    </div>
+
   </div>
 </template>
 
@@ -106,6 +119,12 @@ export default {
         {
           title: "Приемы лекарств",
           categories: ['medicine'],
+        },
+      ],
+      day_graphs: [
+        {
+          title: "Глюкоза",
+          categories: ['glukose']
         }
       ]
     }
@@ -131,17 +150,24 @@ export default {
 
       not_custom.forEach((category) => {
         custom.push({
-          "title": category.description,
-          "categories": [category.name]
+          title: category.description,
+          categories: [category.name]
         })
       })
 
       return custom
     },
+    plottable_heatmap_categories: function () {
+      return this.heatmaps.filter(heatmap => !heatmap.categories.filter(c => !this.categories.map(cc => cc.name).includes(c)).length)
+    },
+    plottable_day_graphs: function () {
+      return this.day_graphs.filter(graph => !graph.categories.filter(c => !this.categories.map(cc => cc.name).includes(c)).length)
+    },
     report_categories: function () {
       this.custom_reports[0].categories = this.categories.map(c => c.name).filter(c => c != 'doctor_action')
       this.custom_reports[0].filters = this.categories.filter(c => c.name != 'doctor_action')
 
+      // Добавляет в отчеты категории с файлами
       /*
       let categories = this.categories.filter((category) => {
         return category.type == 'file'
@@ -170,22 +196,25 @@ export default {
     load_report: function (params) {
       Event.fire('load-report', params)
     },
-    load_graph: function (params) {
+    load_graph: function (params, type) {
       let data = {
         group: params,
         dates: [new Date(moment().add(-14, 'days').format('YYYY-MM-DD')), new Date(moment().format('YYYY-MM-DD'))]
       }
-      Event.fire('load-graph', data)
+      Event.fire('load-' + type, data)
     },
-    load_heatmap: function (params) {
-      let data = {
-        group: params,
-        dates: [new Date(moment().add(-14, 'days').format('YYYY-MM-DD')), new Date(moment().format('YYYY-MM-DD'))]
-      }
-      Event.fire('load-heatmap', data)
-    }
   },
   mounted() {
+    Event.listen('back-to-dashboard', () => {
+      // понятия не имею, почему оно изменяется
+      this.day_graphs = [
+        {
+          title: "Глюкоза",
+          categories: ['glukose']
+        }
+      ]
+    })
+
     if (this.object_id) {
       this.axios.get(this.url('/api/categories')).then(response => {
         try {

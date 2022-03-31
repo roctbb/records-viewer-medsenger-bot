@@ -219,31 +219,20 @@ export default {
       }
       this.update_dates()
     },
-    group_by: function (categories, field) {
-      if (!this.categories)
-        return []
-
-      return this.categories.reduce((groups, item) => {
-        const group = (groups[item[field] ? item[field] : 'Общее'] || []);
-        group.push(item);
-        groups[item[field] ? item[field] : 'Общее'] = group;
-        return groups;
-      }, {});
-    }
   },
   created() {
-    let range = this.page == 'report' ?
+    let range = this.page == 'report' || this.page == 'day-graph' ?
         [undefined, new Date(moment().format('YYYY-MM-DD'))] :
         [new Date(moment().add(-14, 'days').format('YYYY-MM-DD')), new Date(moment().format('YYYY-MM-DD'))]
     this.dates = {
       range: range,
-      period: this.page == 'report' ? undefined : 14,
+      period: this.page == 'report' || this.page == 'day-graph' ? undefined : 14,
     }
 
     Event.listen('back-to-dashboard', () => {
       this.dates = {
         range: range,
-        period: this.page == 'report' ? undefined : 14,
+        period: this.page == 'report' || this.page == 'day-graph' ? undefined : 14,
       }
       this.mode = false
     });

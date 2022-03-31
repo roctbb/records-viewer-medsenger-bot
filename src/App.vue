@@ -121,6 +121,9 @@ export default {
     Event.listen('load-graph', (params) => {
       this.state = 'graph'
     });
+    Event.listen('load-day-graph', (params) => {
+      this.state = 'graph'
+    });
     Event.listen('load-heatmap', (params) => {
       this.state = 'graph'
     });

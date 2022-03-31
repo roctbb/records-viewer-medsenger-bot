@@ -20,7 +20,7 @@
 
       </div>
 
-      <highcharts :constructor-type="'stockChart'" :options="options" v-else></highcharts>
+      <highcharts :constructor-type="'stockChart'" :options="options" style="margin-left: 30px" v-else/>
 
       <!-- Табличка -->
       <div class="container center" v-if="type == 'line' && this.statistics.length  && !no_data">
@@ -84,7 +84,9 @@
       <div ref="to-export">
         <h4>Отчет по мониторингу пациента {{ patient.name }} ({{ patient.birthday }})</h4>
         <span><strong>Период: </strong>
-          {{ dates[0] ? ` с ${dates[0].toLocaleDateString()}` : '' }} {{ dates[1] ? ` по ${dates[1].toLocaleDateString()}` : '' }}</span>
+          {{
+            dates[0] ? ` с ${dates[0].toLocaleDateString()}` : ''
+          }} {{ dates[1] ? ` по ${dates[1].toLocaleDateString()}` : '' }}</span>
         <hr>
 
         <div style="margin-left: 20px">
@@ -178,12 +180,14 @@ export default {
       this.loaded = false
       this.no_data = true
 
-      if (this.type == 'line' && !this.group.categories.includes('symptom')) {
-        this.group.categories = this.group.categories.concat(['symptom', 'medicine', 'patient_comment', 'information'])
+      let group_tmp = this.group
+      if (this.type.includes('line') && !this.group.categories.includes('symptom')) {
+        group_tmp.categories = group_tmp.categories.concat(['symptom', 'medicine', 'patient_comment', 'information'])
       }
 
       let data = {
-        group: this.group,
+        group_data: this.type == 'day-line',
+        group: group_tmp,
         dates: {
           start: this.dates[0] ? this.dates[0].getTime() / 1000 : null,
           end: this.dates[1] ? (this.dates[1].getTime() + this.day) / 1000 - 1 : null,
@@ -198,6 +202,28 @@ export default {
 
     process_load_answer: function (response) {
       this.data = response.data
+
+      // Собираю данные для суточных графиков
+      if (this.type == 'day-line') {
+        let tmp_data = []
+        this.group.categories.forEach(category => {
+          if (['symptom', 'medicine', 'patient_comment', 'information'].includes(category)) return
+
+          let category_data = {
+            category: undefined,
+            values: this.data.filter(record => record.category_info.name == category)
+          }
+          if (category_data.values.length) {
+            category_data.category = category_data.values[0].category_info
+            category_data.values.forEach(value => {
+              value.comments = this.data.filter(record => record.group == value.group && record.category_info.name != category)
+            })
+          }
+          tmp_data.push(category_data)
+        })
+        this.data = tmp_data
+      }
+
       let start = this.dates[0] ? this.dates[0].getTime() : undefined
       let end = this.dates[1] ? this.dates[1].getTime() + this.day - 1 : new Date()
 
@@ -219,7 +245,7 @@ export default {
         chart: this.get_chart(),
         series: [],
         title: {
-          text: this.group.title
+          text: this.group.title + (this.type == 'day-line' ? ' (сутки)' : '')
         },
         xAxis: {
           type: 'datetime',
@@ -231,7 +257,7 @@ export default {
           max: end,
           ordinal: false,
           dateTimeLabelFormats: {
-            day: '%d.%m'
+            day: this.type == 'day-line' ? '%H:%M' : '%d.%m'
           }
         },
         // zoom: 'x',
@@ -277,7 +303,7 @@ export default {
         },
       }
 
-      if (this.type == 'line') {
+      if (this.type.includes('line')) {
         this.options.colors = ['#058DC7', '#50B432', '#aa27ce', '#fcff00',
           '#24CBE5', '#64E572', '#c355ff', '#fce200', '#6AF9C4']
         this.options.tooltip.formatter = undefined
@@ -321,7 +347,7 @@ export default {
           startOnTick: false,
           endOnTick: false,
           labels: {
-            format: "{value}"
+            format: '{value}'
           }
         }
       }
@@ -372,7 +398,14 @@ export default {
         }
       }
 
-      if (this.group.categories.includes('glukose'))
+      if (this.type == 'day-line') {
+        this.options.xAxis.min = (moment('05:00:00', 'HH:mm:ss').unix() + this.offset) * 1000
+        let max = moment('05:30:00', 'HH:mm:ss')
+        this.options.xAxis.max = (max.unix() + this.offset) * 1000 + this.day
+        this.options.yAxis.splice(1, 2)
+      }
+
+      if (this.type == 'line' && this.group.categories.includes('glukose'))
         this.set_bands()
 
       this.is_empty()
@@ -387,7 +420,7 @@ export default {
         this.export_options.chart.backgroundColor = '#ffffff'
         this.export_options.legend.width = '100%'
 
-        if (this.type == 'line') {
+        if (this.type.includes('line')) {
           this.export_options.chart.height = 450
           this.options.chart.height = Math.max(this.options.chart.height, 500)
         }
@@ -415,7 +448,7 @@ export default {
         this.heatmap_data.medicine_series = this.get_medicine_series()
       }
 
-      if (this.type == 'line') {
+      if (this.type.includes('line')) {
         let graph_series = this.get_graph_series()
         let comment_series = this.get_text_series({
           name: 'patient_comment',
@@ -429,9 +462,14 @@ export default {
           color: '#00ffe1',
           y: -7
         })
-        series = comment_series.concat(series)
-        series = info_series.concat(series)
-        series = graph_series.concat(series)
+
+        if (this.type != 'day-line') {
+          series = comment_series.concat(series)
+          series = info_series.concat(series)
+          series = graph_series.concat(series)
+        } else {
+          series = graph_series
+        }
 
         if (graph_series.length && graph_series.map(s => s.data.length).reduce((a, b) => a + b) > 500) {
           this.errors = ['За данный период в медицинской карте присутствует слишком большое количество записей (> 500). ' +
@@ -449,13 +487,31 @@ export default {
       return series
     },
     get_graph_series: function () {
+      // меняю даты
+      if (this.type == 'day-line') {
+        this.data.forEach(graph => {
+          if (graph.category.type != 'string') {
+            graph.values.forEach(value => {
+              let date = moment.unix(value.timestamp)
+              value.date = date.format('DD.MM.YY')
+
+              let time = moment(date.format('HH:mm:ss'), 'HH:mm:ss')
+              if (time.hour() < 5) time.add(1, 'day')
+
+              value.timestamp = time.unix()
+            })
+          }
+        })
+      }
+
       return this.data.filter((graph) => graph.category.type != 'string').map((graph) => {
         let series_data = {
           name: graph.category.description,
           category_type: graph.category.type,
           code: graph.category.name,
-          values: graph.values,
-          marker: 'circle'
+          values: graph.values.sort((a, b) => b.timestamp - a.timestamp),
+          marker: 'circle',
+          // opacity: this.type == 'day-line' ? 0 : 1
         }
 
         return this.prepare_series(series_data)
@@ -465,7 +521,7 @@ export default {
       let medicines = {}
       let series
 
-      if (this.type == 'line') {
+      if (this.type.includes('line')) {
         let y = -5
         this.data.filter((graph) => graph.category.name == 'medicine').forEach((graph) => {
           graph.values.forEach((medicine) => {
@@ -552,7 +608,7 @@ export default {
       return series
     },
     get_text_series: function (data) {
-      let series
+      let series = []
 
       if (this.type == 'line') {
         series = this.data.filter((graph) => graph.category.name == data.name).map((graph) => {
@@ -567,7 +623,7 @@ export default {
 
           return this.prepare_series(series_data)
         })
-      } else {
+      } else if (this.type == 'heatmap') {
         let symptoms = {}
         let y = 0;
 
@@ -642,7 +698,7 @@ export default {
         },
       }
 
-      if (this.type == 'line') {
+      if (this.type.includes('line')) {
         series.marker = {
           enabled: true,
           radius: 4,
@@ -663,8 +719,16 @@ export default {
         } else {
           series.yAxis = 0
           series.showInNavigator = true
-          series.dashStyle = 'ShortDot'
+          series.dashStyle = this.type == 'day-line' ? undefined : 'ShortDot'
           series.lineWidth = 3
+          if (this.type == 'day-line') {
+            series.states = {
+              hover: {
+                enabled: false
+              }
+            }
+            series.lineWidth = 0
+          }
         }
       } else {
         series.yAxis = +(this.group.categories.length == 2 && data.code == 'medicine')
@@ -677,10 +741,11 @@ export default {
       }
 
       return series
-    },
+    }
+    ,
     prepare_values: function (data) {
       let res
-      if (this.type == 'line') {
+      if (this.type.includes('line')) {
         if (data.code == 'medicine') {
           res = data.values.map((value) => {
             return {
@@ -710,10 +775,20 @@ export default {
           })
         } else {
           res = data.values.map((value) => {
+            let dl
+            if (this.type == 'day-line') {
+              dl = {
+                enabled: true,
+                formatter: function () {
+                  return `${value.value} (${value.date})`
+                }
+              }
+            }
             return {
               x: (value.timestamp + this.offset) * 1000,
               y: value.value,
               comment: this.get_comment(value, data.name),
+              dataLabels: dl,
               marker: {
                 symbol: this.get_symbol(value),
                 lineColor: this.get_color(value),
@@ -759,7 +834,8 @@ export default {
         }
       }
       return res.reverse()
-    },
+    }
+    ,
     get_y_axis: function (index) {
       let axis = {
         gridLineWidth: 1,
@@ -769,7 +845,7 @@ export default {
         }
       }
 
-      if (this.type == 'line') {
+      if (this.type.includes('line')) {
         axis.title = {
           text: index ? 'События' : 'Значения'
         }
@@ -781,6 +857,7 @@ export default {
         }
         axis.height = index ? '15%' : '80%'
         if (index) axis.top = '85%'
+        if (this.type == 'day-line') axis.height = undefined
       } else {
         axis.title = {
           text: index ? 'Лекарства' : 'Симптомы'
@@ -798,17 +875,18 @@ export default {
       }
 
       return axis
-    },
+    }
+    ,
     get_chart: function () {
       let chart = {
-        type: this.type,
+        type: this.type != 'day-line' ? this.type : 'line',
         boostThreshold: 500,
         turboThreshold: 0,
         animation: false,
         zoomType: '',
-        backgroundColor: "#f8f8fb",
-        height: `${window.innerHeight - 200}px`,
-        width: window.innerWidth,
+        backgroundColor: "#fcfcfc",
+        height: `${window.innerHeight - 100}`,
+        width: `${window.innerWidth - 30}`,
         renderTo: 'container'
       }
 
@@ -870,6 +948,7 @@ export default {
               }
             });
 
+            // Для давления
             let systolic_pressure = stats.find(st => st.code == 'systolic_pressure')
             let diastolic_pressure = stats.find(st => st.code == 'diastolic_pressure')
 
@@ -905,7 +984,8 @@ export default {
       }
 
       return chart
-    },
+    }
+    ,
 
     set_bands: function () {
       this.options.yAxis[0].plotBands = [{
@@ -951,7 +1031,8 @@ export default {
           this.options.yAxis[0].plotBands[4].to = max
         }
       });
-    },
+    }
+    ,
 
     // Вспомогательные
     get_color: function (point) {
@@ -959,39 +1040,51 @@ export default {
         return '#FF0000';
       }
       return undefined;
-    },
+    }
+    ,
     get_symbol: function (point) {
       if (point.additions) {
         return 'url(' + this.images.warning + ')'
       }
       return undefined;
-    },
+    }
+    ,
     get_radius: function (point) {
       if (point.additions) {
         return 6;
       }
       return undefined;
-    },
+    }
+    ,
     get_comment: function (point, category) {
       let date = new Date((point.timestamp) * 1000)
-      let comment = `<strong>${this.format_time(date)}</strong> - ${category}: ${point.value}`
+      let comment = `<strong>${this.type == 'day-line' ? point.date + ' ' : ''}${this.format_time(date)}</strong> - ${category}: ${point.value}`
       if (point.additions) {
         point.additions.forEach((value) => {
           comment += `<br><strong style="color: red;">${value['addition']['comment']}</strong>`
         })
       }
+      if (point.comments && point.comments.length) {
+        comment += `<br><strong>Дополнительная информация:</strong>`
+        point.comments.forEach((value) => {
+          comment += `<br>${value.value}`
+        })
+      }
       return comment
-    },
+    }
+    ,
     format_time: function (date) {
       return date.toTimeString().substr(0, 5)
-    },
+    }
+    ,
     is_empty: function () {
       this.options.series.forEach(s => {
         if (s.data.length) this.no_data = false
       })
       if (this.type == 'heatmap' && this.group.categories.includes('symptom') &&
           !this.heatmap_data.categories.symptoms.length) this.no_data = true
-    },
+    }
+    ,
 
     fill_nulls: function (data, y) {
       let start = moment(this.dates[0]).set({"hour": 12, "minute": 0, "second": 0}).add(this.offset, 'seconds')
@@ -1057,6 +1150,13 @@ export default {
       this.load_data()
     });
 
+    Event.listen('load-day-graph', (data) => {
+      this.type = 'day-line'
+      this.group = data.group
+      this.dates = [undefined, new Date(moment('23:59:59', 'HH:mm:ss').unix() * 1000)]
+      this.load_data()
+    });
+
     Event.listen('load-heatmap', (data) => {
       this.type = 'heatmap'
       this.group = data.group
@@ -1080,8 +1180,8 @@ export default {
 
     Event.listen('window-resized', () => {
       if (this.options.chart != null) {
-        this.options.chart.height = window.innerHeight
-        this.options.chart.width = window.innerWidth
+        this.options.chart.height = Math.max(window.innerHeight - 100, 500)
+        this.options.chart.width = window.innerWidth - 30
 
         if (this.options.chart.height > this.options.chart.width && this.options.series.length > 2) {
           this.options.chart.height += 50 * (this.options.series.length - 2)

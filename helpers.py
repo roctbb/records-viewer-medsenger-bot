@@ -98,7 +98,8 @@ def verify_json(func):
 
 
 def get_ui(contract_id, mode='settings', object_id=None, source=None):
-    return render_template('index.html', contract_id=contract_id, agent_token=contracts[str(contract_id)]['agent_token'],
+    return render_template('index.html', contract_id=contract_id,
+                           agent_token=contracts[str(contract_id)]['agent_token'],
                            mode=mode, object_id=object_id, source=source,
                            api_host=MAIN_HOST.replace('8001', '8000'), local_host=LOCALHOST,
                            agent_id=AGENT_ID, lc=dir_last_updated('static'))
@@ -129,6 +130,27 @@ def localize(d, zone=None):
 def get_patient_data(contract_id):
     patient = medsenger_api.get_patient_info(contract_id)
     return patient
+
+
+def get_graph_data(contract_id, data):
+    answer = []
+    if data['dates'] is None:
+        if data['group_data']:
+            answer = medsenger_api.get_records(contract_id, ','.join(data['group']['categories']), group=True)
+        else:
+            answer = [medsenger_api.get_records(contract_id, category_name) for category_name in
+                      data['group']['categories']]
+    else:
+        if data['group_data']:
+            answer = medsenger_api.get_records(contract_id, ','.join(data['group']['categories']),
+                                               group=True,  # inner_list=True,
+                                               time_from=data['dates']['start'], time_to=data['dates']['end'])
+        else:
+            answer = [medsenger_api.get_records(contract_id, category_name, time_from=data['dates']['start'],
+                                                time_to=data['dates']['end']) for category_name in
+                      data['group']['categories']]
+
+    return list(filter(lambda x: x is not None, answer))
 
 
 def get_report_page(contract_id, dates, page=0, categories=None):

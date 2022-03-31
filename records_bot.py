@@ -125,14 +125,8 @@ def graph_categories(args, form):
 def graph_data(args, form):
     contract_id = args.get('contract_id')
     data = request.json
-    group = data.get('group')
-    dates = data.get('dates', None)
 
-    answer = [(medsenger_api.get_records(contract_id, category_name) if dates is None
-               else medsenger_api.get_records(contract_id, category_name, time_from=dates['start'], time_to=dates['end']))
-              for category_name in group['categories']]
-    answer = list(filter(lambda x: x is not None, answer))
-
+    answer = get_graph_data(contract_id, data)
     return jsonify(answer)
 
 

@@ -34,6 +34,17 @@ Vue.mixin({
 
             return api_host + '/api/client/agents/' + agent_id + '/?action=' + action + '&contract_id=' + contract_id + '&agent_token=' + agent_token
         },
+        group_by: function (data, field) {
+            if (!data)
+                return []
+
+            return data.reduce((groups, item) => {
+                const group = (groups[item[field] ? item[field] : 'Общее'] || []);
+                group.push(item);
+                groups[item[field] ? item[field] : 'Общее'] = group;
+                return groups;
+            }, {});
+        }
     },
     computed: {
         mobile() {
