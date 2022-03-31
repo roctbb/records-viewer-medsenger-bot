@@ -41,7 +41,7 @@
         </button>
 
         <!-- Показать легенду -->
-        <div v-if="page == 'graph'" style="padding-top: 5px;">
+        <div v-if="page.includes('graph')" style="padding-top: 5px;">
           <input type="checkbox" id="hide_legend" v-model="mode" @change="change_mode('legend')"/>
           <label for="hide_legend">Скрыть легенду</label>
         </div>
@@ -119,7 +119,7 @@
 
         <div style="padding-top: 5px; margin-left: 10px" v-else>
           <!-- Показать легенду -->
-          <div v-if="page == 'graph'" >
+          <div v-if="page.includes('graph')">
             <input type="checkbox" id="hide_legend_mobile" v-model="mode" @change="change_mode('legend')"/>
             <label for="hide_legend_mobile">Скрыть легенду</label>
           </div>
@@ -221,19 +221,27 @@ export default {
     },
   },
   created() {
-    let range = this.page == 'report' || this.page == 'day-graph' ?
-        [undefined, new Date(moment().format('YYYY-MM-DD'))] :
-        [new Date(moment().add(-14, 'days').format('YYYY-MM-DD')), new Date(moment().format('YYYY-MM-DD'))]
     this.dates = {
-      range: range,
-      period: this.page == 'report' || this.page == 'day-graph' ? undefined : 14,
+      range: [],
+      period: undefined,
     }
 
+    Event.listen('load-report', params => {
+      this.dates.range = [undefined, new Date(moment().format('YYYY-MM-DD'))]
+      this.dates.period = -1
+    })
+
+    Event.listen('load-graph', params => {
+      this.dates.range = [new Date(moment().add(-14, 'days').format('YYYY-MM-DD')), new Date(moment().format('YYYY-MM-DD'))]
+      this.dates.period = 14
+    })
+
+    Event.listen('load-day-graph', params => {
+      this.dates.range = [undefined, new Date(moment().format('YYYY-MM-DD'))]
+      this.dates.period = -1
+    })
+
     Event.listen('back-to-dashboard', () => {
-      this.dates = {
-        range: range,
-        period: this.page == 'report' || this.page == 'day-graph' ? undefined : 14,
-      }
       this.mode = false
     });
 
