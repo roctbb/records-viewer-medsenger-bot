@@ -422,7 +422,7 @@ export default {
 
         if (this.type.includes('line')) {
           this.export_options.chart.height = 450
-          this.options.chart.height = Math.max(this.options.chart.height, 500)
+          this.options.chart.height = `${Math.max(window.innerHeight, 500)}px`
         }
 
         this.export_options.series.forEach(series => {
@@ -857,7 +857,7 @@ export default {
         }
         axis.height = index ? '15%' : '80%'
         if (index) axis.top = '85%'
-        if (this.type == 'day-line') axis.height = undefined
+        if (this.type == 'day-line') axis.height = '100%'
       } else {
         axis.title = {
           text: index ? 'Лекарства' : 'Симптомы'
@@ -984,9 +984,7 @@ export default {
       }
 
       return chart
-    }
-    ,
-
+    },
     set_bands: function () {
       this.options.yAxis[0].plotBands = [{
         from: 0,
@@ -1031,8 +1029,7 @@ export default {
           this.options.yAxis[0].plotBands[4].to = max
         }
       });
-    }
-    ,
+    },
 
     // Вспомогательные
     get_color: function (point) {
@@ -1183,7 +1180,7 @@ export default {
         this.options.chart.height = Math.max(window.innerHeight - 100, 500)
         this.options.chart.width = window.innerWidth - 30
 
-        if (this.options.chart.height > this.options.chart.width && this.options.series.length > 2) {
+        if (this.mobile && this.options.series.length > 2) {
           this.options.chart.height += 50 * (this.options.series.length - 2)
         }
       }
