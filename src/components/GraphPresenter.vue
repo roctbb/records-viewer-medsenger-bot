@@ -218,8 +218,8 @@ export default {
             category_data.values.forEach(value => {
               value.comments = this.data.filter(record => record.group == value.group && record.category_info.name != category)
             })
+            tmp_data.push(category_data)
           }
-          tmp_data.push(category_data)
         })
         this.data = tmp_data
       }
@@ -450,20 +450,20 @@ export default {
 
       if (this.type.includes('line')) {
         let graph_series = this.get_graph_series()
-        let comment_series = this.get_text_series({
-          name: 'patient_comment',
-          description: 'Комментарий',
-          color: '#0e17ca',
-          y: -5
-        })
-        let info_series = this.get_text_series({
-          name: 'information',
-          description: 'Общая информация',
-          color: '#00ffe1',
-          y: -7
-        })
 
         if (this.type != 'day-line') {
+          let comment_series = this.get_text_series({
+            name: 'patient_comment',
+            description: 'Комментарий',
+            color: '#0e17ca',
+            y: -5
+          })
+          let info_series = this.get_text_series({
+            name: 'information',
+            description: 'Общая информация',
+            color: '#00ffe1',
+            y: -7
+          })
           series = comment_series.concat(series)
           series = info_series.concat(series)
           series = graph_series.concat(series)
@@ -511,7 +511,6 @@ export default {
           code: graph.category.name,
           values: graph.values.sort((a, b) => b.timestamp - a.timestamp),
           marker: 'circle',
-          // opacity: this.type == 'day-line' ? 0 : 1
         }
 
         return this.prepare_series(series_data)
@@ -521,7 +520,7 @@ export default {
       let medicines = {}
       let series
 
-      if (this.type.includes('line')) {
+      if (this.type == 'line') {
         let y = -5
         this.data.filter((graph) => graph.category.name == 'medicine').forEach((graph) => {
           graph.values.forEach((medicine) => {
@@ -549,7 +548,7 @@ export default {
 
           return this.prepare_series(series_data)
         })
-      } else {
+      } else if (this.type == 'heatmap') {
         let medicines = {}
         let y = 0;
 

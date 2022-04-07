@@ -124,7 +124,7 @@ export default {
       day_graphs: [
         {
           title: "Глюкоза",
-          categories: ['glukose']
+          categories: ['glukose', 'glukose_fasting', 'glukose_food']
         }
       ]
     }
@@ -161,7 +161,7 @@ export default {
       return this.heatmaps.filter(heatmap => !heatmap.categories.filter(c => !this.categories.map(cc => cc.name).includes(c)).length)
     },
     plottable_day_graphs: function () {
-      return this.day_graphs.filter(graph => !graph.categories.filter(c => !this.categories.map(cc => cc.name).includes(c)).length)
+      return this.day_graphs.filter(graph => graph.categories.filter(c => !this.categories.map(cc => cc.name).includes(c)).length != graph.categories.length)
     },
     report_categories: function () {
       this.custom_reports[0].categories = this.categories.map(c => c.name).filter(c => c != 'doctor_action')
@@ -210,7 +210,7 @@ export default {
       this.day_graphs = [
         {
           title: "Глюкоза",
-          categories: ['glukose']
+          categories: ['glukose', 'glukose_fasting', 'glukose_food']
         }
       ]
     })
