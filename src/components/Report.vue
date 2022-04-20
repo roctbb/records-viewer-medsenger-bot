@@ -117,7 +117,7 @@ export default {
       this.generate_report()
     })
 
-    Event.listen('incorrect-dates', () => {
+    Event.listen('incorrect-dates', (duration) => {
       this.errors = ['Выбран некорректный период']
     })
 

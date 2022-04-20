@@ -15,7 +15,7 @@
             <option :value="7" :disabled="!dates.range[1]">Неделя</option>
             <option :value="3" :disabled="!dates.range[1]">Три дня</option>
             <option :value="1" :disabled="!dates.range[1]">День</option>
-            <option :value="-1">Все данные</option>
+            <option :value="-1" v-if="!page.includes('heatmap')">Все данные</option>
             <option :value="undefined" disabled>Период не выбран</option>
           </select>
         </div>
@@ -201,8 +201,8 @@ export default {
         let duration = moment(this.dates.range[1]).diff(moment(this.dates.range[0]), 'day')
         this.dates.period = [30, 14, 7, 3, 1].includes(duration) ? duration : undefined
 
-        if (duration < 0) {
-          Event.fire('incorrect-dates')
+        if (duration < 0 || this.page.includes('heatmap') && duration > 30) {
+          Event.fire('incorrect-dates', duration)
           return
         }
       }
@@ -234,6 +234,11 @@ export default {
     Event.listen('load-graph', params => {
       this.dates.range = [new Date(moment().add(-14, 'days').format('YYYY-MM-DD')), new Date(moment().format('YYYY-MM-DD'))]
       this.dates.period = 14
+    })
+
+    Event.listen('load-heatmap', params => {
+      this.dates.range = [new Date(moment().add(-30, 'days').format('YYYY-MM-DD')), new Date(moment().format('YYYY-MM-DD'))]
+      this.dates.period = 30
     })
 
     Event.listen('load-day-graph', params => {

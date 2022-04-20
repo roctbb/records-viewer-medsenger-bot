@@ -381,6 +381,30 @@ export default {
         this.options.yAxis[0].categories = this.heatmap_data.categories.symptoms
         this.options.yAxis[1].categories = this.heatmap_data.categories.medicines
 
+        this.options.xAxis.labels = {
+          rotation: -45
+        }
+        this.options.xAxis.tickmarkPlacement = 'between'
+        this.options.xAxis.tickPositioner = function (min, max) {
+          var interval = 24 * 36e5, ticks = [], count = 0;
+
+          while (min < max) {
+            ticks.push(min);
+            min += interval;
+            count++;
+          }
+
+          ticks.info = {
+            unitName: 'day',
+            count: 5,
+            higherRanks: {},
+            totalRange: interval * count
+          }
+
+
+          return ticks;
+        }
+
         if (this.group.categories.includes('symptom')) {
           this.options.yAxis[0].height = 20 * this.heatmap_data.categories.symptoms.length
 
@@ -799,6 +823,7 @@ export default {
       } else {
         if (data.code == 'symptom') {
           res = data.values.map(value => {
+            let date = moment.unix(+value.x / 1000).format('DD.MM')
             return {
               dataLabels: {
                 enabled: true,
@@ -810,7 +835,7 @@ export default {
               y: data.y,
               name: data.name,
               value: value.color,
-              comment: value.description,
+              comment: `<strong>${date}</strong><br>${value.description}`,
             }
           })
           res = this.fill_nulls(res, data.y)
@@ -1106,7 +1131,7 @@ export default {
             x: end.valueOf(),
             y: y,
             value: null,
-            comment: 'Нет данных',
+            comment: `<strong>${end.format('DD.MM')}</strong><br>Нет данных`,
           })
         } else {
           res.push(data[i])
@@ -1206,8 +1231,11 @@ export default {
       this.load_data()
     });
 
-    Event.listen('incorrect-dates', () => {
-      this.errors.unshift('Выбран некорректный период')
+    Event.listen('incorrect-dates', (duration) => {
+      if (duration < 0)
+        this.errors.unshift('Выбран некорректный период')
+      else if (duration > 30)
+        this.errors.unshift('Пожалуйста, выберите период не больше 30 дней.')
     })
 
     Event.listen('generate-report', () => {
