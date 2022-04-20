@@ -1200,15 +1200,35 @@ export default {
     })
 
     Event.listen('window-resized', () => {
-      if (this.options.chart != null) {
-        this.options.chart.height = Math.max(window.innerHeight - 100, 500)
-        this.options.chart.width = window.innerWidth - 30
+          if (this.options.chart) {
+            this.options.chart.width = window.innerWidth - 30
+            if (this.type.includes('heatmap')) {
+              let count = this.heatmap_data.categories.symptoms.length + this.heatmap_data.categories.medicines.length
+              this.options.chart.height = count * 20 + 110
 
-        if (this.mobile && this.options.series.length > 2) {
-          this.options.chart.height += 50 * (this.options.series.length - 2)
+              if (this.group.categories.includes('symptom')) {
+                this.options.yAxis[0].height = 20 * this.heatmap_data.categories.symptoms.length
+
+                if (this.options.yAxis[1]) {
+                  this.options.yAxis[1].top = 20 * this.heatmap_data.categories.symptoms.length + 60
+                  this.options.yAxis[1].height = 20 * this.heatmap_data.categories.medicines.length
+                }
+
+                if (!this.heatmap_data.show_medicines || !this.heatmap_data.categories.medicines.length) {
+                  let count = this.heatmap_data.categories.medicines.length
+                  this.options.chart.height -= count * 20
+                }
+              }
+            } else {
+              this.options.chart.height = Math.max(window.innerHeight - 100, 500)
+              if (this.mobile && this.options.series.length > 2) {
+                this.options.chart.height += 50 * (this.options.series.length - 2)
+              }
+            }
+          }
         }
-      }
-    });
+    )
+    ;
 
     Event.listen('back-to-dashboard', () => {
       this.loaded = false;
