@@ -188,6 +188,10 @@ export default {
       let end = moment(this.dates.range[1])
       let duration = end.diff(start, 'day')
 
+      if (this.page.includes('heatmap') && duration > 30) {
+        return
+      }
+
       if (end > start) {
         this.dates.range[0] = new Date(start.add((back ? -1 : 1) * duration, 'days').format('YYYY-MM-DD'))
         this.dates.range[1] = new Date(end.add((back ? -1 : 1) * duration, 'days').format('YYYY-MM-DD'))
