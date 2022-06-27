@@ -25,6 +25,11 @@ def init(data):
     init_contract(contract_id)
     return 'ok'
 
+@app.route('/order', methods=['POST'])
+@verify_json
+def order(data):
+    if data['order'] == 'need_conclusion':
+        medsenger_api.send_message(data['contract_id'], "Не забудьте сформировать заключение для пациента.", only_doctor=True)
 
 @app.route('/remove', methods=['POST'])
 @verify_json
