@@ -25,11 +25,15 @@ def init(data):
     init_contract(contract_id)
     return 'ok'
 
+
 @app.route('/order', methods=['POST'])
 @verify_json
 def order(data):
     if data['order'] == 'need_conclusion':
-        medsenger_api.send_message(data['contract_id'], "Не забудьте сформировать заключение для пациента.", only_doctor=True)
+        medsenger_api.send_message(data['contract_id'], "Не забудьте сформировать заключение для пациента.",
+                                   action_name='Сформировать заключение', action_link='conclusion',
+                                   only_doctor=True)
+
 
 @app.route('/remove', methods=['POST'])
 @verify_json
@@ -162,6 +166,23 @@ def get_file(args, form):
 
     return jsonify(medsenger_api.get_file(contract_id, file_id))
 
+
+@app.route('/conclusion', methods=['GET'])
+@verify_args
+def conclusion_page(args, form):
+    contract_id = int(request.args.get('contract_id'))
+    return get_ui(contract_id, 'conclusion')
+
+
+@app.route('/send-conclusion', methods=['POST'])
+@verify_args
+def send_conclusion(args, form):
+    contract_id = int(args.get('contract_id'))
+    data = request.json
+
+    medsenger_api.send_message(contract_id, data['conclusion'])
+
+    return 'ok'
 
 if __name__ == "__main__":
     load()

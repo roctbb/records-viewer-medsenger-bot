@@ -1,16 +1,18 @@
 <template>
   <div style="padding-bottom: 15px;">
     <loading v-if="!patient"/>
-    <load-error v-else-if="state == 'load-error'"></load-error>
+    <load-error v-else-if="state == 'load-error'"/>
+    <action-done v-else-if="state == 'done'"/>
     <div v-else>
       <dashboard-header :patient="patient"/>
 
-      <div v-if="window_mode == 'settings' || window_mode == 'graph' || window_mode == 'log'">
-        <div class="container" style="margin-top: 15px;">
+      <div
+          v-if="window_mode == 'settings' || window_mode == 'graph' || window_mode == 'log' || window_mode == 'conclusion'">
+        <div class="container slim-container" style="margin-top: 15px;">
           <dashboard :patient="patient" :categories="category_list"
                      v-show="state == 'dashboard' || state == 'graph-category-chooser'"/>
           <report :patient="patient" :categories="category_list" :data="data" v-show="state == 'report'"/>
-          <report :patient="patient" :categories="category_list" :data="data" v-show="state == 'log'"/>
+          <conclusion-editor :patient="patient" v-show="state == 'conclusion'"/>
         </div>
         <graph-presenter :patient="patient" v-show="state == 'graph'"/>
       </div>
@@ -27,10 +29,14 @@ import Dashboard from "./components/Dashboard";
 import LoadError from "./components/LoadError";
 import GraphPresenter from "./components/GraphPresenter";
 import * as moment from "moment/moment";
+import ConclusionEditor from "./components/ConclusionEditor";
+import ActionDone from "./components/ActionDone";
 
 export default {
   name: 'App',
   components: {
+    ActionDone,
+    ConclusionEditor,
     GraphPresenter,
     LoadError,
     Dashboard,
@@ -59,6 +65,10 @@ export default {
 
       if (this.window_mode == 'settings') {
         this.state = 'dashboard';
+      }
+
+      if (this.window_mode == 'conclusion') {
+        this.state = 'conclusion';
       }
 
       if (this.window_mode == 'graph') {
@@ -102,6 +112,7 @@ export default {
 
     Event.listen('back-to-dashboard', () => this.state = 'dashboard');
     Event.listen('load-error', () => this.state = 'load-error')
+    Event.listen('action-done', () => this.state = 'done')
 
     Event.listen('load-records', (data) => {
       this.load_records(data)
@@ -182,7 +193,7 @@ body {
   border-color: rgba(0, 108, 136, 0.3);
 }
 
-.btn-primary, .btn-primary:active, .btn-primary:hover, .btn-primary:focus, .btn-primary:disabled{
+.btn-primary, .btn-primary:active, .btn-primary:hover, .btn-primary:focus, .btn-primary:disabled {
   border-color: #006c88;
   background-color: #006c88;
 }
@@ -197,8 +208,24 @@ body {
   background-color: #ff5763;
 }
 
-h5 {
-  margin-bottom: 15px;
+h5, h4, h3 {
+    color: #006c88;
+    margin-bottom: 15px;
+    margin-top: 15px;
+}
+
+strong {
+    font-weight: 500;
+}
+
+input[type=checkbox] {
+    /* Double-sized Checkboxes */
+    -ms-transform: scale(1.2); /* IE */
+    -moz-transform: scale(1.2); /* FF */
+    -webkit-transform: scale(1.2); /* Safari and Chrome */
+    -o-transform: scale(1.2); /* Opera */
+    transform: scale(1.2);
+    margin: 10px;
 }
 
 </style>

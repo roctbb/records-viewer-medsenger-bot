@@ -3,6 +3,7 @@ import App from './App.vue'
 import axios from "axios";
 import vmodal from 'vue-js-modal'
 import VueSimpleAlert from "vue-simple-alert";
+import VueConfirmDialog from 'vue-confirm-dialog'
 
 window.Event = new class {
     constructor() {
@@ -78,6 +79,8 @@ window.onresize = function () {
 }
 
 Vue.use(vmodal, {componentName: 'Modal'})
+Vue.use(VueConfirmDialog)
+Vue.component('vue-confirm-dialog', VueConfirmDialog.default)
 Vue.use(VueSimpleAlert);
 
 new Vue({
