@@ -98,6 +98,8 @@ def verify_json(func):
 
 
 def get_ui(contract_id, mode='settings', object_id=None, source=None):
+    load()
+
     return render_template('index.html', contract_id=contract_id,
                            agent_token=contracts[str(contract_id)]['agent_token'],
                            mode=mode, object_id=object_id, source=source,
