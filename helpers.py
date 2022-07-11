@@ -1,4 +1,3 @@
-import json
 import os
 import sys
 import math
@@ -12,38 +11,6 @@ from medsenger_api import AgentApiClient
 from config import *
 
 medsenger_api = AgentApiClient(APP_KEY, MAIN_HOST, AGENT_ID, API_DEBUG)
-contracts = {}
-
-
-def load():
-    global contracts
-    with open('contracts.json', 'r') as f:
-        contracts = json.load(f)
-
-
-def save():
-    global contracts
-    with open('contracts.json', 'w') as f:
-        json.dump(contracts, f, indent=6)
-
-
-def init_contract(contract_id):
-    if contract_id not in contracts.keys():
-        contract = {
-            'agent_token': medsenger_api.get_agent_token(contract_id).get('agent_token'),
-            'is_active': True
-        }
-        contracts.update({contract_id: contract})
-    else:
-        contracts[contract_id]['is_active'] = True
-    save()
-    return 'ok'
-
-
-def remove_contract(contract_id):
-    contracts[contract_id]['is_active'] = False
-    save()
-    return 'ok'
 
 
 def gts():
@@ -97,11 +64,8 @@ def verify_json(func):
     return wrapper
 
 
-def get_ui(contract_id, mode='settings', object_id=None, source=None):
-    load()
-
-    return render_template('index.html', contract_id=contract_id,
-                           agent_token=contracts[str(contract_id)]['agent_token'],
+def get_ui(contract, mode='settings', object_id=None, source=None):
+    return render_template('index.html', contract_id=contract.id, agent_token=contract.agent_token,
                            mode=mode, object_id=object_id, source=source,
                            api_host=MAIN_HOST.replace('8001', '8000'), local_host=LOCALHOST,
                            agent_id=AGENT_ID, lc=dir_last_updated('static'))

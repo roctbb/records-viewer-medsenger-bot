@@ -1,7 +1,9 @@
 from flask import Flask, jsonify
 from helpers import *
+from managers.ContractsManager import ContractManager
+from manage import *
 
-app = Flask(__name__)
+contract_manager = ContractManager(medsenger_api, db)
 
 
 @app.route('/status', methods=['POST'])
@@ -9,7 +11,7 @@ def status():
     answer = {
         "is_tracking_data": False,
         "supported_scenarios": [],
-        "tracked_contracts": [str(contract_id) for contract_id in contracts.keys() if contracts[contract_id]['is_active']]
+        "tracked_contracts": contract_manager.get_active_ids()
     }
 
     return json.dumps(answer)
@@ -21,8 +23,7 @@ def init(data):
     contract_id = data.get('contract_id')
     if not contract_id:
         abort(422)
-
-    init_contract(contract_id)
+    contract_manager.add(contract_id)
     return 'ok'
 
 
@@ -42,18 +43,20 @@ def remove(data):
     if not contract_id:
         abort(422)
 
-    remove_contract(contract_id)
+    contract_manager.remove(contract_id)
     return 'ok'
 
 
 @app.route('/settings', methods=['GET'])
-def settings():
+@verify_args
+def settings(args, form):
     contract_id = request.args.get('contract_id', '')
 
-    if contract_id not in contracts.keys():
-        init_contract(contract_id)
+    if contract_manager.not_exists(contract_id):
+        contract_manager.add(contract_id)
 
-    return get_ui(contract_id, source=request.args.get('source'))
+    contract = contract_manager.get(args.get('contract_id'))
+    return get_ui(contract, source=request.args.get('source'))
 
 # @app.route('/settings', methods=['POST'])
 # def post_settings():
@@ -73,23 +76,27 @@ def message():
 @app.route('/log', methods=['GET'])
 @verify_args
 def get_log(args, form):
-    contract_id = args.get('contract_id', '')
+    contract_id = request.args.get('contract_id', '')
 
-    if contract_id not in contracts.keys():
-        init_contract(contract_id)
+    if contract_manager.not_exists(contract_id):
+        contract_manager.add(contract_id)
 
-    return get_ui(contract_id, 'log')
+    contract = contract_manager.get(args.get('contract_id'))
+
+    return get_ui(contract, 'log')
 
 
 @app.route('/report', methods=['GET'])
 @verify_args
 def get_report(args, form):
-    contract_id = args.get('contract_id', '')
+    contract_id = request.args.get('contract_id', '')
 
-    if contract_id not in contracts.keys():
-        init_contract(contract_id)
+    if contract_manager.not_exists(contract_id):
+        contract_manager.add(contract_id)
 
-    return get_ui(contract_id, source=args.get('source'))
+    contract = contract_manager.get(args.get('contract_id'))
+
+    return get_ui(contract, source=args.get('source'))
 
 
 @app.route('/api/report', methods=['POST'])
@@ -109,15 +116,28 @@ def get_data(args, form):
 @app.route('/graph', methods=['GET'])
 @verify_args
 def graph_page(args, form):
-    contract_id = int(request.args.get('contract_id'))
+    # contract_id = int(request.args.get('contract_id'))
+    contract_id = request.args.get('contract_id', '')
+
+    if contract_manager.not_exists(contract_id):
+        contract_manager.add(contract_id)
+
+    contract = contract_manager.get(args.get('contract_id'))
+
     return get_ui(contract_id, 'graph')
 
 
 @app.route('/graph/<category_id>', methods=['GET'])
 @verify_args
 def graph_page_with_args(args, form, category_id):
-    contract_id = int(request.args.get('contract_id'))
-    return get_ui(contract_id, 'graph', object_id=category_id)
+    # contract_id = int(request.args.get('contract_id'))
+    contract_id = request.args.get('contract_id', '')
+
+    if contract_manager.not_exists(contract_id):
+        contract_manager.add(contract_id)
+
+    contract = contract_manager.get(args.get('contract_id'))
+    return get_ui(contract, 'graph', object_id=category_id)
 
 
 @app.route('/api/categories', methods=['GET'])
@@ -170,8 +190,15 @@ def get_file(args, form):
 @app.route('/conclusion', methods=['GET'])
 @verify_args
 def conclusion_page(args, form):
-    contract_id = int(request.args.get('contract_id'))
-    return get_ui(contract_id, 'conclusion')
+    # contract_id = int(request.args.get('contract_id'))
+    contract_id = request.args.get('contract_id', '')
+
+    if contract_manager.not_exists(contract_id):
+        contract_manager.add(contract_id)
+
+    contract = contract_manager.get(args.get('contract_id'))
+
+    return get_ui(contract, 'conclusion')
 
 
 @app.route('/send-conclusion', methods=['POST'])
@@ -184,6 +211,9 @@ def send_conclusion(args, form):
 
     return 'ok'
 
+
+with app.app_context():
+    db.create_all()
+
 if __name__ == "__main__":
-    load()
     app.run(HOST, PORT, debug=API_DEBUG)
