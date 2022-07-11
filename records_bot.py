@@ -117,7 +117,6 @@ def get_data(args, form):
 @app.route('/graph', methods=['GET'])
 @verify_args
 def graph_page(args, form):
-    # contract_id = int(request.args.get('contract_id'))
     contract_id = request.args.get('contract_id', '')
 
     if contract_manager.not_exists(contract_id):
@@ -125,13 +124,12 @@ def graph_page(args, form):
 
     contract = contract_manager.get(args.get('contract_id'))
 
-    return get_ui(contract_id, 'graph')
+    return get_ui(contract, 'graph')
 
 
 @app.route('/graph/<category_id>', methods=['GET'])
 @verify_args
 def graph_page_with_args(args, form, category_id):
-    # contract_id = int(request.args.get('contract_id'))
     contract_id = request.args.get('contract_id', '')
 
     if contract_manager.not_exists(contract_id):
