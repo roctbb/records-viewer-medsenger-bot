@@ -30,6 +30,13 @@
               <label class="form-check-label" :for="'checkbox_' + i + '_' + j">{{ variant }}</label>
             </div>
           </div>
+
+          <div v-if="q.type == 'text'">
+            <input type="text" class="form-control monitoring-input" v-model="result_parts[q.index]"/>
+          </div>
+          <div v-if="q.type == 'textarea'">
+            <textarea class="form-control monitoring-input" rows="5" v-model="result_parts[q.index]"/>
+          </div>
         </form-group48>
       </div>
     </card>
@@ -37,8 +44,7 @@
     <!-- редактирование -->
     <card title="Редактирование" v-if="state == 'editing'">
       <textarea class="form-control monitoring-input"
-                rows="20"
-                v-model="conclusion"></textarea>
+                rows="20" v-model="conclusion"/>
     </card>
 
     <!-- кнопки -->
@@ -96,6 +102,15 @@ export default {
           }
           this.questions.push(q)
           this.result_parts.push(q.variants[0])
+        } else if (['text', 'textarea'].includes(el.name)) {
+          let q = {
+            type: el.name,
+            text: el.attrs.q,
+            default: el.contents,
+            index: index
+          }
+          this.questions.push(q)
+          this.result_parts.push(q.default)
         } else if (el.name == 'medicines') {
           let meds = window.PARAMS.medicines.concat(window.PARAMS.canceled_medicines.map(m => m + ' (отменено)'))
           this.result_parts.push('\n- ' + meds.join('\n- '))
