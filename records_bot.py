@@ -31,12 +31,14 @@ def init(data):
 @verify_json
 def order(data):
     contract_id = data.get('contract_id')
-    if data['order'] == 'need_conclusion':
-        data['params'].pop('attach_medicines', None)
+    if data['order'] == 'add_params':
         contract_manager.add_params(contract_id, data['params'])
+        return 'ok'
+    if data['order'] == 'need_conclusion':
         medsenger_api.send_message(data['contract_id'], "Не забудьте сформировать заключение для пациента.",
                                    action_name='Сформировать заключение', action_link='conclusion',
                                    only_doctor=True)
+        return 'ok'
 
 
 @app.route('/remove', methods=['POST'])
