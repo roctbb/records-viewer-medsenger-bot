@@ -89,6 +89,7 @@ export default {
     this.conclusion_template = this.patient.scenario.conclusion_template
     this.soup = new JSSoup(this.conclusion_template)
 
+    console.log('soup', this.soup.contents)
     this.soup.contents.forEach((el, index) => {
       if (el.constructor.name == 'SoupString') {
         this.result_parts.push(el._text)
