@@ -91,7 +91,7 @@ export default {
 
     console.log('soup', this.soup.contents)
     this.soup.contents.forEach((el, index) => {
-      if (el.constructor.name == 'SoupString') {
+      if (!el.name) {
         this.result_parts.push(el._text)
       } else {
         if (el.name == 'variants') {
