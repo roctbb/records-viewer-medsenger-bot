@@ -40,6 +40,8 @@ def order(data):
                                    only_doctor=True)
         return 'ok'
 
+    return "not found"
+
 
 @app.route('/remove', methods=['POST'])
 @verify_json
