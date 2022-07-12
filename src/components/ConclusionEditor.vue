@@ -91,42 +91,40 @@ export default {
 
     console.log('soup', this.soup.contents)
     this.soup.contents.forEach((el, index) => {
-      if (!el.name) {
-        this.result_parts.push(el._text)
-      } else {
-        if (el.name == 'variants') {
-          let q = {
-            type: 'variants',
-            text: el.attrs.q,
-            variants: el.contents.map(v => v.getText()),
-            index: index
-          }
-          this.questions.push(q)
-          this.result_parts.push(q.variants[0])
-        } else if (['text', 'textarea'].includes(el.name)) {
-          let q = {
-            type: el.name,
-            text: el.attrs.q,
-            default: el.contents,
-            index: index
-          }
-          this.questions.push(q)
-          this.result_parts.push(q.default)
-        } else if (el.name == 'medicines') {
-          let meds = window.PARAMS.medicines.concat(window.PARAMS.canceled_medicines.map(m => m + ' (отменено)'))
-          this.result_parts.push('\n- ' + meds.join('\n- '))
-        } else if (el.name == 'medicines-select') {
-          let meds = window.PARAMS.medicines.concat(window.PARAMS.canceled_medicines)
-          let q = {
-            type: 'multiple-choice',
-            text: el.attrs.q,
-            variants: meds,
-            selected: [],
-            index: index
-          }
-          this.questions.push(q)
-          this.result_parts.push('-')
+      if (el.name == 'variants') {
+        let q = {
+          type: 'variants',
+          text: el.attrs.q,
+          variants: el.contents.map(v => v.getText()),
+          index: index
         }
+        this.questions.push(q)
+        this.result_parts.push(q.variants[0])
+      } else if (['text', 'textarea'].includes(el.name)) {
+        let q = {
+          type: el.name,
+          text: el.attrs.q,
+          default: el.contents,
+          index: index
+        }
+        this.questions.push(q)
+        this.result_parts.push(q.default)
+      } else if (el.name == 'medicines') {
+        let meds = window.PARAMS.medicines.concat(window.PARAMS.canceled_medicines.map(m => m + ' (отменено)'))
+        this.result_parts.push('\n- ' + meds.join('\n- '))
+      } else if (el.name == 'medicines-select') {
+        let meds = window.PARAMS.medicines.concat(window.PARAMS.canceled_medicines)
+        let q = {
+          type: 'multiple-choice',
+          text: el.attrs.q,
+          variants: meds,
+          selected: [],
+          index: index
+        }
+        this.questions.push(q)
+        this.result_parts.push('-')
+      } else {
+        this.result_parts.push(el._text)
       }
     })
 
