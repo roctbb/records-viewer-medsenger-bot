@@ -131,6 +131,8 @@ export default {
 
     this.state = this.questions.length ? 'forming' : 'editing'
     this.conclusion = this.result_parts.join('')
+    console.log('result parts', this.result_parts)
+    console.log('questions', this.questions)
   },
   methods: {
     multiple_choice: function (q, choice) {
