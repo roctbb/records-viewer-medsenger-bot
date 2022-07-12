@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 import math
@@ -64,9 +65,9 @@ def verify_json(func):
     return wrapper
 
 
-def get_ui(contract, mode='settings', object_id=None, source=None):
+def get_ui(contract, mode='settings', object_id=None, source=None, params={}):
     return render_template('index.html', contract_id=contract.id, agent_token=contract.agent_token,
-                           mode=mode, object_id=object_id, source=source,
+                           mode=mode, object_id=object_id, source=source, params=json.dumps(params),
                            api_host=MAIN_HOST.replace('8001', '8000'), local_host=LOCALHOST,
                            agent_id=AGENT_ID, lc=dir_last_updated('static'))
 

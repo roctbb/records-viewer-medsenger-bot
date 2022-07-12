@@ -19,6 +19,7 @@
         window.MODE = '{{ mode }}';
         window.OBJECT_ID = parseInt('{{ object_id }}');
         window.SOURCE = '{{ source }}';
+        window.PARAMS = JSON.parse('{{ params | safe }}');
     </script>
 
     <style>

@@ -97,10 +97,10 @@ export default {
           this.questions.push(q)
           this.result_parts.push(q.variants[0])
         } else if (el.name == 'medicines') {
-          let meds = [] //  fixme сюда нужно как-то передать список лекарств
+          let meds = window.PARAMS.medicines.concat(window.PARAMS.canceled_medicines.map(m => m + ' (отменено)'))
           this.result_parts.push('\n- ' + meds.join('\n- '))
         } else if (el.name == 'medicines-select') {
-          let meds = [] //  fixme сюда нужно как-то передать список лекарств
+          let meds = window.PARAMS.medicines.concat(window.PARAMS.canceled_medicines)
           let q = {
             type: 'multiple-choice',
             text: el.attrs.q,

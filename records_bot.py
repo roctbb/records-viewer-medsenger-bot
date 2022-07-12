@@ -1,4 +1,3 @@
-import json
 from flask import Flask, jsonify
 from helpers import *
 from managers.ContractsManager import ContractManager
@@ -31,7 +30,10 @@ def init(data):
 @app.route('/order', methods=['POST'])
 @verify_json
 def order(data):
+    contract_id = data.get('contract_id')
     if data['order'] == 'need_conclusion':
+        data['params'].pop('attach_medicines', None)
+        contract_manager.add_params(contract_id, data['params'])
         medsenger_api.send_message(data['contract_id'], "Не забудьте сформировать заключение для пациента.",
                                    action_name='Сформировать заключение', action_link='conclusion',
                                    only_doctor=True)
@@ -189,7 +191,6 @@ def get_file(args, form):
 @app.route('/conclusion', methods=['GET'])
 @verify_args
 def conclusion_page(args, form):
-    # contract_id = int(request.args.get('contract_id'))
     contract_id = request.args.get('contract_id', '')
 
     if contract_manager.not_exists(contract_id):
@@ -197,7 +198,7 @@ def conclusion_page(args, form):
 
     contract = contract_manager.get(args.get('contract_id'))
 
-    return get_ui(contract, 'conclusion')
+    return get_ui(contract, 'conclusion', params=contract.params)
 
 
 @app.route('/send-conclusion', methods=['POST'])
