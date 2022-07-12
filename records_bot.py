@@ -31,7 +31,7 @@ def init(data):
 @verify_json
 def order(data):
     contract_id = data.get('contract_id')
-    if data['order'] == 'add_params':
+    if data['order'] == 'conclusion_params':
         contract_manager.add_params(contract_id, data['params'])
         return 'ok'
     if data['order'] == 'need_conclusion':
