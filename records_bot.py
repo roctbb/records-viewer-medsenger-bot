@@ -32,7 +32,7 @@ def init(data):
 def order(data):
     contract_id = data.get('contract_id')
     if data['order'] == 'need_conclusion':
-        data['params'].pop('attach_medicines', None)
+        data['params'].get('attach_medicines', None)
         contract_manager.add_params(contract_id, data['params'])
         medsenger_api.send_message(data['contract_id'], "Не забудьте сформировать заключение для пациента.",
                                    action_name='Сформировать заключение', action_link='conclusion',
