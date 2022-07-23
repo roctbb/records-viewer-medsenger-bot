@@ -1259,7 +1259,8 @@ export default {
     })
 
     Event.listen('generate-report', () => {
-      this.generate_report()
+      if (this.loaded)
+        this.generate_report()
     })
   }
 }

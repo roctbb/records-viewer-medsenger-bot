@@ -59,6 +59,7 @@ export default {
   },
   data() {
     return {
+      loaded: false,
       page: undefined,
       dates: undefined,
       filters: undefined,
@@ -77,6 +78,7 @@ export default {
       }
 
       Event.fire('load-records', data)
+      this.loaded = true
     },
     select_page: function (p) {
       this.page = p
@@ -114,7 +116,8 @@ export default {
     })
 
     Event.listen('generate-report', () => {
-      this.generate_report()
+      if (this.loaded)
+        this.generate_report()
     })
 
     Event.listen('incorrect-dates', (duration) => {
@@ -123,7 +126,13 @@ export default {
 
     Event.listen('load-report', (report) => {
       this.filters = report.filters
+      this.loaded = true
     })
+
+    Event.listen('back-to-dashboard', () => {
+      this.loaded = false;
+    });
+
   },
 }
 </script>

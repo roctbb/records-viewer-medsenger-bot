@@ -33,7 +33,9 @@
 
               <!-- Лекарства -->
               <span
-                  v-if="record.category_info.name == 'medicine' && record.params && record.params.dose"> ({{ record.params.dose }})</span>
+                  v-if="record.category_info.name == 'medicine' && record.params && record.params.dose"> ({{
+                  record.params.dose
+                }})</span>
 
               <!-- Файлы -->
               <div class="row" v-for="file in record.attached_files">
@@ -69,6 +71,12 @@
                 </ul>
               </more-info-block>
 
+              <!-- Карта -->
+              <more-info-block title="Показать зоны на карте" :id="'map' + record.id"
+                               v-if="record.params && record.params.map && !to_export">
+                <interactive-map :map="record.params.map" :parts="record.params.answer"/>
+              </more-info-block>
+
               <!-- Настройки алгоритма -->
               <more-info-block title="Настройки алгоритма" :id="'algorithm_params' + record.id"
                                v-if="record.params && record.params.object_type == 'algorithm' &&
@@ -102,6 +110,10 @@
                     <span v-html="addition.addition.comment"/></li>
                 </ul>
               </div>
+
+              <div v-if="to_export && record.params && record.params.map">
+                <interactive-map :map="record.params.map" :parts="record.params.answer"/>
+              </div>
             </td>
           </tr>
 
@@ -125,10 +137,11 @@
 import MoreInfoBlock from "./MoreInfoBlock";
 import downloadjs from "downloadjs";
 import Loading from "./Loading";
+import InteractiveMap from "./InteractiveMap";
 
 export default {
   name: "RecordsList",
-  components: {Loading, MoreInfoBlock},
+  components: {InteractiveMap, Loading, MoreInfoBlock},
   props: ['data', 'to_export'],
   data() {
     return {
