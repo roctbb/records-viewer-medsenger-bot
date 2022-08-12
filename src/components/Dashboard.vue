@@ -197,9 +197,13 @@ export default {
       Event.fire('load-report', params)
     },
     load_graph: function (params, type) {
+      let end_date = new Date(this.patient.end_date)
+      let today = new Date(moment().format('YYYY-MM-DD'))
+      let end_filter_date = end_date < today ? end_date : today
+
       let data = {
         group: params,
-        dates: [new Date(moment().add(-14, 'days').format('YYYY-MM-DD')), new Date(moment().format('YYYY-MM-DD'))]
+        dates: [new Date(moment(end_filter_date).add(-14, 'days').format('YYYY-MM-DD')), end_filter_date]
       }
       Event.fire('load-' + type, data)
     },
@@ -216,6 +220,10 @@ export default {
     })
 
     if (this.object_id) {
+      let end_date = new Date(this.patient.end_date)
+      let today = new Date(moment().format('YYYY-MM-DD'))
+      let end_filter_date = end_date < today ? end_date : today
+
       this.axios.get(this.url('/api/categories')).then(response => {
         try {
           let category = response.data.filter(c => c.id == this.object_id)
@@ -224,7 +232,7 @@ export default {
             let params = this.plottable_categories.filter(c => c.categories.includes(name))[0];
             let data = {
               group: params,
-              dates: [new Date(moment().add(-14, 'days').format('YYYY-MM-DD')), new Date(moment().format('YYYY-MM-DD'))]
+              dates: [new Date(moment(end_filter_date).add(-14, 'days').format('YYYY-MM-DD')), end_filter_date]
             }
 
             Event.fire('load-graph', data);

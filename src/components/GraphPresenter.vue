@@ -3,7 +3,7 @@
     <div class="container">
       <filter-panel :page="type == 'line' ? 'graph' : ( type == 'day-line' ? 'day-graph' :
       (group.categories &&group.categories.includes('symptom') ? 'symptoms-' : '') + type )"
-                    :disable_downloading="no_data || exporting"/>
+                    :disable_downloading="no_data || exporting" :patient="patient"/>
     </div>
 
     <!-- Ошибки -->

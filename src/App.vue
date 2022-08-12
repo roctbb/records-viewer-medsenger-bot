@@ -118,8 +118,12 @@ export default {
     })
 
     Event.listen('load-report', (report) => {
+      let end_date = new Date(this.patient.end_date)
+      let today = new Date(moment().format('YYYY-MM-DD'))
+      let end_filter_date = end_date < today ? end_date : today
+
       let data = {
-        dates: [undefined, undefined],
+        dates: [undefined, +end_filter_date / 1000],
         page: 0,
         categories: report.categories,
         report: report
@@ -208,23 +212,23 @@ body {
 }
 
 h5, h4, h3 {
-    color: #006c88;
-    margin-bottom: 15px;
-    margin-top: 15px;
+  color: #006c88;
+  margin-bottom: 15px;
+  margin-top: 15px;
 }
 
 strong {
-    font-weight: 500;
+  font-weight: 500;
 }
 
 input[type=checkbox] {
-    /* Double-sized Checkboxes */
-    -ms-transform: scale(1.2); /* IE */
-    -moz-transform: scale(1.2); /* FF */
-    -webkit-transform: scale(1.2); /* Safari and Chrome */
-    -o-transform: scale(1.2); /* Opera */
-    transform: scale(1.2);
-    margin: 10px;
+  /* Double-sized Checkboxes */
+  -ms-transform: scale(1.2); /* IE */
+  -moz-transform: scale(1.2); /* FF */
+  -webkit-transform: scale(1.2); /* Safari and Chrome */
+  -o-transform: scale(1.2); /* Opera */
+  transform: scale(1.2);
+  margin: 10px;
 }
 
 </style>

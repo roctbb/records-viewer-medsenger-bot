@@ -144,7 +144,7 @@ import 'vue2-datepicker/locale/ru';
 
 export default {
   name: "FilterPanel",
-  props: ['data', 'categories', 'page', 'disable_downloading'],
+  props: ['data', 'categories', 'page', 'disable_downloading', 'patient'],
   components: {DatePicker, Multiselect},
   data() {
     return {
@@ -229,19 +229,22 @@ export default {
       range: [],
       period: undefined,
     }
+    let end_date = new Date(this.patient.end_date)
+    let today = new Date(moment().format('YYYY-MM-DD'))
+    let end_filter_date = end_date < today ? end_date : today
 
     Event.listen('load-report', params => {
-      this.dates.range = [undefined, new Date(moment().format('YYYY-MM-DD'))]
+      this.dates.range = [undefined, end_filter_date]
       this.dates.period = -1
     })
 
     Event.listen('load-graph', params => {
-      this.dates.range = [new Date(moment().add(-14, 'days').format('YYYY-MM-DD')), new Date(moment().format('YYYY-MM-DD'))]
+      this.dates.range = [new Date(moment(end_filter_date).add(-14, 'days').format('YYYY-MM-DD')), end_filter_date]
       this.dates.period = 14
     })
 
     Event.listen('load-heatmap', params => {
-      this.dates.range = [new Date(moment().add(-30, 'days').format('YYYY-MM-DD')), new Date(moment().format('YYYY-MM-DD'))]
+      this.dates.range = [new Date(moment(end_filter_date).add(-30, 'days').format('YYYY-MM-DD')), end_filter_date]
       this.dates.period = 30
     })
 
