@@ -7,7 +7,7 @@
     </div>
 
     <!-- Ошибки -->
-    <error-block :errors="errors" v-if="errors.length"></error-block>
+    <error-block :errors="errors" v-if="errors.length"/>
 
     <!-- Основная часть -->
     <div v-if="loaded">
@@ -72,56 +72,52 @@
             </tbody>
           </table>
         </div>
-
       </div>
-    </div>
-    <loading v-else-if="!errors.length"></loading>
-    <br>
 
-    <!-- Для экспорта -->
-
-    <div v-show="false">
-      <div ref="to-export">
-        <h4>Отчет по мониторингу пациента {{ patient.name }} ({{ patient.birthday }})</h4>
-        <span><strong>Период: </strong>
+      <!-- Для экспорта -->
+      <div v-show="false">
+        <div ref="to-export">
+          <h4>Отчет по мониторингу пациента {{ patient.name }} ({{ patient.birthday }})</h4>
+          <span><strong>Период: </strong>
           {{
-            dates[0] ? ` с ${dates[0].toLocaleDateString()}` : ''
-          }} {{ dates[1] ? ` по ${dates[1].toLocaleDateString()}` : '' }}</span>
-        <hr>
+              dates[0] ? ` с ${dates[0].toLocaleDateString()}` : ''
+            }} {{ dates[1] ? ` по ${dates[1].toLocaleDateString()}` : '' }}</span>
+          <hr>
 
-        <div style="margin-left: 20px">
-          <highcharts :constructor-type="'stockChart'" :options="export_options"></highcharts>
-        </div>
+          <highcharts :constructor-type="'stockChart'" :options="export_options" style="margin-left: 20px"/>
 
-        <div class="container center" v-if="type == 'line' && this.statistics.length">
-          <h6>Значения параметров за выбранный период</h6>
-          <table class="table table-hover table-striped">
-            <colgroup>
-              <col span="1" style="width: 55%;">
-              <col span="1" style="width: 15%;">
-              <col span="1" style="width: 15%;">
-              <col span="1" style="width: 15%;">
-            </colgroup>
-            <thead>
-            <tr>
-              <th scope="col" class="bg-info text-light">Параметр</th>
-              <th scope="col" class="bg-info text-light">Среднее</th>
-              <th scope="col" class="bg-info text-light">Мин</th>
-              <th scope="col" class="bg-info text-light">Макс</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr v-for="stat in this.statistics">
-              <th scope="row" style="text-align: left;">{{ stat.name }}</th>
-              <td>{{ stat.avg.toFixed(2) * 1 }}</td>
-              <td>{{ stat.min.toFixed(2) * 1 }}</td>
-              <td>{{ stat.max.toFixed(2) * 1 }}</td>
-            </tr>
-            </tbody>
-          </table>
+          <div class="container center" v-if="type == 'line' && this.statistics.length">
+            <h6>Значения параметров за выбранный период</h6>
+            <table class="table table-hover table-striped">
+              <colgroup>
+                <col span="1" style="width: 55%;">
+                <col span="1" style="width: 15%;">
+                <col span="1" style="width: 15%;">
+                <col span="1" style="width: 15%;">
+              </colgroup>
+              <thead>
+              <tr>
+                <th scope="col" class="bg-info text-light">Параметр</th>
+                <th scope="col" class="bg-info text-light">Среднее</th>
+                <th scope="col" class="bg-info text-light">Мин</th>
+                <th scope="col" class="bg-info text-light">Макс</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr v-for="stat in this.statistics">
+                <th scope="row" style="text-align: left;">{{ stat.name }}</th>
+                <td>{{ stat.avg.toFixed(2) * 1 }}</td>
+                <td>{{ stat.min.toFixed(2) * 1 }}</td>
+                <td>{{ stat.max.toFixed(2) * 1 }}</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
+
     </div>
+    <loading v-else-if="!errors.length"/>
 
   </div>
 </template>
@@ -164,7 +160,8 @@ export default {
       no_data: true,
       show_legend: true,
       exporting: false,
-      export_options: {}
+      export_options: {},
+      export_chart: undefined
     }
   },
   computed: {
@@ -225,7 +222,6 @@ export default {
       }
 
       let start = this.dates[0] ? this.dates[0].getTime() : undefined
-      let end = this.dates[1] ? this.dates[1].getTime() + this.day - 1 : new Date()
 
       if (!start) {
         this.data.forEach(category => {
@@ -241,7 +237,50 @@ export default {
         Event.fire('set-start-date', this.dates[0])
       }
 
-      this.options = {
+      this.options = this.get_options()
+      this.is_empty()
+
+      if (!this.no_data) {
+        this.export_options = this.get_options()
+        this.export_options.chart.events.render = function (event) {
+          Event.fire('set-export-chart', this)
+        }
+
+        this.export_options.title.align = 'left'
+
+        this.export_options.chart.width = 700
+        this.export_options.chart.backgroundColor = '#ffffff'
+
+        if (this.type.includes('line')) {
+          this.export_options.legend.width = '100%'
+          this.export_options.chart.height = 450
+
+          this.export_options.series.forEach(series => {
+            series.data.forEach(val => {
+              if (val.marker && val.marker.symbol && val.marker.symbol.includes('url')) {
+                val.marker.symbol = 'circle'
+                val.marker.fillColor = '#FF0000'
+              }
+            })
+          })
+        } else {
+          this.export_options.xAxis.labels.style = {
+            fontSize: '10px'
+          }
+          this.export_options.yAxis[0].labels.style = {
+            fontSize: '10px'
+          }
+        }
+      }
+
+      this.loaded = true
+      console.log(this.export_chart)
+    },
+    get_options: function () {
+      let start = this.dates[0] ? this.dates[0].getTime() : undefined
+      let end = this.dates[1] ? this.dates[1].getTime() + this.day - 1 : new Date()
+
+      let options = {
         chart: this.get_chart(),
         series: [],
         title: {
@@ -261,7 +300,6 @@ export default {
             hour: '%H:%M'
           }
         },
-        // zoom: 'x',
         yAxis: [
           this.get_y_axis(0),
           this.get_y_axis(1)
@@ -299,17 +337,16 @@ export default {
           enabled: this.type == 'line',
         },
         scrollbar: {
-          enabled: false,
-          // step: 1
-        },
+          enabled: false
+        }
       }
 
       if (this.type.includes('line')) {
-        this.options.colors = ['#058DC7', '#50B432', '#aa27ce', '#fcff00',
+        options.colors = ['#058DC7', '#50B432', '#aa27ce', '#fcff00',
           '#24CBE5', '#64E572', '#c355ff', '#fce200', '#6AF9C4']
-        this.options.tooltip.formatter = undefined
+        options.tooltip.formatter = undefined
 
-        this.options.plotOptions = {
+        options.plotOptions = {
           line: {
             dataLabels: {
               enabled: true
@@ -322,7 +359,7 @@ export default {
             }
           }
         }
-        this.options.legend = {
+        options.legend = {
           enabled: this.show_legend,
           itemDistance: 70,
           labelFormatter: function () {
@@ -331,13 +368,13 @@ export default {
         }
 
         if (!this.mobile) {
-          this.options.tooltip.positioner = undefined
+          options.tooltip.positioner = undefined
         } else {
-          this.options.chart.height += 100
+          options.chart.height += 100
         }
 
         if (Math.ceil((this.dates[1] - this.dates[0]) / (1000 * 60 * 60 * 24)) > 6) {
-          this.options.xAxis.tickPositioner = function (min, max) {
+          options.xAxis.tickPositioner = function (min, max) {
             var interval = 24 * 36e5, ticks = [], count = 0;
 
             while (min < max) {
@@ -352,20 +389,18 @@ export default {
               higherRanks: {},
               totalRange: interval * count
             }
-
-
             return ticks;
           }
-          this.options.xAxis.labels = {
+          options.xAxis.labels = {
             rotation: -45
           }
         }
 
       } else {
-        this.options.tooltip.pointFormatter = undefined
-        this.options.tooltip.positioner = undefined
+        options.tooltip.pointFormatter = undefined
+        options.tooltip.positioner = undefined
 
-        this.options.colorAxis = {
+        options.colorAxis = {
           stops: [
             [0, '#50B432'], [0.1, '#fcff00'], [1, '#ed341b']
           ],
@@ -379,41 +414,21 @@ export default {
         }
       }
 
-      Highcharts.setOptions({
-        lang: {
-          loading: 'Загрузка...',
-          months: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
-          weekdays: ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'],
-          shortMonths: ['Янв', 'Фев', 'Март', 'Апр', 'Май', 'Июнь', 'Июль', 'Авг', 'Сент', 'Окт', 'Нояб', 'Дек'],
-          exportButtonTitle: "Экспорт",
-          printButtonTitle: "Печать",
-          rangeSelectorFrom: "С",
-          rangeSelectorTo: "По",
-          rangeSelectorZoom: "Период",
-          downloadPNG: 'Скачать PNG',
-          downloadJPEG: 'Скачать JPEG',
-          downloadPDF: 'Скачать PDF',
-          downloadSVG: 'Скачать SVG',
-          printChart: 'Напечатать график',
-          resetZoom: 'Весь график'
-        }
-      });
-
-      this.options.series = this.get_series()
+      options.series = this.get_series(options)
 
       if (this.type == 'heatmap') {
         let count = this.heatmap_data.categories.symptoms.length + this.heatmap_data.categories.medicines.length
-        this.options.chart.height = count * 20 + 110
+        options.chart.height = count * 20 + 110
 
-        this.options.yAxis[0].categories = this.heatmap_data.categories.symptoms
-        this.options.yAxis[1].categories = this.heatmap_data.categories.medicines
+        options.yAxis[0].categories = this.heatmap_data.categories.symptoms
+        options.yAxis[1].categories = this.heatmap_data.categories.medicines
 
-        this.options.xAxis.labels = {
+        options.xAxis.labels = {
           rotation: -45
         }
-        this.options.xAxis.tickmarkPlacement = 'between'
-        this.options.xAxis.tickPositioner = function (min, max) {
-          var interval = 24 * 36e5, ticks = [], count = 0;
+        options.xAxis.tickmarkPlacement = 'between'
+        options.xAxis.tickPositioner = function (min, max) {
+          let interval = 24 * 36e5, ticks = [], count = 0;
 
           while (min < max) {
             ticks.push(min);
@@ -433,116 +448,34 @@ export default {
         }
 
         if (this.group.categories.includes('symptom')) {
-          this.options.yAxis[0].height = 20 * this.heatmap_data.categories.symptoms.length
+          options.yAxis[0].height = 20 * this.heatmap_data.categories.symptoms.length
 
-          this.options.yAxis[1].top = 20 * this.heatmap_data.categories.symptoms.length + 60
-          this.options.yAxis[1].height = 20 * this.heatmap_data.categories.medicines.length
+          options.yAxis[1].top = 20 * this.heatmap_data.categories.symptoms.length + 60
+          options.yAxis[1].height = 20 * this.heatmap_data.categories.medicines.length
 
           if (!this.heatmap_data.show_medicines || !this.heatmap_data.categories.medicines.length) {
-            this.heatmap_data.axis = this.options.yAxis.splice(1, 2)
+            this.heatmap_data.axis = options.yAxis.splice(1, 2)
             let count = this.heatmap_data.categories.medicines.length
-            this.options.chart.height -= count * 20
+            options.chart.height -= count * 20
           }
-
         } else {
-          this.options.yAxis.splice(0, 1)
+          options.yAxis.splice(0, 1)
         }
       }
 
       if (this.type == 'day-line') {
-        this.options.xAxis.min = (moment('05:00:00', 'HH:mm:ss').unix() + this.offset) * 1000
+        options.xAxis.min = (moment('05:00:00', 'HH:mm:ss').unix() + this.offset) * 1000
         let max = moment('05:30:00', 'HH:mm:ss')
-        this.options.xAxis.max = (max.unix() + this.offset) * 1000 + this.day
-        this.options.yAxis.splice(1, 2)
+        options.xAxis.max = (max.unix() + this.offset) * 1000 + this.day
+        options.yAxis.splice(1, 2)
       }
 
       if (this.type == 'line' && this.group.categories.includes('glukose'))
-        this.set_bands()
+        this.set_bands(options)
 
-      this.is_empty()
-
-      if (!this.no_data) {
-        this.export_options = JSON.parse(JSON.stringify(this.options))
-        this.export_options.navigator.enabled = false
-
-        this.export_options.title.align = 'left'
-
-        this.export_options.chart.width = 700
-        this.export_options.chart.backgroundColor = '#ffffff'
-
-        if (this.type.includes('line')) {
-          this.export_options.legend.width = '100%'
-          this.export_options.chart.height = 450
-          this.options.chart.height = `${Math.max(window.innerHeight, 500)}px`
-
-          this.export_options.series.forEach(series => {
-            series.data.forEach(val => {
-              if (val.marker && val.marker.symbol && val.marker.symbol.includes('url')) {
-                val.marker.symbol = 'circle'
-                val.marker.fillColor = '#FF0000'
-              }
-            })
-          })
-
-          if (Math.ceil((this.dates[1] - this.dates[0]) / (1000 * 60 * 60 * 24)) > 6) {
-            this.export_options.xAxis.tickPositioner = function (min, max) {
-              var interval = 24 * 36e5, ticks = [], count = 0;
-
-              while (min < max) {
-                ticks.push(min);
-                min += interval;
-                count++;
-              }
-
-              ticks.info = {
-                unitName: 'day',
-                count: 5,
-                higherRanks: {},
-                totalRange: interval * count
-              }
-
-
-              return ticks;
-            }
-            this.export_options.xAxis.labels = {
-              rotation: -45
-            }
-          }
-
-        } else {
-          this.export_options.xAxis.labels.style = {
-            fontSize: '9px'
-          }
-          this.export_options.yAxis[0].labels.style = {
-            fontSize: '10px'
-          }
-          this.export_options.series = this.get_series()
-
-          this.export_options.xAxis.tickPositioner = function (min, max) {
-            var interval = 24 * 36e5, ticks = [], count = 0;
-
-            while (min < max) {
-              ticks.push(min);
-              min += interval;
-              count++;
-            }
-
-            ticks.info = {
-              unitName: 'day',
-              count: 5,
-              higherRanks: {},
-              totalRange: interval * count
-            }
-
-
-            return ticks;
-          }
-        }
-      }
-
-      this.loaded = true
+      return options
     },
-    get_series: function () {
+    get_series: function (options) {
       let series = []
       series = series.concat(this.get_text_series({name: 'symptom', description: 'Симптом', color: '#ad0eca', y: -3}))
 
@@ -582,11 +515,11 @@ export default {
           graph_series.forEach(s => {
             s.data = s.data.map(d => [d.x, d.y])
           })
-          this.options.plotOptions.line.dataLabels.enabled = false
+          options.plotOptions.line.dataLabels.enabled = false
         }
 
         if (this.mobile && series.length > 2)
-          this.options.chart.height += 50 * (this.options.series.length - 2)
+          options.chart.height += 50 * (options.series.length - 2)
       }
 
       return series
@@ -980,8 +913,7 @@ export default {
       }
 
       return axis
-    }
-    ,
+    },
     get_chart: function () {
       let chart = {
         type: this.type != 'day-line' ? this.type : 'line',
@@ -992,7 +924,8 @@ export default {
         backgroundColor: "#fcfcfc",
         height: `${window.innerHeight - 100}`,
         width: `${window.innerWidth - 30}`,
-        renderTo: 'container'
+        renderTo: 'container',
+        events: {}
       }
 
       if (this.type == 'line') {
@@ -1084,14 +1017,15 @@ export default {
             }
 
             Event.fire('refresh-stats', stats)
+            Event.fire('set-export-chart-extremes', {start: event.target.axes[0].min, end: event.target.axes[0].max})
           }
         }
       }
 
       return chart
     },
-    set_bands: function () {
-      this.options.yAxis[0].plotBands = [{
+    set_bands: function (options) {
+      options.yAxis[0].plotBands = [{
         from: 0,
         to: 3,
         color: "rgba(255,117,117,0.25)"
@@ -1126,12 +1060,12 @@ export default {
         })
 
         if (min != null) {
-          this.options.yAxis[0].plotBands[2].to = min
-          this.options.yAxis[0].plotBands[4].from = min
+          options.yAxis[0].plotBands[2].to = min
+          options.yAxis[0].plotBands[4].from = min
         }
         if (max != null) {
-          this.options.yAxis[0].plotBands[3].from = max
-          this.options.yAxis[0].plotBands[4].to = max
+          options.yAxis[0].plotBands[3].from = max
+          options.yAxis[0].plotBands[4].to = max
         }
       });
     },
@@ -1142,22 +1076,19 @@ export default {
         return '#FF0000';
       }
       return undefined;
-    }
-    ,
+    },
     get_symbol: function (point) {
       if (point.additions) {
         return 'url(' + this.images.warning + ')'
       }
       return undefined;
-    }
-    ,
+    },
     get_radius: function (point) {
       if (point.additions) {
         return 6;
       }
       return undefined;
-    }
-    ,
+    },
     get_comment: function (point, category) {
       let date = new Date((point.timestamp) * 1000)
       let comment = `<strong>${this.type == 'day-line' ? point.date + ' ' : ''}${this.format_time(date)}</strong> - ${category}: ${point.value}`
@@ -1173,20 +1104,17 @@ export default {
         })
       }
       return comment
-    }
-    ,
+    },
     format_time: function (date) {
       return date.toTimeString().substr(0, 5)
-    }
-    ,
+    },
     is_empty: function () {
       this.options.series.forEach(s => {
         if (s.data.length) this.no_data = false
       })
       if (this.type == 'heatmap' && this.group.categories.includes('symptom') &&
           !this.heatmap_data.categories.symptoms.length) this.no_data = true
-    }
-    ,
+    },
 
     fill_nulls: function (data, y) {
       let start = moment(this.dates[0]).set({"hour": 12, "minute": 0, "second": 0}).add(this.offset, 'seconds')
@@ -1235,9 +1163,10 @@ export default {
         html2canvas: {dpi: 192, letterRendering: true},
         jsPDF: {unit: 'in', format: 'letter', orientation: 'portrait'}
       };
-
+      setTimeout(() => {
+        this.exporting = false;
+      }, 5000);
       html2pdf().set(opt).from(element).save();
-      this.exporting = false
     }
   },
   created() {
@@ -1245,6 +1174,35 @@ export default {
       range: [],
       period: 14
     }
+
+    Highcharts.setOptions({
+      lang: {
+        loading: 'Загрузка...',
+        months: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
+        weekdays: ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'],
+        shortMonths: ['Янв', 'Фев', 'Март', 'Апр', 'Май', 'Июнь', 'Июль', 'Авг', 'Сент', 'Окт', 'Нояб', 'Дек'],
+        exportButtonTitle: "Экспорт",
+        printButtonTitle: "Печать",
+        rangeSelectorFrom: "С",
+        rangeSelectorTo: "По",
+        rangeSelectorZoom: "Период",
+        downloadPNG: 'Скачать PNG',
+        downloadJPEG: 'Скачать JPEG',
+        downloadPDF: 'Скачать PDF',
+        downloadSVG: 'Скачать SVG',
+        printChart: 'Напечатать график',
+        resetZoom: 'Весь график'
+      }
+    });
+
+    Event.listen('set-export-chart', (data) => {
+      this.export_chart = data
+    })
+    Event.listen('set-export-chart-extremes', (data) => {
+      if (this.export_chart)
+        this.export_chart.axes[0].setExtremes(data.start, data.end)
+    });
+
     Event.listen('load-graph', (data) => {
       this.type = 'line'
       this.group = data.group
