@@ -274,7 +274,6 @@ export default {
       }
 
       this.loaded = true
-      console.log(this.export_chart)
     },
     get_options: function () {
       let start = this.dates[0] ? this.dates[0].getTime() : undefined

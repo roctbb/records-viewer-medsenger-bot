@@ -86,10 +86,10 @@ export default {
     }
   },
   created() {
+    if (this.window_mode != 'conclusion') return
     this.conclusion_template = this.patient.scenario.conclusion_template
     this.soup = new JSSoup(this.conclusion_template)
 
-    console.log('soup', this.soup.contents)
     this.soup.contents.forEach((el, index) => {
       if (el.name == 'variants') {
         let q = {

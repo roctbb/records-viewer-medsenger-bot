@@ -61,7 +61,6 @@ export default {
     },
     process_load_answer: function (response) {
       this.category_list = response.data;
-      console.log('categories', this.category_list)
 
       if (this.window_mode == 'settings') {
         this.state = 'dashboard';
