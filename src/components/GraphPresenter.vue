@@ -80,7 +80,7 @@
 
     <!-- Для экспорта -->
 
-    <div v-show="true">
+    <div v-show="false">
       <div ref="to-export">
         <h4>Отчет по мониторингу пациента {{ patient.name }} ({{ patient.birthday }})</h4>
         <span><strong>Период: </strong>
@@ -335,6 +335,32 @@ export default {
         } else {
           this.options.chart.height += 100
         }
+
+        if (Math.ceil((this.dates[1] - this.dates[0]) / (1000 * 60 * 60 * 24)) > 6) {
+          this.options.xAxis.tickPositioner = function (min, max) {
+            var interval = 24 * 36e5, ticks = [], count = 0;
+
+            while (min < max) {
+              ticks.push(min);
+              min += interval;
+              count++;
+            }
+
+            ticks.info = {
+              unitName: 'day',
+              count: 5,
+              higherRanks: {},
+              totalRange: interval * count
+            }
+
+
+            return ticks;
+          }
+          this.options.xAxis.labels = {
+            rotation: -45
+          }
+        }
+
       } else {
         this.options.tooltip.pointFormatter = undefined
         this.options.tooltip.positioner = undefined
@@ -457,6 +483,32 @@ export default {
               }
             })
           })
+
+          if (Math.ceil((this.dates[1] - this.dates[0]) / (1000 * 60 * 60 * 24)) > 6) {
+            this.export_options.xAxis.tickPositioner = function (min, max) {
+              var interval = 24 * 36e5, ticks = [], count = 0;
+
+              while (min < max) {
+                ticks.push(min);
+                min += interval;
+                count++;
+              }
+
+              ticks.info = {
+                unitName: 'day',
+                count: 5,
+                higherRanks: {},
+                totalRange: interval * count
+              }
+
+
+              return ticks;
+            }
+            this.export_options.xAxis.labels = {
+              rotation: -45
+            }
+          }
+
         } else {
           this.export_options.xAxis.labels.style = {
             fontSize: '9px'
