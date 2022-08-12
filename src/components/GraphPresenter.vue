@@ -80,7 +80,7 @@
 
     <!-- Для экспорта -->
 
-    <div v-show="false">
+    <div v-show="true">
       <div ref="to-export">
         <h4>Отчет по мониторингу пациента {{ patient.name }} ({{ patient.birthday }})</h4>
         <span><strong>Период: </strong>
@@ -257,7 +257,8 @@ export default {
           max: end,
           ordinal: false,
           dateTimeLabelFormats: {
-            day: this.type == 'day-line' ? '%H:%M' : '%d.%m'
+            day: '%d.%m',
+            hour: '%H:%M'
           }
         },
         // zoom: 'x',
@@ -442,21 +443,49 @@ export default {
 
         this.export_options.chart.width = 700
         this.export_options.chart.backgroundColor = '#ffffff'
-        this.export_options.legend.width = '100%'
 
         if (this.type.includes('line')) {
+          this.export_options.legend.width = '100%'
           this.export_options.chart.height = 450
           this.options.chart.height = `${Math.max(window.innerHeight, 500)}px`
-        }
 
-        this.export_options.series.forEach(series => {
-          series.data.forEach(val => {
-            if (val.marker && val.marker.symbol && val.marker.symbol.includes('url')) {
-              val.marker.symbol = 'circle'
-              val.marker.fillColor = '#FF0000'
-            }
+          this.export_options.series.forEach(series => {
+            series.data.forEach(val => {
+              if (val.marker && val.marker.symbol && val.marker.symbol.includes('url')) {
+                val.marker.symbol = 'circle'
+                val.marker.fillColor = '#FF0000'
+              }
+            })
           })
-        })
+        } else {
+          this.export_options.xAxis.labels.style = {
+            fontSize: '9px'
+          }
+          this.export_options.yAxis[0].labels.style = {
+            fontSize: '10px'
+          }
+          this.export_options.series = this.get_series()
+
+          this.export_options.xAxis.tickPositioner = function (min, max) {
+            var interval = 24 * 36e5, ticks = [], count = 0;
+
+            while (min < max) {
+              ticks.push(min);
+              min += interval;
+              count++;
+            }
+
+            ticks.info = {
+              unitName: 'day',
+              count: 5,
+              higherRanks: {},
+              totalRange: interval * count
+            }
+
+
+            return ticks;
+          }
+        }
       }
 
       this.loaded = true
