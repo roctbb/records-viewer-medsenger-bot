@@ -203,8 +203,10 @@ export default {
 
       let data = {
         group: params,
-        dates: [new Date(moment(end_filter_date).add(-14, 'days').format('YYYY-MM-DD')), end_filter_date]
+        dates: [new Date(moment(end_filter_date).add(-14, 'days').format('YYYY-MM-DD')), end_filter_date],
+        onload: type != 'day-graph'
       }
+
       Event.fire('load-' + type, data)
     },
   },

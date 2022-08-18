@@ -160,8 +160,8 @@ def graph_data(args, form):
     contract_id = args.get('contract_id')
     data = request.json
 
-    answer = get_graph_data(contract_id, data)
-    return jsonify(answer)
+    answer, dates = get_graph_data(contract_id, data)
+    return jsonify({'data': answer, 'dates': dates})
 
 
 @app.route('/params', methods=['GET'])

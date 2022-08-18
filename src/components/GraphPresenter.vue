@@ -173,7 +173,7 @@ export default {
     }
   },
   methods: {
-    load_data: function () {
+    load_data: function (onload) {
       this.loaded = false
       this.no_data = true
 
@@ -185,20 +185,24 @@ export default {
       let data = {
         group_data: this.type == 'day-line',
         group: group_tmp,
+        onload: onload,
         dates: {
           start: this.dates[0] ? this.dates[0].getTime() / 1000 : null,
           end: this.dates[1] ? (this.dates[1].getTime() + this.day) / 1000 - 1 : null,
         }
       }
 
-      if (data.dates.start < data.dates.end) {
+      if (data.dates.start < data.dates.end || onload) {
         this.errors = []
         this.axios.post(this.url('/api/graph/group'), data).then(this.process_load_answer);
       }
     },
 
     process_load_answer: function (response) {
-      this.data = response.data
+      this.data = response.data.data
+
+      this.dates = [new Date(response.data.dates.start * 1000), new Date(response.data.dates.end * 1000)]
+      Event.fire('set-dates', this.dates)
 
       // Собираю данные для суточных графиков
       if (this.type == 'day-line') {
@@ -233,8 +237,6 @@ export default {
           }
 
         })
-        this.dates[0] = new Date(start)
-        Event.fire('set-start-date', this.dates[0])
       }
 
       this.options = this.get_options()
@@ -252,6 +254,7 @@ export default {
         this.export_options.chart.backgroundColor = '#ffffff'
 
         if (this.type.includes('line')) {
+          this.options.chart.height = `${Math.max(window.innerHeight, 500)}px`
           this.export_options.legend.width = '100%'
           this.export_options.chart.height = 450
 
@@ -1198,7 +1201,7 @@ export default {
       this.export_chart = data
     })
     Event.listen('set-export-chart-extremes', (data) => {
-      if (this.export_chart)
+      if (this.export_chart && this.export_chart.axes)
         this.export_chart.axes[0].setExtremes(data.start, data.end)
     });
 
@@ -1206,7 +1209,7 @@ export default {
       this.type = 'line'
       this.group = data.group
       this.dates = data.dates
-      this.load_data()
+      this.load_data(data.onload)
     });
 
     Event.listen('load-day-graph', (data) => {
@@ -1230,7 +1233,7 @@ export default {
         show_medicines: false
       }
 
-      this.load_data()
+      this.load_data(data.onload)
     });
 
     Event.listen('refresh-stats', (stats) => {

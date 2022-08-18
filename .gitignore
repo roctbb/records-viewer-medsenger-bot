@@ -6,6 +6,7 @@ migrations
 node_modules/
 npm-debug.log
 yarn-error.log
+test.py
 
 # Editor directories and files
 .idea

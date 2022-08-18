@@ -261,6 +261,11 @@ export default {
       this.dates.range[0] = date
       this.$forceUpdate()
     })
+
+    Event.listen('set-dates', dates => {
+      this.dates.range = dates
+      this.$forceUpdate()
+    })
   }
 
 }

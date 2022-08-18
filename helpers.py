@@ -101,6 +101,25 @@ def get_patient_data(contract_id):
 
 def get_graph_data(contract_id, data):
     answer = []
+    if 'onload' in data and data['onload']:
+        tmp_categories = [category for category in data['group']['categories'] if category not in
+                          ['symptom', 'medicine', 'patient_comment', 'information']]
+        tmp_categories = tmp_categories if len(tmp_categories) else data['group']['categories']
+        if data['group_data']:
+            last = medsenger_api.get_records(contract_id, ','.join(tmp_categories), group=True, limit=1)
+        else:
+            last = [medsenger_api.get_records(contract_id, category_name, limit=1)['values'] for category_name in
+                    tmp_categories]
+            last = [values[0] for values in last if len(values)]
+            last = sorted(last, key=lambda x: x['timestamp'], reverse=True)
+        two_weeks = 1209600
+        print(last)
+        last_timestamp = last[0]['timestamp'] + 10
+        data['dates'] = {
+            'start': last_timestamp - two_weeks,
+            'end': last_timestamp
+        }
+
     if data['dates'] is None:
         if data['group_data']:
             answer = medsenger_api.get_records(contract_id, ','.join(data['group']['categories']), group=True)
@@ -117,7 +136,7 @@ def get_graph_data(contract_id, data):
                                                 time_to=data['dates']['end']) for category_name in
                       data['group']['categories']]
 
-    return list(filter(lambda x: x is not None, answer))
+    return list(filter(lambda x: x is not None, answer)), data['dates']
 
 
 def get_report_page(contract_id, dates, page=0, categories=None):
