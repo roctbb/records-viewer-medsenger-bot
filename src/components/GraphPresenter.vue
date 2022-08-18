@@ -254,7 +254,6 @@ export default {
         this.export_options.chart.backgroundColor = '#ffffff'
 
         if (this.type.includes('line')) {
-          this.options.chart.height = `${Math.max(window.innerHeight, 500)}px`
           this.export_options.legend.width = '100%'
           this.export_options.chart.height = 450
 
@@ -344,6 +343,8 @@ export default {
       }
 
       if (this.type.includes('line')) {
+        options.chart.height = `${Math.max(window.innerHeight - 100, 500)}px`
+
         options.colors = ['#058DC7', '#50B432', '#aa27ce', '#fcff00',
           '#24CBE5', '#64E572', '#c355ff', '#fce200', '#6AF9C4']
         options.tooltip.formatter = undefined
