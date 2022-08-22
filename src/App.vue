@@ -118,8 +118,16 @@ export default {
     })
 
     Event.listen('load-report', (report) => {
-      let end_date = new Date(this.patient.end_date)
-      let today = new Date(moment().format('YYYY-MM-DD'))
+      let end_date = new Date(moment(this.patient.end_date).set({
+        hour: 23,
+        minute: 59,
+        second: 59
+      }).format('YYYY-MM-DD HH:mm:ss'))
+      let today = new Date(moment().set({
+        hour: 23,
+        minute: 59,
+        second: 59
+      }).format('YYYY-MM-DD HH:mm:ss'))
       let end_filter_date = end_date < today ? end_date : today
 
       let data = {
