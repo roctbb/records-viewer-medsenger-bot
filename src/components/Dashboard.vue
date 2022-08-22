@@ -97,6 +97,12 @@ export default {
           filters: undefined
         },
       ],
+      custom_graphs: [
+        {
+          title: "Пульс, сатурация, температура, дыхание",
+          categories: ['pulse', 'spo2', 'temperature', 'respiration_rate']
+        }
+      ],
       groups: [
         {
           title: "Давление и пульс",
@@ -154,6 +160,12 @@ export default {
           categories: [category.name]
         })
       })
+
+      this.custom_graphs = this.custom_graphs.filter((group) => {
+        return group.categories.some((category_name) => {
+          return plottable.filter((category) => category.name == category_name).length > 0
+        })})
+      custom = this.custom_graphs.concat(custom)
 
       return custom
     },
