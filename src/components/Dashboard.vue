@@ -115,6 +115,10 @@ export default {
         {
           title: "Глюкоза",
           categories: ['glukose', 'glukose_fasting', 'glukose_food'],
+        },
+        {
+          title: "Оценка качества жизни (SF-36)",
+          categories: ['ph', 'mh'],
         }
       ],
       heatmaps: [
