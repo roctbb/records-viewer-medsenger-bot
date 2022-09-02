@@ -119,6 +119,10 @@ export default {
         {
           title: "Оценка качества жизни (SF-36)",
           categories: ['ph', 'mh'],
+        },
+        {
+          title: "SF-36, EQ-5D, Oswestry",
+          categories: ['ph', 'mh', 'eq5d', 'oswestry'],
         }
       ],
       heatmaps: [
@@ -168,7 +172,8 @@ export default {
       this.custom_graphs = this.custom_graphs.filter((group) => {
         return group.categories.some((category_name) => {
           return plottable.filter((category) => category.name == category_name).length > 0
-        })})
+        })
+      })
       custom = this.custom_graphs.concat(custom)
 
       return custom
