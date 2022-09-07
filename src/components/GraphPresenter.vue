@@ -137,10 +137,12 @@ import heatmap from "highcharts/modules/heatmap";
 import 'highcharts/modules/heatmap.src.js';
 import FilterPanel from "./parts/FilterPanel";
 import html2pdf from "html2pdf.js";
+import arearange from 'highcharts/highcharts-more';
 
 stockInit(Highcharts)
 heatmap(Highcharts);
 boost(Highcharts)
+arearange(Highcharts);
 
 export default {
   name: "GraphPresenter",
@@ -153,12 +155,14 @@ export default {
       group: {},
       data: [],
       heatmap_data: {},
+      collapsed_data: {},
       options: {},
       statistics: [],
       type: undefined,
       loaded: false,
       no_data: true,
       show_legend: true,
+      collapse_points: undefined,
       exporting: false,
       export_options: {},
       export_chart: undefined
@@ -345,8 +349,7 @@ export default {
       if (this.type.includes('line')) {
         options.chart.height = `${Math.max(window.innerHeight - 100, 500)}px`
 
-        options.colors = ['#058DC7', '#50B432', '#aa27ce', '#fcff00',
-          '#24CBE5', '#64E572', '#c355ff', '#fce200', '#6AF9C4']
+        options.colors = this.colors
         options.tooltip.formatter = undefined
 
         options.plotOptions = {
@@ -376,9 +379,12 @@ export default {
           options.chart.height += 100
         }
 
-        if (Math.ceil((this.dates[1] - this.dates[0]) / (1000 * 60 * 60 * 24)) > 6) {
+        let days = Math.ceil((this.dates[1] - this.dates[0]) / (1000 * 60 * 60 * 24))
+        if (days > 6) {
+          let t = days > 365 ? 30 : (days > 100 ? 10 : (days > 50 ? 5 : (days > 14 ? 2 : 1)))
+
           options.xAxis.tickPositioner = function (min, max) {
-            var interval = 24 * 36e5, ticks = [], count = 0;
+            let interval = t * 24 * 36e5, ticks = [], count = 0;
 
             while (min < max) {
               ticks.push(min);
@@ -492,6 +498,31 @@ export default {
       if (this.type.includes('line')) {
         let graph_series = this.get_graph_series()
 
+        let too_much_points = graph_series.map(s => s.data.length).reduce((a, b) => a + b) > 500
+        if (graph_series.length && too_much_points) Event.fire('show-collapse', true)
+        else Event.fire('show-collapse', false)
+
+        if (!this.collapse_points && this.collapse_points != undefined && too_much_points) {
+          this.errors = ['За данный период в медицинской карте присутствует слишком большое количество записей (> 500). ',
+            'Чтобы увидеть комментарии к точкам и симптомы, загрузите период с меньшим количеством записей или усредните значения.']
+          graph_series.forEach(s => {
+            s.data = s.data.map(d => [d.x, d.y])
+          })
+          options.plotOptions.line.dataLabels.enabled = false
+          this.collapse_points = false
+        } else if ((this.collapse_points || this.collapse_points == undefined) && too_much_points) {
+          this.errors = ['За данный период в медицинской карте присутствует слишком большое количество записей (> 500). ',
+            'Для удобства мы усреднили значения. Усреднение можно убрать, воспользовавшись галочкой выше, но в таком случае значения будут недоступны.']
+          this.collapse(graph_series)
+          graph_series = this.collapsed_data
+
+          if (this.collapse_points == undefined) Event.fire('set-collapse-mode', true)
+          this.collapse_points = true
+
+          options.plotOptions.line.dataLabels.enabled = false
+        }
+
+
         if (this.type != 'day-line') {
           let comment_series = this.get_text_series({
             name: 'patient_comment',
@@ -510,15 +541,6 @@ export default {
           series = graph_series.concat(series)
         } else {
           series = graph_series
-        }
-
-        if (graph_series.length && graph_series.map(s => s.data.length).reduce((a, b) => a + b) > 500) {
-          this.errors = ['За данный период в медицинской карте присутствует слишком большое количество записей (> 500). ' +
-          'Чтобы увидеть комментарии к точкам и симптомы, загрузите период с меньшим количеством записей.']
-          graph_series.forEach(s => {
-            s.data = s.data.map(d => [d.x, d.y])
-          })
-          options.plotOptions.line.dataLabels.enabled = false
         }
 
         if (this.mobile && series.length > 2)
@@ -919,7 +941,7 @@ export default {
     },
     get_chart: function () {
       let chart = {
-        type: this.type != 'day-line' ? this.type : 'line',
+        type: this.type != 'day-line' && this.type != 'line' ? this.type : undefined,
         boostThreshold: 500,
         turboThreshold: 0,
         animation: false,
@@ -963,7 +985,7 @@ export default {
               return data.slice(start_index, end_index).map(point => point.y)
             }
 
-            this.series.filter(series => series.userOptions.yAxis == 0).forEach(series => {
+            this.series.filter(series => series.userOptions.yAxis == 0 && series.userOptions.type != 'arearange').forEach(series => {
               let data = find_visible_data(series.data)
 
               if (data.length) {
@@ -1111,6 +1133,9 @@ export default {
     format_time: function (date) {
       return date.toTimeString().substr(0, 5)
     },
+    format_date: function (date) {
+      return date.toLocaleDateString()
+    },
     is_empty: function () {
       this.options.series.forEach(s => {
         if (s.data.length) this.no_data = false
@@ -1170,6 +1195,107 @@ export default {
         this.exporting = false;
       }, 5000);
       html2pdf().set(opt).from(element).save();
+    },
+    collapse: function (graph_series) {
+      this.collapsed_data = []
+
+      // Сколько точек в группе
+      // let collapse_count = Math.round(graph_series.map(s => s.data.length).reduce((a, b) => a + b) / 100) + 1
+
+      graph_series.forEach((graph, i) => {
+        // Делим на части и готовим значения
+        let index = 0
+        let ranges = []
+        let data = []
+
+        graph.data.forEach(val => {
+          let d = new Date(val.x)
+          val.date = this.format_date(d)
+          if (Math.ceil((this.dates[1] - this.dates[0]) / (1000 * 60 * 60 * 24)) < 4) val.date += ` ${d.getHours()}:00`
+        })
+        let dates = new Set(graph.data.map(val => val.date))
+        dates.forEach(date => {
+          let part = graph.data.filter(val => val.date == date)
+          /*
+          while (index < graph.data.length) {
+            // let part = graph.data.slice(index, index + collapse_count)
+            */
+
+          let range = {
+            count: part.length,
+            x: Math.round(part.map(val => val.x).reduce((a, b) => a + b, 0) / part.length),
+            // y: (part.map(val => val.y).reduce((a, b) => a + b, 0) / part.length).toFixed(2) * 1, // среднее
+            y: this.median(part.map(val => val.y)),
+            marker: {
+              symbol: 'circle',
+              radius: 5
+            }
+          }
+          let low = Math.min.apply(Math, part.map(val => val.y))
+          let high = Math.max.apply(Math, part.map(val => val.y))
+          range.comment = `<strong>${graph.name}</strong><br>` +
+              `<strong>Дата:</strong> ${date}<br>` +
+              `<strong>Количество значений:</strong> ${part.length}<br>` +
+              (low != high ? `<strong>Разброс значений:</strong> ${low} - ${high}<br>` : '') +
+              `<strong>Медиана:</strong> ${range.y.toFixed(2) * 1}<br>`
+          data.push(range)
+          ranges.push([range.x, low, high])
+          // index += collapse_count
+        })
+
+
+        let series = {
+          name: graph.name,
+          type: 'line',
+          category_code: graph.category_code,
+          category_type: graph.category_type,
+          data: data,
+          yAxis: 0,
+          showInNavigator: true,
+          color: this.colors[i],
+          states: {
+            inactive: {
+              opacity: 1,
+            },
+          },
+          marker: {
+            enabled: true,
+            // radius: 4,
+            symbol: 'circle'
+          },
+          dataGrouping: {
+            enabled: false
+          },
+          lineWidth: 3,
+          dashStyle: 'ShortDot'
+        }
+
+        this.collapsed_data.push(Object.assign({}, series))
+        series.type = 'arearange'
+        series.data = ranges
+        series.dashStyle = 'Solid'
+        series.marker.radius = 4
+        series.linkedTo = ':previous'
+        series.opacity = 0.2
+        series.states = {
+          inactive: {
+            opacity: 0.2,
+          },
+          hover: {
+            opacity: 0.5
+          }
+
+        }
+        this.collapsed_data.push(series)
+      })
+    },
+    median: function (arr) {
+      const arrayHalf = arr.length / 2
+      const sorted = [].concat(arr).sort((a, b) => a - b)
+
+      return arr.length % 2 === 0
+          ? (sorted[arrayHalf] + sorted[arrayHalf + 1]) / 2
+          : sorted[~~(arrayHalf)]
     }
   },
   created() {
@@ -1177,6 +1303,9 @@ export default {
       range: [],
       period: 14
     }
+
+    this.colors = ['#058DC7', '#50B432', '#aa27ce', '#fcff00',
+      '#24CBE5', '#64E572', '#c355ff', '#fce200', '#6AF9C4']
 
     Highcharts.setOptions({
       lang: {
@@ -1269,17 +1398,23 @@ export default {
             }
           }
         }
-    )
-    ;
+    );
 
     Event.listen('back-to-dashboard', () => {
       this.loaded = false;
+      this.collapse_points = undefined
       window.OBJECT_ID = undefined;
     });
 
     Event.listen('graph-update-dates', (dates) => {
       this.dates = dates
       this.load_data()
+    });
+
+    Event.listen('update-points', (mode) => {
+      this.load_data()
+      this.collapse_points = mode
+      this.$forceUpdate()
     });
 
     Event.listen('update-legend', (mode) => {
@@ -1294,10 +1429,10 @@ export default {
     });
 
     Event.listen('incorrect-dates', (duration) => {
-      if (duration < 0)
-        this.errors.unshift('Выбран некорректный период')
-      else if (duration > 30)
-        this.errors.unshift('Пожалуйста, выберите период не больше 30 дней.')
+      if (duration < 0 && this.errors[0] != '<strong>Выбран некорректный период</strong>')
+        this.errors.unshift('<strong>Выбран некорректный период</strong>')
+      else if (duration > 30 && this.errors[0] != 'Пожалуйста, выберите период <strong>не больше</strong> 30 дней.')
+        this.errors.unshift('Пожалуйста, выберите период <strong>не больше</strong> 30 дней.')
     })
 
     Event.listen('generate-report', () => {

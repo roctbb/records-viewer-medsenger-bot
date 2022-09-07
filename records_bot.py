@@ -161,6 +161,11 @@ def graph_data(args, form):
     data = request.json
 
     answer, dates = get_graph_data(contract_id, data)
+    if not dates['start'] and len(answer):
+        if 'values' in answer[0]:
+            dates['start'] = min([a['values'][0]['timestamp'] for a in answer if len(a['values'])]) - 1000 * 60 * 60 * 12
+        else:
+            dates['stat'] = answer[-1]['timestamp']
     return jsonify({'data': answer, 'dates': dates})
 
 

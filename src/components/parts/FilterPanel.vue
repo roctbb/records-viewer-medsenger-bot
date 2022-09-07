@@ -40,15 +40,19 @@
                 @click="generate_report()">Скачать PDF
         </button>
 
-        <!-- Показать легенду -->
+        <!-- Настройки графика -->
         <div v-if="page.includes('graph')" style="padding-top: 5px;">
-          <input type="checkbox" id="hide_legend" v-model="mode" @change="change_mode('legend')"/>
+          <input type="checkbox" id="hide_legend" v-model="legend_mode" @change="change_mode('legend', legend_mode)"/>
           <label for="hide_legend">Скрыть легенду</label>
+          <input type="checkbox" id="collapse_points" v-model="points_mode" @change="change_mode('points', points_mode)"
+                 v-if="show_collapse"/>
+          <label for="collapse_points" v-if="show_collapse">Усреднить значения</label>
         </div>
 
         <!-- Тепловая карта -->
         <div v-if="page == 'symptoms-heatmap'" style="padding-top: 5px;">
-          <input type="checkbox" id="show_medicines" @change="change_mode('medicines')" v-model="mode"/>
+          <input type="checkbox" id="show_medicines" @change="change_mode('medicines', medicines_mode)"
+                 v-model="medicines_mode"/>
           <label for="show_medicines">Показать лекарства</label>
         </div>
       </div>
@@ -118,15 +122,20 @@
         </div>
 
         <div style="padding-top: 5px; margin-left: 10px" v-else>
-          <!-- Показать легенду -->
+          <!-- Настройки графика -->
           <div v-if="page.includes('graph')">
-            <input type="checkbox" id="hide_legend_mobile" v-model="mode" @change="change_mode('legend')"/>
+            <input type="checkbox" id="hide_legend_mobile" v-model="legend_mode"
+                   @change="change_mode('legend', legend_mode)"/>
             <label for="hide_legend_mobile">Скрыть легенду</label>
+            <input type="checkbox" id="collapse_points_mobile" v-model="points_mode"
+                   @change="change_mode('points', points_mode)"/>
+            <label for="collapse_points_mobile">Усреднить значения</label>
           </div>
 
           <!-- Тепловая карта -->
           <div v-if="page == 'symptoms-heatmap'">
-            <input type="checkbox" id="show_medicines_mobile" @change="change_mode('medicines')" v-model="mode"/>
+            <input type="checkbox" id="show_medicines_mobile" @change="change_mode('medicines', medicines_mode)"
+                   v-model="medicines_mode"/>
             <label for="show_medicines_mobile">Показать лекарства</label>
           </div>
         </div>
@@ -151,7 +160,10 @@ export default {
       dates: undefined,
       category: undefined,
       selected_categories: [],
-      mode: false
+      legend_mode: false,
+      points_mode: true,
+      medicines_mode: false,
+      show_collapse: false
     }
   },
   computed: {
@@ -180,8 +192,8 @@ export default {
     update_categories: function (value) {
       Event.fire('update-categories', this.selected_categories)
     },
-    change_mode: function (target) {
-      Event.fire('update-' + target, !this.mode)
+    change_mode: function (target, mode) {
+      Event.fire('update-' + target, mode)
     },
     scroll_dates: function (back) {
       let start = moment(this.dates.range[0])
@@ -229,16 +241,16 @@ export default {
       range: [],
       period: undefined,
     }
-      let end_date = new Date(moment(this.patient.end_date).set({
-        hour: 23,
-        minute: 59,
-        second: 59
-      }).format('YYYY-MM-DD HH:mm:ss'))
-      let today = new Date(moment().set({
-        hour: 23,
-        minute: 59,
-        second: 59
-      }).format('YYYY-MM-DD HH:mm:ss'))
+    let end_date = new Date(moment(this.patient.end_date).set({
+      hour: 23,
+      minute: 59,
+      second: 59
+    }).format('YYYY-MM-DD HH:mm:ss'))
+    let today = new Date(moment().set({
+      hour: 23,
+      minute: 59,
+      second: 59
+    }).format('YYYY-MM-DD HH:mm:ss'))
     let end_filter_date = end_date < today ? end_date : today
 
     Event.listen('load-report', params => {
@@ -262,11 +274,23 @@ export default {
     })
 
     Event.listen('back-to-dashboard', () => {
-      this.mode = false
+      this.legend_mode = false
+      this.points_mode = false
+      this.medicines_mode = false
     });
 
     Event.listen('set-start-date', date => {
       this.dates.range[0] = date
+      this.$forceUpdate()
+    })
+
+    Event.listen('show-collapse', mode => {
+      this.show_collapse = mode
+      this.$forceUpdate()
+    })
+
+    Event.listen('set-collapse-mode', collapsed => {
+      this.points_mode = collapsed
       this.$forceUpdate()
     })
 

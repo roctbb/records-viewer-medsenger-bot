@@ -1,7 +1,7 @@
 <template>
     <div class="alert alert-warning" role="alert" v-if="errors.length">
         <ul>
-            <li v-for="error in errors">{{ error }}</li>
+            <li v-for="error in errors"><span v-html="error"/></li>
         </ul>
     </div>
 
