@@ -145,7 +145,7 @@ export default {
   computed: {
     plottable_categories: function () {
       let plottable = this.categories.filter((category) => {
-        return !category.is_legacy && ['scatter', 'values'].includes(category.default_representation) &&
+        return !category.is_legacy && ['scatter', 'values', 'day_sum'].includes(category.default_representation) &&
             !['string', 'file'].includes(category.type)
       })
 

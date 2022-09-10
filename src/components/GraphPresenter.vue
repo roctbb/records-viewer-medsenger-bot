@@ -498,10 +498,16 @@ export default {
       if (this.type.includes('line')) {
         let graph_series = this.get_graph_series()
 
-        let too_much_points = graph_series.map(s => s.data.length).reduce((a, b) => a + b) > 500
+        let sum_graph = this.data.filter(g => g.category.default_representation == 'day_sum').length
+        let too_much_points = graph_series.map(s => s.data.length).reduce((a, b) => a + b) > 500 && !sum_graph
+
         if (graph_series.length && too_much_points) Event.fire('show-collapse', true)
         else Event.fire('show-collapse', false)
 
+        if (sum_graph) {
+          this.collapse(graph_series, this.collapse_sum_point, this.collapse_sum_series)
+          graph_series = this.collapsed_data
+        }
         if (!this.collapse_points && this.collapse_points != undefined && too_much_points) {
           this.errors = ['За данный период в медицинской карте присутствует слишком большое количество записей (> 500). ',
             'Чтобы увидеть комментарии к точкам и симптомы, загрузите период с меньшим количеством записей или усредните значения.']
@@ -513,7 +519,7 @@ export default {
         } else if ((this.collapse_points || this.collapse_points == undefined) && too_much_points) {
           this.errors = ['За данный период в медицинской карте присутствует слишком большое количество записей (> 500). ',
             'Для удобства мы усреднили значения. Усреднение можно убрать, воспользовавшись галочкой выше, но в таком случае значения будут недоступны.']
-          this.collapse(graph_series)
+          this.collapse(graph_series, this.collapse_ranges_point, this.collapse_ranges_series)
           graph_series = this.collapsed_data
 
           if (this.collapse_points == undefined) Event.fire('set-collapse-mode', true)
@@ -1187,7 +1193,6 @@ export default {
         margin: 0.5,
         filename: `${this.group.title}_${this.patient.name}.pdf`,
         page_break: {mode: 'css'},
-        // image:        { type: 'jpeg', quality: 0.98 },
         html2canvas: {dpi: 192, letterRendering: true},
         jsPDF: {unit: 'in', format: 'letter', orientation: 'portrait'}
       };
@@ -1196,99 +1201,125 @@ export default {
       }, 5000);
       html2pdf().set(opt).from(element).save();
     },
-    collapse: function (graph_series) {
-      this.collapsed_data = []
 
-      // Сколько точек в группе
-      // let collapse_count = Math.round(graph_series.map(s => s.data.length).reduce((a, b) => a + b) / 100) + 1
+    collapse: function (graph_series, point_handler, series_handler) {
+      this.collapsed_data = []
+      let by_hour = Math.ceil((this.dates[1] - this.dates[0]) / (1000 * 60 * 60 * 24)) < 4
 
       graph_series.forEach((graph, i) => {
-        // Делим на части и готовим значения
-        let index = 0
-        let ranges = []
         let data = []
-
         graph.data.forEach(val => {
           let d = new Date(val.x)
           val.date = this.format_date(d)
-          if (Math.ceil((this.dates[1] - this.dates[0]) / (1000 * 60 * 60 * 24)) < 4) val.date += ` ${d.getHours()}:00`
+          if (by_hour) val.date += ` ${d.getHours()}:00`
         })
+
         let dates = new Set(graph.data.map(val => val.date))
         dates.forEach(date => {
-          let part = graph.data.filter(val => val.date == date)
-          /*
-          while (index < graph.data.length) {
-            // let part = graph.data.slice(index, index + collapse_count)
-            */
-
-          let range = {
-            count: part.length,
-            x: Math.round(part.map(val => val.x).reduce((a, b) => a + b, 0) / part.length),
-            // y: (part.map(val => val.y).reduce((a, b) => a + b, 0) / part.length).toFixed(2) * 1, // среднее
-            y: this.median(part.map(val => val.y)),
+          let points = graph.data.filter(val => val.date == date)
+          console.log(new Date().getTimezoneOffset())
+          let value = {
+            x: (by_hour ? +moment(date, 'DD.MM.YYYY hh:mm') :
+                +moment(date + ' 12:00', 'DD.MM.YYYY hh:mm')) + this.offset * 1000,
             marker: {
               symbol: 'circle',
               radius: 5
             }
           }
-          let low = Math.min.apply(Math, part.map(val => val.y))
-          let high = Math.max.apply(Math, part.map(val => val.y))
-          range.comment = `<strong>${graph.name}</strong><br>` +
-              `<strong>Дата:</strong> ${date}<br>` +
-              `<strong>Количество значений:</strong> ${part.length}<br>` +
-              (low != high ? `<strong>Разброс значений:</strong> ${low} - ${high}<br>` : '') +
-              `<strong>Медиана:</strong> ${range.y.toFixed(2) * 1}<br>`
-          data.push(range)
-          ranges.push([range.x, low, high])
-          // index += collapse_count
+          data.push(point_handler(value, points, date, graph))
         })
 
-
-        let series = {
-          name: graph.name,
-          type: 'line',
-          category_code: graph.category_code,
-          category_type: graph.category_type,
-          data: data,
-          yAxis: 0,
-          showInNavigator: true,
-          color: this.colors[i],
-          states: {
-            inactive: {
-              opacity: 1,
-            },
-          },
-          marker: {
-            enabled: true,
-            // radius: 4,
-            symbol: 'circle'
-          },
-          dataGrouping: {
-            enabled: false
-          },
-          lineWidth: 3,
-          dashStyle: 'ShortDot'
-        }
-
-        this.collapsed_data.push(Object.assign({}, series))
-        series.type = 'arearange'
-        series.data = ranges
-        series.dashStyle = 'Solid'
-        series.marker.radius = 4
-        series.linkedTo = ':previous'
-        series.opacity = 0.2
-        series.states = {
-          inactive: {
-            opacity: 0.2,
-          },
-          hover: {
-            opacity: 0.5
-          }
-
-        }
-        this.collapsed_data.push(series)
+        series_handler(graph, data, i)
       })
     },
+    collapse_sum_point: function (sum, points, date, graph) {
+      sum.y = points.map(val => val.y).reduce((a, b) => a + b, 0)
+      sum.comment = `<strong>${date}</strong> - ${graph.name}: ${sum.y}`
+      return sum
+    },
+    collapse_sum_series: function (graph, data, i) {
+      let series = {
+        name: graph.name,
+        type: 'line',
+        category_code: graph.category_code,
+        category_type: graph.category_type,
+        data: data,
+        yAxis: 0,
+        showInNavigator: true,
+        states: {
+          inactive: {
+            opacity: 1,
+          },
+        },
+        marker: {
+          enabled: true,
+          symbol: 'circle'
+        },
+        dataGrouping: {
+          enabled: false
+        },
+        lineWidth: 3,
+        dashStyle: 'ShortDot'
+      }
+
+      this.collapsed_data.push(series)
+    },
+    collapse_ranges_point: function (median, points, date, graph) {
+      median.count = points.length
+      median.y = this.median(points.map(val => val.y))
+      let low = Math.min.apply(Math, points.map(val => val.y))
+      let high = Math.max.apply(Math, points.map(val => val.y))
+      median.comment = `<strong>${graph.name}</strong><br>` +
+          `<strong>Дата:</strong> ${date}<br>` +
+          `<strong>Количество значений:</strong> ${points.length}<br>` +
+          (low != high ? `<strong>Разброс значений:</strong> ${low} - ${high}<br>` : '') +
+          `<strong>Медиана:</strong> ${median.y.toFixed(2) * 1}<br>`
+      return {median: median, range: [median.x, low, high]}
+    },
+    collapse_ranges_series: function (graph, data, i) {
+      let series = {
+        name: graph.name,
+        type: 'line',
+        category_code: graph.category_code,
+        category_type: graph.category_type,
+        data: data.map(p => p.median),
+        yAxis: 0,
+        showInNavigator: true,
+        color: this.colors[i],
+        states: {
+          inactive: {
+            opacity: 1,
+          },
+        },
+        marker: {
+          enabled: true,
+          symbol: 'circle'
+        },
+        dataGrouping: {
+          enabled: false
+        },
+        lineWidth: 3,
+        dashStyle: 'ShortDot'
+      }
+
+      this.collapsed_data.push(Object.assign({}, series))
+      series.type = 'arearange'
+      series.data = data.map(p => p.range)
+      series.dashStyle = 'Solid'
+      series.marker.radius = 4
+      series.linkedTo = ':previous'
+      series.opacity = 0.2
+      series.states = {
+        inactive: {
+          opacity: 0.2,
+        },
+        hover: {
+          opacity: 0.5
+        }
+      }
+      this.collapsed_data.push(series)
+    },
+
     median: function (arr) {
       const arrayHalf = arr.length / 2
       const sorted = [].concat(arr).sort((a, b) => a - b)
