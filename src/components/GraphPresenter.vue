@@ -191,8 +191,8 @@ export default {
         group: group_tmp,
         onload: onload,
         dates: {
-          start: this.dates[0] ? this.dates[0].getTime() / 1000 : null,
-          end: this.dates[1] ? (this.dates[1].getTime() + this.day) / 1000 - 1 : null,
+          start: this.dates[0] ? this.dates[0].valueOf() / 1000 : null,
+          end: this.dates[1] ? this.dates[1].valueOf() / 1000 : null,
         }
       }
 
@@ -283,7 +283,7 @@ export default {
     },
     get_options: function () {
       let start = this.dates[0] ? this.dates[0].getTime() : undefined
-      let end = this.dates[1] ? this.dates[1].getTime() + this.day - 1 : new Date()
+      let end = this.dates[1] ? this.dates[1].getTime() + 2 * this.offset * 1000 : new Date()
 
       let options = {
         chart: this.get_chart(),
@@ -1209,18 +1209,17 @@ export default {
       graph_series.forEach((graph, i) => {
         let data = []
         graph.data.forEach(val => {
-          let d = new Date(val.x)
+          let d = new Date(val.x - this.offset * 1000)
           val.date = this.format_date(d)
           if (by_hour) val.date += ` ${d.getHours()}:00`
         })
 
         let dates = new Set(graph.data.map(val => val.date))
         dates.forEach(date => {
+          let x_date = by_hour ? date : (date + ' 12:00')
           let points = graph.data.filter(val => val.date == date)
-          console.log(new Date().getTimezoneOffset())
           let value = {
-            x: (by_hour ? +moment(date, 'DD.MM.YYYY hh:mm') :
-                +moment(date + ' 12:00', 'DD.MM.YYYY hh:mm')) + this.offset * 1000,
+            x: +moment(x_date, 'DD.MM.YYYY hh:mm') + this.offset * 1000,
             marker: {
               symbol: 'circle',
               radius: 5

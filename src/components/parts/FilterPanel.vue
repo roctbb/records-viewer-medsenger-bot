@@ -176,6 +176,9 @@ export default {
         })
       })
       return groups
+    },
+    day() {
+      return 24 * 36e5
     }
   },
   methods: {
@@ -228,8 +231,7 @@ export default {
     },
     select_period: function () {
       if (this.dates.period > 0) {
-        let end = moment(this.dates.range[1])
-        this.dates.range[0] = new Date(end.add(-this.dates.period, 'days').format('YYYY-MM-DD'))
+        this.dates.range[0] = new Date(this.dates.range[1].valueOf() - this.dates.period * this.day)
       } else {
         this.dates.range = [undefined, new Date()]
       }
