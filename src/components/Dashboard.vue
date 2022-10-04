@@ -256,7 +256,7 @@ export default {
     console.log("object_id", this.object_id)
     if (this.object_id) {
 
-      if (this.object_id == 'report') {
+      if (this.object_id == -1) {
         this.load_report(this.custom_reports[0]);
       } else {
         let end_date = new Date(moment(this.patient.end_date).set({
