@@ -127,6 +127,18 @@ export default {
         {
           "title": "Спортивная форма",
           "categories": ['appetite', 'readiness_for_training', 'performance', 'mood', 'sleep', 'health'],
+        },
+        {
+          "title": "Плавание",
+          "categories": ['swimming_freestyle_50', 'swimming_freestyle_100', 'swimming_freestyle_200', 'swimming_butterfly_50',
+            'swimming_butterfly_100',
+            'swimming_butterfly_200',
+            'swimming_on_the_back_50',
+            'swimming_on_the_back_100',
+            'swimming_on_the_back_200',
+            'swimming_breaststroke_50',
+            'swimming_breaststroke_100',
+            'swimming_breaststroke_200'],
         }
       ],
       heatmaps: [
