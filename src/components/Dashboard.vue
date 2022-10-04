@@ -253,7 +253,7 @@ export default {
         }
       ]
     })
-
+    console.log("object_id", this.object_id)
     if (this.object_id) {
 
       if (this.object_id == 'report') {
