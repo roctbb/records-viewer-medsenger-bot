@@ -56,7 +56,8 @@
           лекарства и комментарии) на линии в нижней части графика. Чтобы посмотреть подробную информацию, наведите
           мышку на нужную точку графика.
         </li>
-        <li><strong>В виде суточных графиков.</strong> Числовые данные отображаются в виде точек, разбросанных в пределах одних суток.
+        <li><strong>В виде суточных графиков.</strong> Числовые данные отображаются в виде точек, разбросанных в
+          пределах одних суток.
         </li>
         <li><strong>В виде тепловых карт.</strong> Симптомы и приемы лекарств отображаются с частотой появления за
           день. Чтобы посмотреть подробную информацию, наведите мышку на нужную ячейку карты.
@@ -122,6 +123,10 @@ export default {
         {
           title: "SF-36, EQ-5D, Oswestry",
           categories: ['ph', 'mh', 'eq5d', 'oswestry'],
+        },
+        {
+          "title": "Спортивная форма",
+          "categories": ['appetite', 'readiness_for_training', 'performance', 'mood', 'sleep', 'health'],
         }
       ],
       heatmaps: [
@@ -250,35 +255,40 @@ export default {
     })
 
     if (this.object_id) {
-      let end_date = new Date(moment(this.patient.end_date).set({
-        hour: 23,
-        minute: 59,
-        second: 59
-      }).format('YYYY-MM-DD HH:mm:ss'))
-      let today = new Date(moment().set({
-        hour: 23,
-        minute: 59,
-        second: 59
-      }).format('YYYY-MM-DD HH:mm:ss'))
-      let end_filter_date = end_date < today ? end_date : today
 
-      this.axios.get(this.url('/api/categories')).then(response => {
-        try {
-          let category = response.data.filter(c => c.id == this.object_id)
-          if (category.length) {
-            let name = category[0].name;
-            let params = this.plottable_categories.filter(c => c.categories.includes(name))[0];
-            let data = {
-              group: params,
-              dates: [new Date(moment(end_filter_date).add(-14, 'days').format('YYYY-MM-DD')), end_filter_date]
+      if (this.object_id == 'report') {
+        this.load_report(this.custom_reports[0]);
+      } else {
+        let end_date = new Date(moment(this.patient.end_date).set({
+          hour: 23,
+          minute: 59,
+          second: 59
+        }).format('YYYY-MM-DD HH:mm:ss'))
+        let today = new Date(moment().set({
+          hour: 23,
+          minute: 59,
+          second: 59
+        }).format('YYYY-MM-DD HH:mm:ss'))
+        let end_filter_date = end_date < today ? end_date : today
+
+        this.axios.get(this.url('/api/categories')).then(response => {
+          try {
+            let category = response.data.filter(c => c.id == this.object_id)
+            if (category.length) {
+              let name = category[0].name;
+              let params = this.plottable_categories.filter(c => c.categories.includes(name))[0];
+              let data = {
+                group: params,
+                dates: [new Date(moment(end_filter_date).add(-14, 'days').format('YYYY-MM-DD')), end_filter_date]
+              }
+
+              Event.fire('load-graph', data);
             }
-
-            Event.fire('load-graph', data);
+          } catch (e) {
+            console.log(e);
           }
-        } catch (e) {
-          console.log(e);
-        }
-      });
+        });
+      }
     }
   }
 }
