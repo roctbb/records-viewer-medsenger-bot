@@ -177,7 +177,7 @@ export default {
 
       // вытаскиваем категории, которые не вошли в группы
       let not_custom = plottable.filter((category) =>
-          !this.groups.some((group) =>
+          !custom.some((group) =>
               group.categories.includes(category.name)))
 
       not_custom.forEach((category) => {
