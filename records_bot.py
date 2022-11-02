@@ -24,6 +24,8 @@ def init(data):
     if not contract_id:
         abort(422)
     contract_manager.add(contract_id)
+    params = data.get('params')
+
     return 'ok'
 
 
