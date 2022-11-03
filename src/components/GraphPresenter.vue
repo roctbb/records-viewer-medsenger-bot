@@ -189,7 +189,7 @@ export default {
       this.data.filter(graph => this.text_categories.includes(graph.category.name)).forEach(graph => {
         records = records.concat(graph.values.map(record => {
           record.category_info = graph.category
-          record.formatted_date = moment(record.timestamp * 1000).format('hh:mm:ss DD.MM.YYYY')
+          record.formatted_date = moment(record.timestamp * 1000).format('HH:mm:ss DD.MM.YYYY')
           record.date = moment(record.timestamp * 1000).format('DD.MM.YYYY')
           return record
         }))
