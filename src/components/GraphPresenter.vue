@@ -74,6 +74,11 @@
         </div>
       </div>
 
+      <!-- Табличка с симптомами -->
+      <div class="container center" v-if="type == 'line' && !no_data ">
+        <h5 class="text-center">Симптомы и события</h5>
+        <records-list :data="list_data"/>
+      </div>
       <!-- Для экспорта -->
       <div v-show="false">
         <div ref="to-export">
@@ -113,6 +118,13 @@
               </tbody>
             </table>
           </div>
+
+          <!-- Табличка с симптомами -->
+          <div class="container center" v-if="type == 'line' && !no_data ">
+            <h5 class="text-center">Симптомы и события</h5>
+            <records-list :data="list_data" :to_export="true"/>
+          </div>
+
         </div>
       </div>
 
@@ -138,6 +150,7 @@ import 'highcharts/modules/heatmap.src.js';
 import FilterPanel from "./parts/FilterPanel";
 import html2pdf from "html2pdf.js";
 import arearange from 'highcharts/highcharts-more';
+import RecordsList from "./parts/RecordsList";
 
 stockInit(Highcharts)
 heatmap(Highcharts);
@@ -146,7 +159,7 @@ arearange(Highcharts);
 
 export default {
   name: "GraphPresenter",
-  components: {FilterPanel, Loading, ErrorBlock, highcharts: Chart, DatePicker},
+  components: {RecordsList, FilterPanel, Loading, ErrorBlock, highcharts: Chart, DatePicker},
   props: ['patient'],
   data() {
     return {
@@ -165,10 +178,30 @@ export default {
       collapse_points: undefined,
       exporting: false,
       export_options: {},
-      export_chart: undefined
+      export_chart: undefined,
+      text_categories: ['symptom', 'medicine', 'patient_comment', 'information']
     }
   },
   computed: {
+    list_data() {
+      if (this.no_data) return undefined
+      let records = []
+      this.data.filter(graph => this.text_categories.includes(graph.category.name)).forEach(graph => {
+        records = records.concat(graph.values.map(record => {
+          record.category_info = graph.category
+          record.formatted_date = moment(record.timestamp).format('hh:mm:ss DD.MM.YYYY')
+          record.date = moment(record.timestamp).format('DD.MM.YYYY')
+          return record
+        }))
+      })
+      let dates = this.group_by(records, 'date')
+      return Object.keys(dates).map(date => {
+        return {
+          date: date,
+          records: dates[date]
+        }
+      })
+    },
     offset() {
       return -1 * new Date().getTimezoneOffset() * 60
     },
@@ -183,7 +216,7 @@ export default {
 
       let group_tmp = this.group
       if (this.type.includes('line') && !this.group.categories.includes('symptom')) {
-        group_tmp.categories = group_tmp.categories.concat(['symptom', 'medicine', 'patient_comment', 'information'])
+        group_tmp.categories = group_tmp.categories.concat(this.text_categories)
       }
 
       let data = {
@@ -212,7 +245,7 @@ export default {
       if (this.type == 'day-line') {
         let tmp_data = []
         this.group.categories.forEach(category => {
-          if (['symptom', 'medicine', 'patient_comment', 'information'].includes(category)) return
+          if (this.text_categories.includes(category)) return
 
           let category_data = {
             category: undefined,
@@ -777,7 +810,7 @@ export default {
           enabled: false
         }
 
-        if (['symptom', 'medicine', 'patient_comment', 'information'].includes(data.code)) {
+        if (this.text_categories.includes(data.code)) {
           series.yAxis = 1
           series.lineWidth = 0
           if (data.code != 'medicine') {
@@ -828,7 +861,7 @@ export default {
               }, `Прием лекарства`),
             }
           })
-        } else if (['symptom', 'patient_comment', 'information'].includes(data.code)) {
+        } else if (this.text_categories.includes(data.code)) {
           res = data.values.map((value) => {
             let x = new Date((value.timestamp) * 1000)
             // x.setHours(12, 0, 0)
