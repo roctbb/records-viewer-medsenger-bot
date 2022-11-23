@@ -10,7 +10,7 @@
     <error-block :errors="errors" v-if="errors.length"/>
 
     <!-- Основная часть -->
-    <loading v-else-if="!loaded"/>
+    <loading v-if="!loaded && !errors.length"/>
     <div v-else>
       <div v-if="no_data" style="margin-top: 100px">
         <p style="text-align: center"><img :src="images.nothing_found"/></p>
