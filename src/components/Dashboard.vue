@@ -128,7 +128,6 @@ export default {
         {
           title: "Спортивная форма",
           categories: ['appetite', 'readiness_for_training', 'performance', 'mood', 'sleep', 'health'],
-          need_all: true
         },
         {
           title: "Плавание",
