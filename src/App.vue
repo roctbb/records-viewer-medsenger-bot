@@ -1,6 +1,6 @@
 <template>
   <div style="padding-bottom: 15px;">
-    <loading v-if="!patient"/>
+    <loading v-if="!loaded"/>
     <load-error v-else-if="state == 'load-error'"/>
     <action-done v-else-if="state == 'done'"/>
     <div v-else>
@@ -49,10 +49,12 @@ export default {
       state: "loading",
       patient: undefined,
       data: undefined,
+      loaded: false
     }
   },
   methods: {
     load: function () {
+      this.loaded = false
       this.axios.get(this.url('/api/settings/get_patient')).then(response => {
             this.patient = response.data
             this.axios.get(this.url('/api/categories')).then(this.process_load_answer);
@@ -83,6 +85,7 @@ export default {
         }
         Event.fire('load-report', params)
       }
+      this.loaded = true
     },
     process_load_error: function (response) {
       this.state = 'load-error'
@@ -118,6 +121,7 @@ export default {
     })
 
     Event.listen('load-report', (report) => {
+      this.loaded = false
       let end_date = new Date(moment(this.patient.end_date).set({
         hour: 23,
         minute: 59,
@@ -139,6 +143,7 @@ export default {
 
       this.load_records(data)
       this.state = 'report'
+      this.loaded = true
     })
 
     Event.listen('load-graph', (params) => {
