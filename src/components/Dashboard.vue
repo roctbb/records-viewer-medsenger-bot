@@ -122,6 +122,10 @@ export default {
           categories: ['ph', 'mh'],
         },
         {
+          title: "Шкала депрессии Бека",
+          categories: ['bdi', 'bdi_ca', 'bdi_sp'],
+        },
+        {
           title: "SF-36, EQ-5D, Oswestry",
           categories: ['ph', 'mh', 'eq5d', 'oswestry'],
         },
