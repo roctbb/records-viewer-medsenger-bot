@@ -131,7 +131,7 @@ export default {
         },
         {
           title: "Спортивная форма",
-          categories: ['appetite', 'readiness_for_training', 'performance', 'mood', 'sleep', 'health'],
+          categories: ['appetite', 'readiness_for_training', 'performance', 'mood', 'sleep', 'health', 'freedom_of_movement', 'freedom_of_breathing', 'feel_of_heart', 'coordination_of_movements', 'physical_shape'],
         },
         {
           title: "Плавание",
