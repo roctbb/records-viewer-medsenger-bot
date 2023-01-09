@@ -48,5 +48,23 @@ class ContractManager(Manager):
 
         return not contract
 
+    def add_params(self, contract_id, params):
+        try:
+            contract = Contract.query.filter_by(id=contract_id).first()
+
+            if not contract:
+                raise Exception(
+                    "No contract_id = {} found".format(contract_id))
+
+            if not contract.params:
+                contract.params = params
+            else:
+                contract.params.update(params)
+
+            self.__commit__()
+            return contract
+        except Exception as e:
+            log(e)
+
     def get_active_ids(self):
         return [contract.id for contract in Contract.query.filter_by(is_active=True).all()]
