@@ -126,6 +126,10 @@ export default {
           categories: ['bdi', 'bdi_ca', 'bdi_sp'],
         },
         {
+          title: "Опросник САН",
+          categories: ['san', 'health_san', 'activity_san', 'mood_san'],
+        },
+        {
           title: "SF-36, EQ-5D, Oswestry",
           categories: ['ph', 'mh', 'eq5d', 'oswestry'],
         },
