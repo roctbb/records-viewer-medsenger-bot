@@ -7,7 +7,6 @@
         <small>Ничего не найдено.</small>
       </p>
     </div>
-
     <div v-else>
       <div v-for="(date,i) in data">
         <table class="table table-hover table-striped fixed-columns">
@@ -26,7 +25,7 @@
               <small class="text-muted">{{ record.formatted_date }}</small>
             </th>
             <td>
-              <span v-if="!(record.attached_files[0] && record.value == record.attached_files[0].name)">{{
+              <span v-if="!(record.attached_files && record.attached_files[0] && record.value == record.attached_files[0].name)">{{
                   record.value
                 }}</span>
               <span v-if="record.category_info.unit"> ({{ record.category_info.unit }})</span>
@@ -117,7 +116,7 @@
             </td>
           </tr>
 
-          <tr v-if="date.symptoms.lenght">
+          <tr v-if="date.symptoms && date.symptoms.length">
             <th>Симптомы</th>
             <td>
               <ul>
@@ -129,7 +128,6 @@
       </div>
 
     </div>
-
   </div>
 </template>
 
@@ -168,7 +166,7 @@ export default {
       }).catch(() => Event.fire('load-error'));
     }
   },
-  created() {
+  mounted() {
     Event.listen('open-more-info', (id) => {
       if (id.includes('file')) {
         let ids = id.split('_').filter(p => p != 'file').map(p => parseInt(p))

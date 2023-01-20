@@ -12,6 +12,7 @@ from medsenger_api import AgentApiClient
 from config import *
 
 medsenger_api = AgentApiClient(APP_KEY, MAIN_HOST, AGENT_ID, API_DEBUG)
+text_categories = ['symptom', 'medicine', 'patient_comment', 'information']
 
 
 def gts():
@@ -102,8 +103,7 @@ def get_patient_data(contract_id):
 def get_graph_data(contract_id, data):
     answer = []
     if 'onload' in data and data['onload']:
-        tmp_categories = [category for category in data['group']['categories'] if category not in
-                          ['symptom', 'medicine', 'patient_comment', 'information']]
+        tmp_categories = [category for category in data['group']['categories'] if category not in text_categories]
         tmp_categories = tmp_categories if len(tmp_categories) else data['group']['categories']
         if data['group_data']:
             last = medsenger_api.get_records(contract_id, ','.join(tmp_categories), group=True, limit=1)
@@ -113,7 +113,6 @@ def get_graph_data(contract_id, data):
             last = [values[0] for values in last if len(values)]
             last = sorted(last, key=lambda x: x['timestamp'], reverse=True)
         two_weeks = 1209600
-        print(last)
         last_timestamp = last[0]['timestamp'] + 10
         data['dates'] = {
             'start': last_timestamp - two_weeks,

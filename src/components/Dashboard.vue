@@ -100,7 +100,8 @@ export default {
       custom_graphs: [
         {
           title: "Пульс, сатурация, температура, дыхание",
-          categories: ['pulse', 'spo2', 'temperature', 'respiration_rate']
+          categories: ['pulse', 'spo2', 'temperature', 'respiration_rate'],
+          optional: ['respiration_rate']
         }
       ],
       groups: [
@@ -121,16 +122,24 @@ export default {
           categories: ['ph', 'mh'],
         },
         {
+          title: "Шкала депрессии Бека",
+          categories: ['bdi', 'bdi_ca', 'bdi_sp'],
+        },
+        {
+          title: "Опросник САН",
+          categories: ['san', 'health_san', 'activity_san', 'mood_san'],
+        },
+        {
           title: "SF-36, EQ-5D, Oswestry",
           categories: ['ph', 'mh', 'eq5d', 'oswestry'],
         },
         {
-          "title": "Спортивная форма",
-          "categories": ['appetite', 'readiness_for_training', 'performance', 'mood', 'sleep', 'health'],
+          title: "Спортивная форма",
+          categories: ['appetite', 'readiness_for_training', 'performance', 'mood', 'sleep', 'health', 'freedom_of_movement', 'freedom_of_breathing', 'feel_of_heart', 'coordination_of_movements', 'physical_shape'],
         },
         {
-          "title": "Плавание",
-          "categories": ['swimming_freestyle_50', 'swimming_freestyle_100', 'swimming_freestyle_200', 'swimming_butterfly_50',
+          title: "Плавание",
+          categories: ['swimming_freestyle_50', 'swimming_freestyle_100', 'swimming_freestyle_200', 'swimming_butterfly_50',
             'swimming_butterfly_100',
             'swimming_butterfly_200',
             'swimming_on_the_back_50',
@@ -166,17 +175,17 @@ export default {
             !['string', 'file'].includes(category.type)
       })
 
+      // вытаскиваем группы
       let custom = this.groups.filter((group) => {
-        return group.categories.some((category_name) => {
-          return plottable.filter((category) => category.name == category_name).length > 0
-        })
+        return group.need_all ? group.categories.every((category_name) => plottable.filter((category) =>
+            category.name == category_name).length > 0) : group.categories.some((category_name) =>
+            plottable.filter((category) => category.name == category_name).length > 0)
       })
 
-      let not_custom = plottable.filter((category) => {
-        return !this.groups.some((group) => {
-          return group.categories.includes(category.name)
-        })
-      })
+      // вытаскиваем категории, которые не вошли в группы
+      let not_custom = plottable.filter((category) =>
+          !custom.some((group) =>
+              group.categories.includes(category.name)))
 
       not_custom.forEach((category) => {
         custom.push({
@@ -185,20 +194,22 @@ export default {
         })
       })
 
-      this.custom_graphs = this.custom_graphs.filter((group) => {
-        return group.categories.some((category_name) => {
-          return plottable.filter((category) => category.name == category_name).length > 0
-        })
-      })
+      // добавляем доп. группы
+      this.custom_graphs = this.custom_graphs.filter((group) =>
+          group.categories.filter((category_name) =>
+              !group.optional.includes(category_name))
+              .every((category_name) => plottable.filter((category) => category.name == category_name).length > 0))
       custom = this.custom_graphs.concat(custom)
 
       return custom
     },
     plottable_heatmap_categories: function () {
-      return this.heatmaps.filter(heatmap => !heatmap.categories.filter(c => !this.categories.map(cc => cc.name).includes(c)).length)
+      return this.heatmaps.filter(heatmap =>
+          !heatmap.categories.filter(c => !this.categories.map(cc => cc.name).includes(c)).length)
     },
     plottable_day_graphs: function () {
-      return this.day_graphs.filter(graph => graph.categories.filter(c => !this.categories.map(cc => cc.name).includes(c)).length != graph.categories.length)
+      return this.day_graphs.filter(graph =>
+          graph.categories.filter(c => !this.categories.map(cc => cc.name).includes(c)).length != graph.categories.length)
     },
     report_categories: function () {
       this.custom_reports[0].categories = this.categories.map(c => c.name).filter(c => c != 'doctor_action')
