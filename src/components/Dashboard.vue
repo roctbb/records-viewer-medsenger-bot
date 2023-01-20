@@ -12,7 +12,7 @@
     </div>
 
     <div v-if="plottable_categories.length">
-      <h6>Графики</h6>
+      <h5>Графики</h5>
       <div class="row">
         <card v-for="(category, i) in plottable_categories" :key="'graph_' + i" :image="images.graph"
               class="col-lg-2 col-md-3">

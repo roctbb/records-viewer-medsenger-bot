@@ -48,14 +48,14 @@
     </card>
 
     <!-- кнопки -->
-    <button class="btn btn-primary" @click="generate()"
+    <button class="btn btn-default" @click="generate()"
             v-if="state == 'forming'">Сформировать
     </button>
     <div class="row" style="margin-left: 1px; grid-column-gap: 10px;">
       <button class="btn btn-danger" @click="go_back()"
               v-if="state == 'editing' && questions.length">Назад
       </button>
-      <button class="btn btn-primary" @click="send()"
+      <button class="btn btn-default" @click="send()"
               v-if="state == 'editing'">Отправить
       </button>
     </div>

@@ -21,7 +21,7 @@
         </div>
         <!-- Даты -->
         <div>
-          <button class="btn btn-primary btn-sm" style="margin-top: -2px"
+          <button class="btn btn-default btn-sm" style="margin-top: -2px"
                   @click="scroll_dates(true)" :disabled="dates.range.some(d => !d)">
             &#8592;
           </button>
@@ -29,14 +29,14 @@
           <date-picker format="c DD.MM.YYYY" v-model="dates.range[0]" @change="select_dates()"/>
           <date-picker format="по DD.MM.YYYY" v-model="dates.range[1]" @change="select_dates()"/>
 
-          <button class="btn btn-primary btn-sm" style="margin-top: -2px"
+          <button class="btn btn-default btn-sm" style="margin-top: -2px"
                   @click="scroll_dates(false)" :disabled="dates.range.some(d => !d)">
             &#8594;
           </button>
         </div>
 
         <!-- PDF -->
-        <button class="btn btn-sm btn-primary" :disabled="disable_downloading"
+        <button class="btn btn-sm btn-default" :disabled="disable_downloading"
                 @click="generate_report()">Скачать PDF
         </button>
 
@@ -94,7 +94,7 @@
 
       <!-- Даты -->
       <div class="row" style="margin: 0">
-        <button class="btn btn-primary btn-sm" @click="scroll_dates(true)" :disabled="dates.range.some(d => !d)">
+        <button class="btn btn-default btn-sm" @click="scroll_dates(true)" :disabled="dates.range.some(d => !d)">
           &#8592;
         </button>
 
@@ -103,7 +103,7 @@
         <date-picker class="col" format="по DD.MM.YYYY" placeholder="Выбрать конец периода" v-model="dates.range[1]"
                      @change="select_dates()"/>
 
-        <button class="btn btn-primary btn-sm" @click="scroll_dates(false)" :disabled="dates.range.some(d => !d)">
+        <button class="btn -default btn-sm" @click="scroll_dates(false)" :disabled="dates.range.some(d => !d)">
           &#8594;
         </button>
       </div>
