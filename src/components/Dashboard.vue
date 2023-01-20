@@ -105,6 +105,7 @@ export default {
                 {
                     title: "Давление и пульс",
                     categories: ['systolic_pressure', 'diastolic_pressure', 'pulse'],
+                    optional: ['systolic_pressure', 'diastolic_pressure']
                 },
                 {
                     title: "Пульс, сатурация, температура, дыхание",
