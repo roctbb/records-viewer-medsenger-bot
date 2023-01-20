@@ -178,6 +178,11 @@ h1, h2 {
   font-weight: normal;
 }
 
+.card-title {
+  display: block;
+  font-weight: 400;
+}
+
 a {
   color: #006c88;
   font-weight: bold;
