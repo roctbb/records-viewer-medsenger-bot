@@ -4,21 +4,21 @@
       <h5>Отчеты</h5>
       <div class="row">
         <card v-for="(report, i) in report_categories" :key="'report_' + i" :image="images.report"
-              class="col-lg-3 col-md-4">
-          <h6>{{ report.title }}</h6>
-          <a @click="load_report(report)" href="#" class="btn btn-primary">Открыть</a>
+              class="col-lg-2 col-md-3">
+          <strong class="card-title">{{ report.title }}</strong>
+          <a @click="load_report(report)" href="#" class="btn btn-default">Открыть</a>
         </card>
       </div>
     </div>
 
     <div v-if="plottable_categories.length">
-      <h5>Графики</h5>
+      <h6>Графики</h6>
       <div class="row">
         <card v-for="(category, i) in plottable_categories" :key="'graph_' + i" :image="images.graph"
-              class="col-lg-3 col-md-4">
-          <h6>{{ category.title }}</h6>
+              class="col-lg-2 col-md-3">
+          <strong class="card-title">{{ category.title }}</strong>
 
-          <a @click="load_graph(category, 'graph')" href="#" class="btn btn-primary">Открыть</a>
+          <a @click="load_graph(category, 'graph')" href="#" class="btn btn-default">Открыть</a>
         </card>
       </div>
     </div>
@@ -27,9 +27,9 @@
       <h5>Графики по суткам</h5>
       <div class="row">
         <card v-for="(category, i) in plottable_day_graphs" :key="'day_graph_' + i" :image="images.graph"
-              class="col-lg-3 col-md-4">
-          <h6>{{ category.title }} (сутки)</h6>
-          <a @click="load_graph(category, 'day-graph')" href="#" class="btn btn-primary">Открыть</a>
+              class="col-lg-2 col-md-3">
+          <strong class="card-title">{{ category.title }} (сутки)</strong>
+          <a @click="load_graph(category, 'day-graph')" href="#" class="btn btn-default">Открыть</a>
         </card>
       </div>
     </div>

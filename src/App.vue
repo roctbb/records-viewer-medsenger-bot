@@ -183,6 +183,14 @@ body {
   font-family: Roboto;
 }
 
+.btn-default {
+  background-color: #f1f1f1;
+}
+
+.card {
+  background-size: 13%;
+}
+
 @media screen and (max-width: 900px) {
   .slim-container {
     max-width: 100% !important;
@@ -223,6 +231,7 @@ h5, h4, h3 {
   color: #006c88;
   margin-bottom: 15px;
   margin-top: 15px;
+  font-weight: 400;
 }
 
 strong {
