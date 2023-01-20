@@ -103,7 +103,7 @@
         <date-picker class="col" format="по DD.MM.YYYY" placeholder="Выбрать конец периода" v-model="dates.range[1]"
                      @change="select_dates()"/>
 
-        <button class="btn -default btn-sm" @click="scroll_dates(false)" :disabled="dates.range.some(d => !d)">
+        <button class="btn btn-default btn-sm" @click="scroll_dates(false)" :disabled="dates.range.some(d => !d)">
           &#8594;
         </button>
       </div>
