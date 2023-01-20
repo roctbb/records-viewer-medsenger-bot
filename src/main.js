@@ -55,15 +55,15 @@ Vue.mixin({
     data() {
         return {
             images: {
-                logo: window.LOCAL_HOST + '/static/logo.png',
-                ok: window.LOCAL_HOST + '/static/icons/icons8-ok-128.png',
-                error: window.LOCAL_HOST + '/static/icons/icons8-delete-128.png',
-                nothing_found: window.LOCAL_HOST + '/static/icons/icons8-nothing-found-100.png',
-                warning: window.LOCAL_HOST + '/static/icons/icons8-error-18.png',
-                report: window.LOCAL_HOST + '/static/icons/icons8-search-property-96.png',
-                graph: window.LOCAL_HOST + '/static/icons/icons8-graph-96.png',
-                heatmap: window.LOCAL_HOST + '/static/icons/icons8-heat-map-96.png',
-                file: window.LOCAL_HOST + '/static/icons/icons8-open-document-48.png'
+                logo: 'https://common.medsenger.ru/images/logo.png',
+                ok: 'https://common.medsenger.ru/images/icons8-ok-128.png',
+                error: 'https://common.medsenger.ru/images/icons8-delete-128.png',
+                nothing_found: 'https://common.medsenger.ru/images/icons8-nothing-found-100.png',
+                warning: 'https://common.medsenger.ru/images/icons8-error-18.png',
+                report: 'https://common.medsenger.ru/images/icons8-search-property-96.png',
+                graph: 'https://common.medsenger.ru/images/icons8-graph-96.png',
+                heatmap: 'https://common.medsenger.ru/images/icons8-heat-map-96.png',
+                file: 'https://common.medsenger.ru/images/icons8-open-document-48.png'
             },
             axios: require('axios'),
             category_list: undefined,
