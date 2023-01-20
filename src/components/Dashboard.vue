@@ -39,8 +39,8 @@
       <div class="row">
         <card v-for="(category, i) in plottable_heatmap_categories" :key="'heatmap_' + i" :image="images.heatmap"
               class="col-lg-3 col-md-4">
-          <h6>{{ category.title }}</h6>
-          <a @click="load_graph(category, 'heatmap')" href="#" class="btn btn-primary">Открыть</a>
+          <strong class="card-title">{{ category.title }}</strong>
+          <a @click="load_graph(category, 'heatmap')" href="#" class="btn btn-default">Открыть</a>
         </card>
       </div>
     </div>
