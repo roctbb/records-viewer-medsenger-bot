@@ -220,7 +220,7 @@ export default {
             }
 
             let data = {
-                group_data: true,
+                group_data: this.type == 'day-line',
                 group: group_tmp,
                 onload: onload,
                 dates: {
