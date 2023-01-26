@@ -76,7 +76,10 @@
             </div>
 
             <!-- Табличка с симптомами -->
-
+            <div class="container center" v-if="type == 'line' && !no_data ">
+                <h5 class="text-center">Симптомы и события</h5>
+                <records-list :data="list_data"/>
+            </div>
             <!-- Для экспорта -->
             <div v-show="false">
                 <div ref="to-export">
@@ -118,7 +121,10 @@
                     </div>
 
                     <!-- Табличка с симптомами -->
-
+                    <div class="container center" v-if="type == 'line' && !no_data ">
+                        <h5 class="text-center">Симптомы и события</h5>
+                        <records-list :data="list_data" :to_export="true"/>
+                    </div>
 
                 </div>
             </div>
