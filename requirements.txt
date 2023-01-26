@@ -3,3 +3,4 @@ requests==2.27.1
 transliterate~=1.10.2
 weasyprint~=53.3
 pytz~=2021.1
+medsenger-api
