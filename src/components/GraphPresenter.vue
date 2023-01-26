@@ -121,10 +121,7 @@
                     </div>
 
                     <!-- Табличка с симптомами -->
-                    <div class="container center" v-if="type == 'line' && !no_data ">
-                        <h5 class="text-center">Симптомы и события</h5>
-                        <records-list :data="list_data" :to_export="true"/>
-                    </div>
+
 
                 </div>
             </div>
@@ -574,14 +571,14 @@ export default {
                         color: '#0e17ca',
                         y: -5
                     })
-                    /*let info_series = this.get_text_series({
+                    let info_series = this.get_text_series({
                         name: 'information',
                         description: 'Общая информация',
                         color: '#00ffe1',
                         y: -7
-                    })*/
+                    })
                     series = comment_series.concat(series)
-                    //series = info_series.concat(series)
+                    series = info_series.concat(series)
                     series = graph_series.concat(series)
                 } else {
                     series = graph_series
