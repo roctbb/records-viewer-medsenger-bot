@@ -1,117 +1,70 @@
 <template>
     <div>
-        <div class="container">
             <filter-panel :page="type == 'line' ? 'graph' : ( type == 'day-line' ? 'day-graph' :
       (group.categories && group.categories.includes('symptom') ? 'symptoms-' : '') + type )"
                           :disable_downloading="no_data || exporting" :patient="patient"/>
-        </div>
 
-        <!-- Ошибки -->
-        <error-block :errors="errors" v-if="errors.length"/>
 
-        <!-- Основная часть -->
-        <loading v-if="!loaded && !errors.length"/>
-        <div v-else>
-            <div v-if="no_data" style="margin-top: 100px">
-                <p style="text-align: center"><img :src="images.nothing_found"/></p>
+            <!-- Ошибки -->
+            <error-block :errors="errors" v-if="errors.length"/>
 
-                <p style="text-align: center">
-                    <small>Нет данных за выбранный период.</small>
-                </p>
+            <!-- Основная часть -->
+            <loading v-if="!loaded && !errors.length"/>
+            <div v-else>
+                <div v-if="no_data" style="margin-top: 100px">
+                    <p style="text-align: center"><img :src="images.nothing_found"/></p>
 
-            </div>
+                    <p style="text-align: center">
+                        <small>Нет данных за выбранный период.</small>
+                    </p>
 
-            <highcharts :constructor-type="'stockChart'" :options="options" style="margin-left: 30px" v-else/>
+                </div>
 
-            <!-- Табличка -->
-            <div class="container center" v-if="type == 'line' && this.statistics.length  && !no_data">
-                <h5 class="text-center">Значения параметров за выбранный период</h5>
+                <highcharts :constructor-type="'stockChart'" :options="options" style="margin-left: 30px" v-else/>
 
-                <table class="table table-hover table-striped" v-if="!mobile">
-                    <colgroup>
-                        <col span="1" style="width: 55%;">
-                        <col span="1" style="width: 15%;">
-                        <col span="1" style="width: 15%;">
-                        <col span="1" style="width: 15%;">
-                    </colgroup>
+                <!-- Табличка -->
+                <div class="center" v-if="type == 'line' && this.statistics.length  && !no_data">
+                    <h5 class="text-center">Значения параметров за выбранный период</h5>
 
-                    <thead>
-                    <tr>
-                        <th scope="col" class="bg-info text-light">Параметр</th>
-                        <th scope="col" class="bg-info text-light">Среднее</th>
-                        <th scope="col" class="bg-info text-light">Мин</th>
-                        <th scope="col" class="bg-info text-light">Макс</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr v-for="stat in this.statistics">
-                        <th scope="row" style="text-align: left;">{{ stat.name }}</th>
-                        <td>{{ stat.avg.toFixed(2) * 1 }}</td>
-                        <td>{{ stat.min.toFixed(2) * 1 }}</td>
-                        <td>{{ stat.max.toFixed(2) * 1 }}</td>
-                    </tr>
-                    </tbody>
-                </table>
+                    <table class="table table-hover table-striped" v-if="!mobile">
+                        <colgroup>
+                            <col span="1" style="width: 55%;">
+                            <col span="1" style="width: 15%;">
+                            <col span="1" style="width: 15%;">
+                            <col span="1" style="width: 15%;">
+                        </colgroup>
 
-                <div v-else-if="type == 'line'" v-for="stat in this.statistics">
-                    <hr>
-                    <h6 class="text-center">{{ stat.name }}</h6>
-                    <table class="table table-hover table-striped">
                         <thead>
                         <tr>
+                            <th scope="col" class="bg-info text-light">Параметр</th>
                             <th scope="col" class="bg-info text-light">Среднее</th>
                             <th scope="col" class="bg-info text-light">Мин</th>
                             <th scope="col" class="bg-info text-light">Макс</th>
                         </tr>
                         </thead>
                         <tbody>
-                        <tr>
+                        <tr v-for="stat in this.statistics">
+                            <th scope="row" style="text-align: left;">{{ stat.name }}</th>
                             <td>{{ stat.avg.toFixed(2) * 1 }}</td>
                             <td>{{ stat.min.toFixed(2) * 1 }}</td>
                             <td>{{ stat.max.toFixed(2) * 1 }}</td>
                         </tr>
                         </tbody>
                     </table>
-                </div>
-            </div>
 
-            <!-- Табличка с симптомами -->
-            <div class="container center" v-if="type == 'line' && !no_data ">
-                <h5 class="text-center">Симптомы и события</h5>
-                <records-list :data="list_data"/>
-            </div>
-            <!-- Для экспорта -->
-            <div v-show="false">
-                <div ref="to-export">
-                    <h4>Отчет по мониторингу пациента {{ patient.name }} ({{ patient.birthday }})</h4>
-                    <span><strong>Период: </strong>
-          {{
-                            dates[0] ? ` с ${dates[0].toLocaleDateString()}` : ''
-                        }} {{ dates[1] ? ` по ${dates[1].toLocaleDateString()}` : '' }}</span>
-                    <hr>
-
-                    <highcharts :constructor-type="'stockChart'" :options="export_options" style="margin-left: 20px"/>
-
-                    <div class="container center" v-if="type == 'line' && this.statistics.length">
-                        <h6>Значения параметров за выбранный период</h6>
+                    <div v-else-if="type == 'line'" v-for="stat in this.statistics">
+                        <hr>
+                        <h6 class="text-center">{{ stat.name }}</h6>
                         <table class="table table-hover table-striped">
-                            <colgroup>
-                                <col span="1" style="width: 55%;">
-                                <col span="1" style="width: 15%;">
-                                <col span="1" style="width: 15%;">
-                                <col span="1" style="width: 15%;">
-                            </colgroup>
                             <thead>
                             <tr>
-                                <th scope="col" class="bg-info text-light">Параметр</th>
                                 <th scope="col" class="bg-info text-light">Среднее</th>
                                 <th scope="col" class="bg-info text-light">Мин</th>
                                 <th scope="col" class="bg-info text-light">Макс</th>
                             </tr>
                             </thead>
                             <tbody>
-                            <tr v-for="stat in this.statistics">
-                                <th scope="row" style="text-align: left;">{{ stat.name }}</th>
+                            <tr>
                                 <td>{{ stat.avg.toFixed(2) * 1 }}</td>
                                 <td>{{ stat.min.toFixed(2) * 1 }}</td>
                                 <td>{{ stat.max.toFixed(2) * 1 }}</td>
@@ -119,18 +72,65 @@
                             </tbody>
                         </table>
                     </div>
-
-                    <!-- Табличка с симптомами -->
-                    <div class="container center" v-if="type == 'line' && !no_data ">
-                        <h5 class="text-center">Симптомы и события</h5>
-                        <records-list :data="list_data" :to_export="true"/>
-                    </div>
-
                 </div>
-            </div>
 
+                <!-- Табличка с симптомами -->
+                <div class="center" v-if="type == 'line' && !no_data ">
+                    <h5 class="text-center">Симптомы и события</h5>
+                    <records-list :data="list_data"/>
+                </div>
+                <!-- Для экспорта -->
+                <div v-show="false">
+                    <div ref="to-export">
+                        <h4>Отчет по мониторингу пациента {{ patient.name }} ({{ patient.birthday }})</h4>
+                        <span><strong>Период: </strong>
+          {{
+                                dates[0] ? ` с ${dates[0].toLocaleDateString()}` : ''
+                            }} {{ dates[1] ? ` по ${dates[1].toLocaleDateString()}` : '' }}</span>
+                        <hr>
+
+                        <highcharts :constructor-type="'stockChart'" :options="export_options"
+                                    style="margin-left: 20px"/>
+
+                        <div class="center" v-if="type == 'line' && this.statistics.length">
+                            <h6>Значения параметров за выбранный период</h6>
+                            <table class="table table-hover table-striped">
+                                <colgroup>
+                                    <col span="1" style="width: 55%;">
+                                    <col span="1" style="width: 15%;">
+                                    <col span="1" style="width: 15%;">
+                                    <col span="1" style="width: 15%;">
+                                </colgroup>
+                                <thead>
+                                <tr>
+                                    <th scope="col" class="bg-info text-light">Параметр</th>
+                                    <th scope="col" class="bg-info text-light">Среднее</th>
+                                    <th scope="col" class="bg-info text-light">Мин</th>
+                                    <th scope="col" class="bg-info text-light">Макс</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr v-for="stat in this.statistics">
+                                    <th scope="row" style="text-align: left;">{{ stat.name }}</th>
+                                    <td>{{ stat.avg.toFixed(2) * 1 }}</td>
+                                    <td>{{ stat.min.toFixed(2) * 1 }}</td>
+                                    <td>{{ stat.max.toFixed(2) * 1 }}</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Табличка с симптомами -->
+                        <div class="center" v-if="type == 'line' && !no_data ">
+                            <h5 class="text-center">Симптомы и события</h5>
+                            <records-list :data="list_data" :to_export="true"/>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
         </div>
-    </div>
 </template>
 
 <script>
