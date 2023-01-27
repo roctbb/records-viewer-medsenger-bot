@@ -273,6 +273,7 @@ export default {
         },
     },
     mounted() {
+
         Event.listen('back-to-dashboard', () => {
             // понятия не имею, почему оно изменяется
             this.day_graphs = [
