@@ -5,5 +5,5 @@ sudo cp agents_records.conf /etc/supervisor/conf.d/
 sudo cp agents_records_nginx.conf /etc/nginx/sites-enabled/
 sudo supervisorctl update
 sudo systemctl restart nginx
-sudo certbot --nginx -d records.medsenger.ru
+sudo certbot --nginx -d records.ai.medsenger.ru
 touch config.py
