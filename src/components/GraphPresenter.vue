@@ -20,7 +20,7 @@
 
                 </div>
 
-                <highcharts :constructor-type="'stockChart'" :options="options" style="margin-left: 30px" v-else/>
+                <highcharts :constructor-type="'stockChart'" :options="options" v-else/>
 
                 <!-- Табличка -->
                 <div class="center" v-if="type == 'line' && this.statistics.length  && !no_data">
