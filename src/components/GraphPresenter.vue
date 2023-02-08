@@ -20,7 +20,7 @@
 
                 </div>
 
-                <highcharts :constructor-type="'stockChart'" :options="options" v-else/>
+                <highcharts :constructor-type="'stockChart'" :options="options" style="padding-left: -15px; padding-right: -15px;" v-else/>
 
                 <!-- Табличка -->
                 <div class="center" v-if="type == 'line' && this.statistics.length  && !no_data">
@@ -992,7 +992,7 @@ export default {
                 zoomType: '',
                 backgroundColor: "#fcfcfc",
                 height: `${window.innerHeight - 100}`,
-                width: `${window.innerWidth - 30}`,
+                width: `${window.innerWidth - 90}`,
                 renderTo: 'container',
                 events: {}
             }
