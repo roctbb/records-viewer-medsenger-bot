@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div id="chart-container">
             <filter-panel :page="type == 'line' ? 'graph' : ( type == 'day-line' ? 'day-graph' :
       (group.categories && group.categories.includes('symptom') ? 'symptoms-' : '') + type )"
                           :disable_downloading="no_data || exporting" :patient="patient"/>
@@ -992,7 +992,7 @@ export default {
                 zoomType: '',
                 backgroundColor: "#fcfcfc",
                 height: `${window.innerHeight - 100}`,
-                width: `${window.innerWidth - 90}`,
+                width: `${window.innerWidth * 0.89}`,
                 renderTo: 'container',
                 events: {}
             }
