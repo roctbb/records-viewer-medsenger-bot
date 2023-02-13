@@ -22,3 +22,21 @@ class Contract(db.Model):
             serialized['agent_token'] = self.agent_token
 
         return serialized
+
+
+class CategoryGroup(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255), nullable=True)
+    type = db.Column(db.String(255), nullable=True)
+    required_categories = db.Column(db.JSON, nullable=True)
+    optional_categories = db.Column(db.JSON, nullable=True)
+
+    def as_dict(self):
+        serialized = {
+            "id": self.id,
+            "title": self.title,
+            "type": self.type,
+            "categories": self.required_categories + (self.optional_categories if self.optional_categories else []),
+        }
+
+        return serialized

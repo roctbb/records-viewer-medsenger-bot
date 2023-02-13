@@ -1,13 +1,9 @@
 <template>
     <div>
         <div v-if="!mobile" style="margin: 0 5px">
-            <div class="row" style="grid-column-gap: 10px;">
-                <button class="btn btn-sm btn-danger col-sm-1" @click="go_back()"
-                        v-if="!object_id && window_mode == 'settings'">Назад
-                </button>
-
+            <div class="row">
                 <!-- Период -->
-                <div class="col" :style="window_mode != 'settings' ? 'margin-left: -5px' : ''">
+                <div class="col">
                     <select class="form-control form-control-sm" style="height: 33px"
                             v-model="dates.period" @change="select_period()">
                         <option :value="30" :disabled="!dates.range[1]">Месяц</option>
@@ -26,8 +22,10 @@
                         &#8592;
                     </button>
 
-                    <date-picker format="c DD.MM.YYYY" v-model="dates.range[0]" @change="select_dates()"/>
-                    <date-picker format="по DD.MM.YYYY" v-model="dates.range[1]" @change="select_dates()"/>
+                    <date-picker :class="`${page}${page == 'report' && window_mode == 'settings' ? '-settings' : ''}`"
+                                 format="c DD.MM.YYYY" v-model="dates.range[0]" @change="select_dates(0)"/>
+                    <date-picker :class="`${page}${page == 'report' && window_mode == 'settings' ? '-settings' : ''}`"
+                                 format="по DD.MM.YYYY" v-model="dates.range[1]" @change="select_dates(1)"/>
 
                     <button class="btn btn-default btn-sm" style="margin-top: -2px"
                             @click="scroll_dates(false)" :disabled="dates.range.some(d => !d)">
@@ -41,14 +39,14 @@
                 </button>
 
                 <!-- Настройки графика -->
-                <div v-if="page.includes('graph')">
+                <div class="col-3" v-if="page.includes('graph')">
                     <input type="checkbox" id="hide_legend" v-model="legend_mode"
                            @change="change_mode('legend', !legend_mode)"/>
                     <label for="hide_legend">Скрыть легенду</label>
                     <input type="checkbox" id="collapse_points" v-model="points_mode"
                            @change="change_mode('points', points_mode)"
                            v-if="show_collapse"/>
-                    <label for="collapse_points" v-if="show_collapse">Усреднить значения</label>
+                    <label for="collapse_points" v-if="show_collapse">Усреднить</label>
                 </div>
 
                 <!-- Тепловая карта -->
@@ -61,8 +59,7 @@
 
             <!-- Категории -->
             <div class="row" v-if="page == 'report' && categories">
-                <div :class="`${window_mode == 'report' ? '' : 'offset-1'} col`"
-                     :style="`padding-left: ${window_mode == 'settings' ? 15 : 0}px; padding-right: 0px`">
+                <div class="col">
                     <multiselect v-model="selected_categories" :options="category_groups" :multiple="true"
                                  :close-on-select="false" :clear-on-select="false" :preserve-search="true"
                                  group-values="categories" group-label="group" :group-select="true"
@@ -104,10 +101,10 @@
 
                 <date-picker class="col" format="c DD.MM.YYYY" placeholder="Выбрать начало периода"
                              v-model="dates.range[0]"
-                             @change="select_dates()"/>
+                             @change="select_dates(0)"/>
                 <date-picker class="col" format="по DD.MM.YYYY" placeholder="Выбрать конец периода"
                              v-model="dates.range[1]"
-                             @change="select_dates()"/>
+                             @change="select_dates(1)"/>
 
                 <button class="btn btn-default btn-sm" @click="scroll_dates(false)"
                         :disabled="dates.range.some(d => !d)">
@@ -161,7 +158,7 @@ import 'vue2-datepicker/locale/ru';
 
 export default {
     name: "FilterPanel",
-    props: ['data', 'categories', 'page', 'disable_downloading', 'patient'],
+    props: ['data', 'categories', 'page', 'disable_downloading', 'patient', 'last_date'],
     components: {DatePicker, Multiselect},
     data() {
         return {
@@ -184,20 +181,18 @@ export default {
                 })
             })
             return groups
-        },
-        day() {
-            return 24 * 36e5
         }
     },
     methods: {
-        go_back: function () {
-            Event.fire('back-to-dashboard')
-        },
         generate_report: function () {
             Event.fire('generate-report')
         },
         update_dates: function () {
             let action = (this.page == 'report' ? this.page : 'graph') + '-update-dates'
+            this.dates.range = [
+                this.dates.range[0] ? this.start_of_day(this.dates.range[0]) : undefined,
+                this.dates.range[1] ? this.end_of_day(this.dates.range[1]) : undefined
+            ]
             Event.fire(action, this.dates.range)
         },
         update_categories: function (value) {
@@ -207,25 +202,23 @@ export default {
             Event.fire('update-' + target, mode)
         },
         scroll_dates: function (back) {
-            let start = moment(this.dates.range[0])
-            let end = moment(this.dates.range[1])
-            let duration = end.diff(start, 'day')
+            let duration = this.dates_difference(this.dates.range[0], this.dates.range[1])
+            if (this.page.includes('heatmap') && duration > 30) return
 
-            if (this.page.includes('heatmap') && duration > 30) {
-                return
-            }
-
-            if (end > start) {
-                this.dates.range[0] = new Date(start.add((back ? -1 : 1) * duration, 'days').format('YYYY-MM-DD'))
-                this.dates.range[1] = new Date(end.add((back ? -1 : 1) * duration, 'days').format('YYYY-MM-DD'))
+            if (this.dates.range[0] <= this.dates.range[1]) {
+                this.dates.range[0] = this.add_days(this.dates.range[0], (back ? -1 : 1) * duration)
+                this.dates.range[1] = this.add_days(this.dates.range[1], (back ? -1 : 1) * duration)
             }
 
             this.$forceUpdate()
             this.update_dates()
         },
-        select_dates: function () {
+        select_dates: function (index) {
+            this.dates.range[index] = index ?
+                this.end_of_day(this.dates.range[index]) :
+                this.start_of_day(this.dates.range[index])
             if (!this.dates.range.some(d => d == undefined)) {
-                let duration = moment(this.dates.range[1]).diff(moment(this.dates.range[0]), 'day')
+                let duration = this.dates_difference(this.dates.range[0], this.dates.range[1])
                 this.dates.period = [30, 14, 7, 3, 1].includes(duration) ? duration : undefined
 
                 if (duration < 0 || this.page.includes('heatmap') && duration > 30) {
@@ -239,9 +232,9 @@ export default {
         },
         select_period: function () {
             if (this.dates.period > 0) {
-                this.dates.range[0] = new Date(this.dates.range[1].valueOf() - this.dates.period * this.day)
+                this.dates.range[0] = this.start_of_day(this.add_days(this.dates.range[1], -this.dates.period + 1))
             } else {
-                this.dates.range = [undefined, new Date()]
+                this.dates.range = [undefined, this.end_of_day(new Date())]
             }
             this.update_dates()
         },
@@ -251,35 +244,14 @@ export default {
             range: [],
             period: undefined,
         }
-        let end_date = new Date(moment(this.patient.end_date).set({
-            hour: 23,
-            minute: 59,
-            second: 59
-        }).format('YYYY-MM-DD HH:mm:ss'))
-        let today = new Date(moment().set({
-            hour: 23,
-            minute: 59,
-            second: 59
-        }).format('YYYY-MM-DD HH:mm:ss'))
-        let end_filter_date = end_date < today ? end_date : today
 
         Event.listen('load-report', params => {
-            this.dates.range = [undefined, end_filter_date]
+            this.dates.range = [undefined, this.last_date]
             this.dates.period = -1
         })
 
-        Event.listen('load-graph', params => {
-            this.dates.range = [new Date(moment(end_filter_date).add(-14, 'days').format('YYYY-MM-DD')), end_filter_date]
-            this.dates.period = 14
-        })
-
-        Event.listen('load-heatmap', params => {
-            this.dates.range = [new Date(moment(end_filter_date).add(-30, 'days').format('YYYY-MM-DD')), end_filter_date]
-            this.dates.period = 30
-        })
-
         Event.listen('load-day-graph', params => {
-            this.dates.range = [undefined, new Date(moment().format('YYYY-MM-DD'))]
+            this.dates.range = [undefined, this.last_date]
             this.dates.period = -1
         })
 
@@ -288,11 +260,6 @@ export default {
             this.points_mode = false
             this.medicines_mode = false
         });
-
-        Event.listen('set-start-date', date => {
-            this.dates.range[0] = date
-            this.$forceUpdate()
-        })
 
         Event.listen('show-collapse', mode => {
             this.show_collapse = mode
@@ -305,7 +272,14 @@ export default {
         })
 
         Event.listen('set-dates', dates => {
-            this.dates.range = dates
+            this.dates.range = [
+                dates[0] ? this.start_of_day(dates[0]) : undefined,
+                dates[1] ? this.end_of_day(dates[1]) : undefined
+            ]
+
+            let duration = this.dates_difference(this.dates.range[0], this.dates.range[1])
+            this.dates.period = [30, 14, 7, 3, 1].includes(duration) ? duration : undefined
+
             this.$forceUpdate()
         })
     }
@@ -317,6 +291,7 @@ export default {
 <style>
 .row {
     margin-bottom: 5px;
+    grid-column-gap: 5px;
 }
 
 .multiselect__tag {
@@ -327,6 +302,13 @@ export default {
 .multiselect__option {
     white-space: unset;
 }
+
+/*.graph .mx-icon-clear, .graph .mx-icon-calendar,*/
+/*.report-settings .mx-icon-clear, .report-settings .mx-icon-calendar {*/
+/*    top: 25%;*/
+/*    right: 25px;*/
+/*}*/
+
 </style>
 
 <style scoped>

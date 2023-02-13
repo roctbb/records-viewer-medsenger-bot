@@ -3,7 +3,12 @@
         <div class="container">
             <div class="row">
                 <div class="col-12">
-                    <p><strong>Отчет по мониторингу пациента</strong> {{ patient.name }} ({{ patient.birthday }})</p>
+                    <p><strong>Отчет по мониторингу пациента</strong> {{ patient.name }} ({{ patient.birthday }})
+                    <span class="float-right">
+                        <a class="btn btn-sm btn-danger" v-if="!object_id && state != 'dashboard'"
+                           @click="go_back()" href="#">Вернуться к началу</a>
+                    </span>
+                    </p>
                 </div>
             </div>
         </div>
@@ -13,7 +18,12 @@
 <script>
 export default {
     name: "DashboardHeader",
-    props: ['patient'],
+    props: ['patient', 'state'],
+    methods: {
+        go_back: function () {
+            Event.fire('back-to-dashboard')
+        }
+    }
 }
 </script>
 

@@ -1,6 +1,5 @@
 import Vue from 'vue'
 import App from './App.vue'
-import axios from "axios";
 import vmodal from 'vue-js-modal'
 import VueConfirmDialog from 'vue-confirm-dialog'
 
@@ -44,11 +43,59 @@ Vue.mixin({
                 groups[item[field] ? item[field] : 'Общее'] = group;
                 return groups;
             }, {});
+        },
+        load_data: function (categories, dates, options = null) {
+            let data = {
+                categories: categories,
+                dates: dates, // [start, end]
+                options: options
+            }
+            this.axios.post(this.url('/api/get_records'), data).then(response => {
+                Event.fire('loaded', response.data)
+            });
+        },
+        binary_search: function (arr, value, l, r) {
+            let mid = Math.floor((r - l) / 2) + l
+
+            if (arr[mid] == value)
+                return mid;
+            if (r - l == 0)
+                return r + (arr[r] < value ? 1 : 0);
+            if (arr[mid] < value) {
+                l = (mid + 1) > r ? r : (mid + 1)
+                return this.binary_search(arr, value, l, r);
+            }
+            r = (mid - 1) < l ? l : (mid - 1)
+            return this.binary_search(arr, value, l, r);
+        },
+        add_days: function (date, days) {
+            let new_date = new Date(date.valueOf());
+            new_date.setDate(new_date.getDate() + days);
+            return new_date;
+        },
+        start_of_day: function (date) {
+            date.setHours(0, 0, 0, 0)
+            return date
+        },
+        middle_of_day: function (date) {
+            date.setHours(12, 0, 0, 0)
+            return date
+        },
+        end_of_day: function (date) {
+            date.setHours(23, 59, 59, 999)
+            return date
+        },
+        dates_difference: function (date1, date2) {
+            const diffTime = Math.abs(date2 - date1);
+            return Math.ceil(diffTime / this.day)
         }
     },
     computed: {
         mobile() {
             return window.innerWidth < window.innerHeight
+        },
+        day() {
+            return 24 * 36e5
         }
     },
     data() {

@@ -1,9 +1,11 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, redirect, url_for
 from helpers import *
 from managers.ContractsManager import ContractManager
+from managers.CategoryGroupsManager import CategoryGroupsManager
 from manage import *
 
 contract_manager = ContractManager(medsenger_api, db)
+category_groups_manager = CategoryGroupsManager(medsenger_api, db)
 
 
 @app.route('/status', methods=['POST'])
@@ -67,10 +69,6 @@ def settings(args, form):
     contract = contract_manager.get(args.get('contract_id'))
     return get_ui(contract, source=request.args.get('source'))
 
-# @app.route('/settings', methods=['POST'])
-# def post_settings():
-#     return export_report()
-
 
 @app.route('/', methods=['GET'])
 def index():
@@ -108,18 +106,19 @@ def get_report(args, form):
     return get_ui(contract, source=args.get('source'))
 
 
-@app.route('/api/report', methods=['POST'])
+@app.route('/api/get_records', methods=['POST'])
 @verify_args
-def get_data(args, form):
+def get_records(args, form):
     contract_id = int(request.args.get('contract_id'))
     data = request.json
 
-    page = data.get('page', 0)
+    options = data.get('options', None)
     dates = data.get('dates', None)
     categories = data.get('categories', None)
 
-    result, page_cnt = get_report_page(contract_id, dates, page, categories)
-    return jsonify({'dates': result, 'page': page, 'page_cnt': page_cnt})
+    answer = get_records_list(contract_id, categories, dates, options)
+
+    return jsonify(answer)
 
 
 @app.route('/graph', methods=['GET'])
@@ -135,16 +134,48 @@ def graph_page(args, form):
     return get_ui(contract, 'graph')
 
 
-@app.route('/graph/<category_id>', methods=['GET'])
+@app.route('/single-graph/<category_id>', methods=['GET'])
 @verify_args
-def graph_page_with_args(args, form, category_id):
+def single_graph_page(args, form, category_id):
     contract_id = request.args.get('contract_id', '')
 
     if contract_manager.not_exists(contract_id):
         contract_manager.add(contract_id)
 
     contract = contract_manager.get(args.get('contract_id'))
-    return get_ui(contract, 'graph', object_id=category_id)
+    return get_ui(contract, 'graph-presenter', object_id=category_id)
+
+
+@app.route('/graph/<category_id>', methods=['GET'])
+@verify_args
+def graph_page_with_args(args, form, category_id):
+    ids = {
+        '24': 6,
+        '2': 3,
+        '1': 3,
+        '-1': 1,
+        '79': 11,
+        '20': 5
+    }
+
+    if category_id in ids:
+        return redirect(url_for('.group_page_with_args', category_id=ids[category_id], source=args.get('source'),
+                                contract_id=args.get('contract_id'), api_key=args.get('api_key')))
+
+    return redirect(url_for('.single_graph_page', category_id=category_id, source=args.get('source'),
+                            contract_id=args.get('contract_id'), api_key=args.get('api_key')))
+
+
+@app.route('/group/<category_id>', methods=['GET'])
+@verify_args
+def group_page_with_args(args, form, category_id):
+    contract_id = request.args.get('contract_id', '')
+
+    if contract_manager.not_exists(contract_id):
+        contract_manager.add(contract_id)
+
+    contract = contract_manager.get(args.get('contract_id'))
+    return get_ui(contract, 'group-presenter', object_id=category_id)
 
 
 @app.route('/api/categories', methods=['GET'])
@@ -152,23 +183,13 @@ def graph_page_with_args(args, form, category_id):
 def graph_categories(args, form):
     contract_id = args.get('contract_id')
     categories = medsenger_api.get_available_categories(contract_id)
+    groups = category_groups_manager.get_all(list(map(lambda x: x['name'], categories)))
+    answer = {
+        'categories': categories,
+        'groups': groups
+    }
 
-    return jsonify(categories)
-
-
-@app.route('/api/graph/group', methods=['POST'])
-@verify_args
-def graph_data(args, form):
-    contract_id = args.get('contract_id')
-    data = request.json
-
-    answer, dates = get_graph_data(contract_id, data)
-    if not dates['start'] and len(answer):
-        if 'values' in answer[0]:
-            dates['start'] = min([a['values'][0]['timestamp'] for a in answer if len(a['values'])]) - 1000 * 60 * 60 * 12
-        else:
-            dates['stat'] = answer[-1]['timestamp']
-    return jsonify({'data': answer, 'dates': dates})
+    return jsonify(answer)
 
 
 @app.route('/params', methods=['GET'])
