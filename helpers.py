@@ -110,10 +110,12 @@ def get_records_list(contract_id, categories, dates, options=None):
 
     if options.get('first_load'):
         last_record = medsenger_api.get_records(contract_id, (','.join(categories) + ','), limit=1)
-        if len(last_record):
+        if last_record and len(last_record):
             last_date = datetime.fromtimestamp(last_record[0]['timestamp']).replace(hour=23, minute=59, second=59)
-            last_timestamp = int(round(last_date.timestamp()))
-            dates = [last_timestamp - 14 * 24 * 60 * 60 + 1, last_timestamp]
+        else:
+            last_date = datetime.now().replace(hour=23, minute=59, second=59)
+        last_timestamp = int(round(last_date.timestamp()))
+        dates = [last_timestamp - 14 * 24 * 60 * 60 + 1, last_timestamp]
     info['dates'] = dates
 
     if options.get('type') == 'line':
