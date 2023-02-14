@@ -30,7 +30,7 @@ class CategoryGroup(db.Model):
     type = db.Column(db.String(255), nullable=True)
     required_categories = db.Column(db.JSON, nullable=True)
     optional_categories = db.Column(db.JSON, nullable=True)
-    al_least_one_category = db.Column(db.Boolean, default=False)
+    at_least_one_category = db.Column(db.Boolean, default=False)
 
     def as_dict(self):
         serialized = {
