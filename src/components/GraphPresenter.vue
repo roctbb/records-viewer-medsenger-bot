@@ -189,9 +189,6 @@ export default {
             return this.records.filter(record =>
                 this.text_categories.includes(record.category_info.name))
         },
-        offset() {
-            return -1 * new Date().getTimezoneOffset() * 60
-        },
         no_data() {
             if (!this.records) return false
             if (this.options.graph_type != 'heatmap')
@@ -207,7 +204,11 @@ export default {
 
             // Добавляю текстовые категории
             let categories = this.options.graph.categories
-
+            //
+            // if (this.options.dates[0])
+            //     this.options.dates[0] = this.start_of_day(this.options.dates[0])
+            // if (this.options.dates[1])
+            //     this.options.dates[1] = this.end_of_day(this.options.dates[1])
             let dates = this.options.dates.map(date => date ? date.getTime() / 1000 : date)
             let options = {
                 type: this.options.graph_type,
@@ -264,6 +265,8 @@ export default {
             let end = this.options.dates[1] ?
                 this.options.dates[1].getTime() :
                 this.records[0].timestamp * 1000
+
+            let day_diff = this.dates_difference(new Date(start), new Date(end))
 
             let options = {
                 chart: this.get_chart(),
@@ -412,7 +415,7 @@ export default {
 
             if (this.options.graph_type == 'heatmap') {
                 let count = this.heatmap_data.categories.symptoms.length + this.heatmap_data.categories.medicines.length
-                options.chart.height = count * 20 + 110
+                options.chart.height = count * 20 + 80
 
                 options.yAxis[0].categories = this.heatmap_data.categories.symptoms
                 options.yAxis[1].categories = this.heatmap_data.categories.medicines
@@ -444,7 +447,7 @@ export default {
                 if (this.options.graph.categories.includes('symptom')) {
                     options.yAxis[0].height = 20 * this.heatmap_data.categories.symptoms.length
 
-                    options.yAxis[1].top = 20 * this.heatmap_data.categories.symptoms.length + 60
+                    options.yAxis[1].top = 20 * this.heatmap_data.categories.symptoms.length + 30
                     options.yAxis[1].height = 20 * this.heatmap_data.categories.medicines.length
 
                     if (!this.heatmap_data.show_medicines || !this.heatmap_data.categories.medicines.length) {
@@ -901,7 +904,8 @@ export default {
                 lineWidth: 2,
                 resize: {
                     enabled: true
-                }
+                },
+                offset: index ? 0 : undefined
             }
 
             if (this.options.graph_type.includes('line')) {
@@ -1054,8 +1058,8 @@ export default {
             return date.toLocaleDateString()
         },
         fill_nulls: function (data, y) {
-            let start = +this.middle_of_day(this.options.dates[0])
-            let end = +this.middle_of_day(this.options.dates[1])
+            let start = +this.middle_of_day(new Date(this.options.dates[0].getTime()))
+            let end = +this.middle_of_day(new Date(this.options.dates[1].getTime()))
 
 
             let i = 0
@@ -1400,13 +1404,13 @@ export default {
                     this.graph_options.chart.width = window.innerWidth * 0.89
                     if (this.options.graph_type.includes('heatmap')) {
                         let count = this.heatmap_data.categories.symptoms.length + this.heatmap_data.categories.medicines.length
-                        this.graph_options.chart.height = count * 20 + 110
+                        this.graph_options.chart.height = count * 20 + 80
 
                         if (this.options.graph.categories.includes('symptom')) {
                             this.graph_options.yAxis[0].height = 20 * this.heatmap_data.categories.symptoms.length
 
                             if (this.graph_options.yAxis[1]) {
-                                this.graph_options.yAxis[1].top = 20 * this.heatmap_data.categories.symptoms.length + 60
+                                this.graph_options.yAxis[1].top = 20 * this.heatmap_data.categories.symptoms.length + 30
                                 this.graph_options.yAxis[1].height = 20 * this.heatmap_data.categories.medicines.length
                             }
 

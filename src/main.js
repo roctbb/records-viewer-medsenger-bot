@@ -96,6 +96,9 @@ Vue.mixin({
         },
         day() {
             return 24 * 36e5
+        },
+        offset() {
+            return -1 * new Date().getTimezoneOffset() * 60
         }
     },
     data() {
