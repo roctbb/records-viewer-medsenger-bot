@@ -168,7 +168,6 @@ export default {
                 } else if (['group-presenter', 'log'].includes(this.window_mode)) {
                     let group = this.groups.filter(g => g.id == this.object_id)
                     if (group.length) {
-                        console.log(group[0])
                         if (group[0].type == 'report') {
                             this.load_report(this.report_categories.filter(report => report.id == this.object_id)[0]);
                         } else {

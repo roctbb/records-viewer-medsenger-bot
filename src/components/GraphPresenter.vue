@@ -808,7 +808,6 @@ export default {
             if (this.options.graph_type.includes('line')) {
                 if (data.code == 'medicine') {
                     res = data.values.map((value) => {
-                        console.log(value)
                         return {
                             dataLabels: {
                                 enabled: false,

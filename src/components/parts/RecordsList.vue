@@ -182,12 +182,10 @@ export default {
                 else if (action == 'show')
                     this.files_to_show[file.id] = response.data
                 this.$forceUpdate()
-                console.log(this.files_to_show)
             }).catch(() => Event.fire('load-error'));
         }
     },
     mounted() {
-        console.log(this.dates)
         Event.listen('open-more-info', (id) => {
             if (id.includes('file')) {
                 let ids = id.split('_').filter(p => p != 'file').map(p => parseInt(p))
