@@ -592,15 +592,16 @@ export default {
             if (this.options.graph_type == 'line') {
                 let y = -5
 
-                this.records_by_categories['medicine'].forEach((medicine) => {
+                this.records_by_categories['medicine'].forEach((record) => {
                     let dict = {
-                        timestamp: medicine.timestamp,
-                        dose: !medicine.params || medicine.params.dose == null ? '' : ` (${medicine.params.dose})`
+                        timestamp: record.timestamp,
+                        dose: !record.params || record.params.dose == null ? '' : ` (${record.params.dose})`,
+                        date: record.formatted_date
                     }
-                    if (medicine.value in medicines)
-                        medicines[medicine.value].push(dict)
+                    if (record.value in medicines)
+                        medicines[record.value].push(dict)
                     else
-                        medicines[medicine.value] = [dict]
+                        medicines[record.value] = [dict]
                 });
 
                 series = Object.entries(medicines).map(([medicine, values]) => {
@@ -625,7 +626,6 @@ export default {
                         points: [{
                             time: new Date(record.timestamp * 1000),
                             dose: !record.params || record.params.dose == null ? '' : ` (${record.params.dose})`
-
                         }],
                         date: record.formatted_date,
                         description: `Прием препарата <strong>"${record.value}"</strong> в `,
@@ -808,6 +808,7 @@ export default {
             if (this.options.graph_type.includes('line')) {
                 if (data.code == 'medicine') {
                     res = data.values.map((value) => {
+                        console.log(value)
                         return {
                             dataLabels: {
                                 enabled: false,
@@ -941,7 +942,7 @@ export default {
                 boostThreshold: 500,
                 turboThreshold: 0,
                 animation: false,
-                zoomType: '',
+                zoomType: this.mobile ? '' : 'x',
                 backgroundColor: "#fcfcfc",
                 height: `${window.innerHeight - 230}`,
                 width: `${window.innerWidth * (this.mobile ? 1 : 0.89)}`,
