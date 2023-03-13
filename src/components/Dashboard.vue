@@ -111,10 +111,15 @@ export default {
                 })
             })
 
+            if (this.source == 'patient') custom = custom.filter(c => !c.only_doctor)
+
             return custom
         },
         plottable_heatmap_categories: function () {
-            return this.groups.filter((group) => group.type == 'heatmap')
+            let heatmaps = this.groups.filter((group) => group.type == 'heatmap')
+            if (this.source == 'patient') heatmaps = heatmaps.filter(c => !c.only_doctor)
+
+            return heatmaps
         },
         plottable_day_graphs: function () {
             return this.groups.filter((group) => group.type == 'day-graph')
@@ -131,7 +136,7 @@ export default {
                 return report
             })
 
-            if (this.source == 'patient') reports = reports.filter(c => c.title != 'История назначений')
+            if (this.source == 'patient') reports = reports.filter(c => !c.only_doctor)
 
             return reports
         }
