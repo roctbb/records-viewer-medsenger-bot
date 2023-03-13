@@ -26,7 +26,7 @@
             <div class="center" v-if="options.graph_type == 'line' && this.statistics.length  && !no_data">
                 <h5 class="text-center">Значения показателей за выбранный период</h5>
 
-                <table class="table table-hover table-striped" v-if="!mobile">
+                <table class="table table-hover" v-if="!mobile">
                     <colgroup>
                         <col span="1" style="width: 55%;">
                         <col span="1" style="width: 15%;">
@@ -35,11 +35,11 @@
                     </colgroup>
 
                     <thead>
-                    <tr>
-                        <th scope="col" class="bg-info text-light">Показатель</th>
-                        <th scope="col" class="bg-info text-light">Среднее</th>
-                        <th scope="col" class="bg-info text-light">Мин</th>
-                        <th scope="col" class="bg-info text-light">Макс</th>
+                    <tr class="table-info">
+                        <th scope="col">Показатель</th>
+                        <th scope="col">Среднее</th>
+                        <th scope="col">Мин</th>
+                        <th scope="col">Макс</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -55,12 +55,12 @@
                 <div v-else-if="options.graph_type == 'line'" v-for="stat in statistics">
                     <hr>
                     <h6 class="text-center">{{ stat.name }}</h6>
-                    <table class="table table-hover table-striped">
+                    <table class="table table-hover">
                         <thead>
-                        <tr>
-                            <th scope="col" class="bg-info text-light">Среднее</th>
-                            <th scope="col" class="bg-info text-light">Мин</th>
-                            <th scope="col" class="bg-info text-light">Макс</th>
+                        <tr class="table-info">
+                            <th scope="col" >Среднее</th>
+                            <th scope="col" >Мин</th>
+                            <th scope="col">Макс</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -93,7 +93,7 @@
 
                     <div class="center" v-if="options.graph_type == 'line' && this.statistics.length">
                         <h6>Значения показателей за выбранный период</h6>
-                        <table class="table table-hover table-striped">
+                        <table class="table table-hover">
                             <colgroup>
                                 <col span="1" style="width: 55%;">
                                 <col span="1" style="width: 15%;">
@@ -101,11 +101,11 @@
                                 <col span="1" style="width: 15%;">
                             </colgroup>
                             <thead>
-                            <tr>
-                                <th scope="col" class="bg-info text-light">Показатель</th>
-                                <th scope="col" class="bg-info text-light">Среднее</th>
-                                <th scope="col" class="bg-info text-light">Мин</th>
-                                <th scope="col" class="bg-info text-light">Макс</th>
+                            <tr class="table-info">
+                                <th scope="col">Показатель</th>
+                                <th scope="col">Среднее</th>
+                                <th scope="col">Мин</th>
+                                <th scope="col">Макс</th>
                             </tr>
                             </thead>
                             <tbody>

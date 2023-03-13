@@ -9,7 +9,7 @@
         </div>
         <div v-else>
             <div v-for="(info, date) in dates">
-                <table class="table table-hover table-striped fixed-columns">
+                <table class="table table-hover fixed-columns">
                     <colgroup>
                         <col span="1" style="width: 25%;">
                         <col span="1" style="width: 75%;">
