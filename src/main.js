@@ -88,6 +88,9 @@ Vue.mixin({
         dates_difference: function (date1, date2) {
             const diffTime = Math.abs(date2 - date1);
             return Math.ceil(diffTime / this.day)
+        },
+        range_arr: function (size, startAt = 0) {
+            return [...Array(size).keys()].map(i => i + startAt);
         }
     },
     computed: {

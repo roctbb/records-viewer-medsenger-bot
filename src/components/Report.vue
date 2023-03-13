@@ -1,6 +1,6 @@
 <template>
     <div v-if="options.report">
-        <h4>{{options.report.title}}</h4>
+        <h4>{{ options.report.title }}</h4>
         <filter-panel page="report" :categories="options.report.filters" :patient="patient"
                       :disable_downloading="!records || !records.length" :last_date="last_date"/>
         <loading v-if="!options.loaded"/>
@@ -11,17 +11,26 @@
             <records-list :data="records"/>
 
             <!-- Список страниц -->
-            <div class="row" v-if="options.page_count">
-                <button class="btn btn-link btn-sm" @click="select_page(options.selected_page - 1)" v-if="options.selected_page > 0">
+            <div style="text-align: center" v-if="options.page_count">
+                <button class="btn btn-link btn-sm" @click="select_page(0)"
+                        v-if="options.selected_page > 9">
+                    &#8676;
+                </button>
+                <button class="btn btn-link btn-sm" @click="select_page(options.selected_page - 1)"
+                        v-if="options.selected_page > 0">
                     &#8592;
                 </button>
-                <a class="btn btn-link btn-sm" @click="select_page(p)" v-for="(o, p) in new Array(options.page_count)"
-                   :style="p == options.selected_page ? 'font-weight: bold; text-decoration: underline; color: black;' : ''">{{
-                        p + 1
+                <a class="btn btn-link btn-sm" @click="select_page(page - 1)" v-for="(page, index) in pages"
+                   :style="page == (options.selected_page + 1) ? 'font-weight: bold; text-decoration: underline; color: black;' : ''">{{
+                        page
                     }}</a>
                 <button class="btn btn-link btn-sm" @click="select_page(options.selected_page + 1)"
-                        v-if="options.selected_page < options.page_count - 1">
+                        v-if="options.selected_page < options.page_count - 2">
                     &#8594;
+                </button>
+                <button class="btn btn-link btn-sm" @click="select_page(options.page_count - 1)"
+                        v-if="options.selected_page < options.page_count - 10">
+                    &#8677;
                 </button>
             </div>
 
@@ -77,10 +86,14 @@ export default {
             if (!this.options.report) return []
 
             return this.options.report.categories
+        },
+        pages() {
+            let start = Math.max(1, this.options.selected_page - 9)
+            return this.range_arr(Math.min(20, this.options.page_count), Math.min(start, this.options.page_count - 19))
         }
     },
     methods: {
-        load: function (get_pages_count=false) {
+        load: function (get_pages_count = false) {
             this.options.loaded = false
             this.errors = []
 
@@ -122,7 +135,8 @@ export default {
             this.records = data.records
             Event.fire('set-dates', this.options.dates)
 
-            this.options.page_count = data.info.page_count
+            if (data.info.page_count)
+                this.options.page_count = data.info.page_count
             this.options.loaded = true
         })
         Event.listen('load-report', (report) => {
