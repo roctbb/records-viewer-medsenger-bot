@@ -89,7 +89,8 @@ export default {
         },
         pages() {
             let start = Math.max(1, this.options.selected_page - 9)
-            return this.range_arr(Math.min(20, this.options.page_count), Math.min(start, this.options.page_count - 19))
+            return this.range_arr(Math.min(20, this.options.page_count),
+                this.options.page_count > 20 ? Math.min(start, this.options.page_count - 19) : 1)
         }
     },
     methods: {
@@ -138,7 +139,6 @@ export default {
             if (data.info.page_count)
                 this.options.page_count = data.info.page_count
             this.options.loaded = true
-            console.log(this.pages)
         })
         Event.listen('load-report', (report) => {
             this.options.selected_page = 0
