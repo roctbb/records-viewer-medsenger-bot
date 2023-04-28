@@ -138,8 +138,10 @@ export default {
             if (data.info.page_count)
                 this.options.page_count = data.info.page_count
             this.options.loaded = true
+            console.log(this.pages)
         })
         Event.listen('load-report', (report) => {
+            this.options.selected_page = 0
             this.options.report = report
             this.load(true)
         })
