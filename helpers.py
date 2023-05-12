@@ -11,7 +11,7 @@ from medsenger_api import AgentApiClient
 
 from config import *
 
-medsenger_api = AgentApiClient(APP_KEY, MAIN_HOST, AGENT_ID, API_DEBUG)
+medsenger_api = AgentApiClient(APP_KEY, MAIN_HOST, AGENT_ID, API_DEBUG, USE_GRPC)
 text_categories = ['symptom', 'medicine', 'patient_comment', 'information']
 
 

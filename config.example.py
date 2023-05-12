@@ -10,3 +10,5 @@ API_DEBUG = ''
 
 PDF_DIR_PATH = ''
 RECORDS_LIMIT = ''
+
+USE_GRPC = True
