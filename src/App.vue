@@ -4,20 +4,16 @@
         <load-error v-else-if="state == 'load-error'"/>
         <action-done v-else-if="state == 'done'"/>
         <div v-else>
-            <dashboard-header :patient="patient"/>
+            <dashboard-header :patient="patient" :state="state"/>
 
-            <div
-                v-if="window_mode == 'settings' || window_mode == 'graph' || window_mode == 'log' || window_mode == 'conclusion'">
+            <div>
                 <div class="container slim-container" style="margin-top: 15px;">
-                    <dashboard :patient="patient" :categories="category_list"
-                               v-show="state == 'dashboard' || state == 'graph-category-chooser'"/>
-                    <report :patient="patient" :categories="category_list" :data="data" v-show="state == 'report'"/>
+                    <dashboard :patient="patient" v-show="state == 'dashboard' || state == 'graph-category-chooser'"/>
+                    <report :patient="patient" :last_date="last_date" v-show="state == 'report'"/>
+                    <graph-presenter :patient="patient" :last_date="last_date" v-show="state == 'graph'"/>
                     <conclusion-editor :patient="patient" v-show="state == 'conclusion'"/>
-                    <graph-presenter :patient="patient" v-show="state == 'graph'"/>
                 </div>
-
             </div>
-
         </div>
     </div>
 </template>
@@ -29,7 +25,6 @@ import Report from "./components/Report";
 import Dashboard from "./components/Dashboard";
 import LoadError from "./components/LoadError";
 import GraphPresenter from "./components/GraphPresenter";
-import * as moment from "moment/moment";
 import ConclusionEditor from "./components/ConclusionEditor";
 import ActionDone from "./components/ActionDone";
 
@@ -53,24 +48,29 @@ export default {
             loaded: false
         }
     },
+    computed: {
+        last_date() {
+            let today = this.end_of_day(new Date())
+            if (!this.patient) return today
+
+            let end_date = this.end_of_day(new Date(this.patient.end_date))
+            return end_date < today ? end_date : today
+        }
+    },
     methods: {
         load: function () {
             this.loaded = false
-            this.axios.get(this.url('/api/settings/get_patient')).then(response => {
-                    this.patient = response.data
-                    this.axios.get(this.url('/api/categories')).then(this.process_load_answer);
-                }
-            );
+            this.axios.get(this.url('/api/settings/get_patient')).then(this.process_load_answer);
         },
         process_load_answer: function (response) {
-            this.category_list = response.data;
+            this.patient = response.data
 
-            if (this.window_mode == 'settings') {
-                this.state = 'dashboard';
+            if (['settings', 'graph-presenter', 'group-presenter'].includes(this.window_mode)) {
+                this.state = 'dashboard'
             }
 
             if (this.window_mode == 'conclusion') {
-                this.state = 'conclusion';
+                this.state = 'conclusion'
             }
 
             if (this.window_mode == 'graph') {
@@ -78,38 +78,16 @@ export default {
             }
 
             if (this.window_mode == 'log') {
-                this.state = 'log'
-                let params = {
-                    title: 'История назначений',
-                    categories: ['doctor_action'],
-                    filters: undefined
-                }
-                Event.fire('load-report', params)
+                window.OBJECT_ID = 2
+                this.state = 'dashboard'
             }
             this.loaded = true
         },
         process_load_error: function (response) {
             this.state = 'load-error'
         },
-
-        load_records: function (data) {
-            this.data = null
-
-            this.axios.post(this.url('/api/report'), data).then(response => {
-                this.data = {
-                    records: response.data.dates,
-                    page: data.page,
-                    pages: response.data.page_cnt,
-                    report: data.report
-                }
-
-                this.state = 'report'
-            });
-        },
     },
     created() {
-        this.window_mode = window.MODE
-
         console.log("running created");
         this.load();
 
@@ -117,37 +95,11 @@ export default {
         Event.listen('load-error', () => this.state = 'load-error')
         Event.listen('action-done', () => this.state = 'done')
 
-        Event.listen('load-records', (data) => {
-            this.load_records(data)
-        })
-
         Event.listen('load-report', (report) => {
-            this.loaded = false
-            let end_date = new Date(moment(this.patient.end_date).set({
-                hour: 23,
-                minute: 59,
-                second: 59
-            }).format('YYYY-MM-DD HH:mm:ss'))
-            let today = new Date(moment().set({
-                hour: 23,
-                minute: 59,
-                second: 59
-            }).format('YYYY-MM-DD HH:mm:ss'))
-            let end_filter_date = end_date < today ? end_date : today
-
-            let data = {
-                dates: [undefined, +end_filter_date / 1000],
-                page: 0,
-                categories: report.categories,
-                report: report
-            }
-
-            this.load_records(data)
             this.state = 'report'
-            this.loaded = true
         })
 
-        Event.listen('load-graph', (params) => {
+        Event.listen('load-line-graph', (params) => {
             this.state = 'graph'
         });
         Event.listen('load-day-graph', (params) => {
@@ -173,4 +125,12 @@ input[type=checkbox] {
     margin: 10px;
 }
 
+.content-container {
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
 </style>

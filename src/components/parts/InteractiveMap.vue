@@ -1,6 +1,6 @@
 <template>
-  <div v-if="map" style="margin: 5px">
-    <human-map v-if="map == 'human'" :parts="parts"/>
+  <div class="interactive-map" v-if="map" style="margin: 5px">
+    <human-map v-if="map == 'human'" :parts="parts" :id="id"/>
   </div>
 </template>
 
@@ -10,12 +10,12 @@ import HumanMap from "../maps/human/HumanMap";
 export default {
   name: "InteractiveMap",
   components: {HumanMap},
-  props: ['map', 'parts']
+  props: ['map', 'parts', 'id']
 }
 </script>
 
 <style>
-svg {
+.interactive-map svg {
   display: block;
   position: absolute;
   top: 0;

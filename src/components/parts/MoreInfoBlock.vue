@@ -34,6 +34,6 @@ export default {
 .card-body {
   background-color: transparent;
   border-color: transparent;
-  padding: 0px;
+  padding: 0;
 }
 </style>

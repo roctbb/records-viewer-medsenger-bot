@@ -3,46 +3,49 @@
         <div v-if="window_mode != 'graph'">
             <h5>Отчеты</h5>
             <div class="row">
-                <card v-for="(report, i) in report_categories" :key="'report_' + i" :image="images.report"
-                      class="col-lg-2 col-md-3">
-                    <strong class="card-title">{{ report.title }}</strong>
-                    <a @click="load_report(report)" href="#" class="btn btn-default">Открыть</a>
-                </card>
+                <div v-for="(report, i) in report_categories" :key="'report_' + i"
+                     class="col-lg-2 col-md-3">
+                    <card :image="images.report" :title="report.title">
+                        <a @click="load_report(report)" href="#" class="btn btn-default">Открыть</a>
+                    </card>
+                </div>
             </div>
         </div>
 
         <div v-if="plottable_categories.length">
             <h5>Графики</h5>
             <div class="row">
-                <card v-for="(category, i) in plottable_categories" :key="'graph_' + i" :image="images.graph"
-                      class="col-lg-2 col-md-3">
-                    <strong class="card-title">{{ category.title }}</strong>
-
-                    <a @click="load_graph(category, 'graph')" href="#" class="btn btn-default">Открыть</a>
-                </card>
+                <div v-for="(category, i) in plottable_categories" :key="'graph_' + i"
+                     class="col-lg-2 col-md-3">
+                    <card :image="images.graph" :title="category.title">
+                        <a @click="load_graph(category, 'line-graph')" href="#" class="btn btn-default">Открыть</a>
+                    </card>
+                </div>
             </div>
         </div>
 
         <div v-if="plottable_day_graphs.length">
             <h5>Графики по суткам</h5>
             <div class="row">
-                <card v-for="(category, i) in plottable_day_graphs" :key="'day_graph_' + i" :image="images.graph"
-                      class="col-lg-2 col-md-3">
-                    <strong class="card-title">{{ category.title }} (сутки)</strong>
-                    <a @click="load_graph(category, 'day-graph')" href="#" class="btn btn-default">Открыть</a>
-                </card>
+                <div v-for="(category, i) in plottable_day_graphs" :key="'day_graph_' + i"
+                     class="col-lg-2 col-md-3">
+                    <card :image="images.graph" :title="category.title">
+                        <a @click="load_graph(category, 'day-graph')" href="#" class="btn btn-default">Открыть</a>
+                    </card>
+                </div>
             </div>
         </div>
 
         <div v-if="plottable_heatmap_categories.length">
             <h5>Тепловые карты</h5>
             <div class="row">
-                <card v-for="(category, i) in plottable_heatmap_categories" :key="'heatmap_' + i"
-                      :image="images.heatmap"
-                      class="col-lg-3 col-md-4">
-                    <strong class="card-title">{{ category.title }}</strong>
-                    <a @click="load_graph(category, 'heatmap')" href="#" class="btn btn-default">Открыть</a>
-                </card>
+                <div v-for="(category, i) in plottable_heatmap_categories" :key="'heatmap_' + i"
+                     class="col-lg-2 col-md-3">
+                    <card :image="images.heatmap" :title="category.title">
+                        <a @click="load_graph(category, 'heatmap')" href="#" class="btn btn-default">Открыть</a>
+                    </card>
+
+                </div>
             </div>
         </div>
 
@@ -50,21 +53,17 @@
             <p>В этом разделе можно посмотреть внесенные данные разных представлениях:</p>
             <ul>
                 <li v-if="window_mode == 'settings'"><strong>В виде отчета</strong>. Таблица записей фильтруются по
-                    датам и
-                    категориям.
-                    Отчет доступен для скачивания в формате PDF.
+                    датам и категориям. Отчет доступен для скачивания в формате PDF.
                 </li>
                 <li><strong>В виде графиков.</strong> Числовые данные отображаются в виде кривых, а текстовые (симптомы,
                     лекарства и комментарии) на линии в нижней части графика. Чтобы посмотреть подробную информацию,
-                    наведите
-                    мышку на нужную точку графика.
+                    наведите мышку на нужную точку графика.
                 </li>
                 <li><strong>В виде суточных графиков.</strong> Числовые данные отображаются в виде точек, разбросанных в
                     пределах одних суток.
                 </li>
                 <li><strong>В виде тепловых карт.</strong> Симптомы и приемы лекарств отображаются с частотой появления
-                    за
-                    день. Чтобы посмотреть подробную информацию, наведите мышку на нужную ячейку карты.
+                    за день. Чтобы посмотреть подробную информацию, наведите мышку на нужную ячейку карты.
                 </li>
             </ul>
         </div>
@@ -75,6 +74,7 @@
 <script>
 import Card from "./parts/Card";
 import * as moment from "moment/moment";
+import report from "./Report";
 
 export default {
     name: "Dashboard",
@@ -82,95 +82,12 @@ export default {
     props: {
         patient: {
             required: true
-        },
-        categories: {
-            required: true
         }
     },
     data() {
         return {
-            custom_reports: [
-                {
-                    title: 'Отчет по мониторингу',
-                    categories: [],
-                    filters: []
-                },
-                {
-                    title: 'История назначений',
-                    categories: ['doctor_action'],
-                    filters: undefined
-                },
-            ],
-            custom_graphs: [
-                {
-                    title: "Давление и пульс",
-                    categories: ['systolic_pressure', 'diastolic_pressure', 'pulse'],
-                    optional: ['systolic_pressure', 'diastolic_pressure']
-                },
-                {
-                    title: "Пульс, сатурация, температура, дыхание",
-                    categories: ['pulse', 'spo2', 'temperature', 'respiration_rate'],
-                    optional: ['respiration_rate']
-                }
-            ],
-            groups: [
-                {
-                    title: "Обхват голеней",
-                    categories: ['leg_circumference_right', 'leg_circumference_left'],
-                },
-                {
-                    title: "Глюкоза",
-                    categories: ['glukose', 'glukose_fasting', 'glukose_food'],
-                },
-                {
-                    title: "Оценка качества жизни (SF-36)",
-                    categories: ['ph', 'mh'],
-                },
-                {
-                    title: "Шкала депрессии Бека",
-                    categories: ['bdi', 'bdi_ca', 'bdi_sp'],
-                },
-                {
-                    title: "Опросник САН",
-                    categories: ['san', 'health_san', 'activity_san', 'mood_san'],
-                },
-                {
-                    title: "SF-36, EQ-5D, Oswestry",
-                    categories: ['ph', 'mh', 'eq5d', 'oswestry'],
-                },
-                {
-                    title: "Спортивная форма",
-                    categories: ['appetite', 'readiness_for_training', 'performance', 'mood', 'sleep', 'health', 'freedom_of_movement', 'freedom_of_breathing', 'feel_of_heart', 'coordination_of_movements', 'physical_shape'],
-                },
-                {
-                    title: "Плавание",
-                    categories: ['swimming_freestyle_50', 'swimming_freestyle_100', 'swimming_freestyle_200', 'swimming_butterfly_50',
-                        'swimming_butterfly_100',
-                        'swimming_butterfly_200',
-                        'swimming_on_the_back_50',
-                        'swimming_on_the_back_100',
-                        'swimming_on_the_back_200',
-                        'swimming_breaststroke_50',
-                        'swimming_breaststroke_100',
-                        'swimming_breaststroke_200'],
-                }
-            ],
-            heatmaps: [
-                {
-                    title: "Симптомы",
-                    categories: ['symptom', 'medicine'],
-                },
-                {
-                    title: "Приемы лекарств",
-                    categories: ['medicine'],
-                },
-            ],
-            day_graphs: [
-                {
-                    title: "Глюкоза",
-                    categories: ['glukose', 'glukose_fasting', 'glukose_food']
-                }
-            ]
+            categories: undefined,
+            groups: undefined,
         }
     },
     computed: {
@@ -181,16 +98,11 @@ export default {
             })
 
             // вытаскиваем группы
-            let custom = this.groups.filter((group) => {
-                return group.need_all ? group.categories.every((category_name) => plottable.filter((category) =>
-                    category.name == category_name).length > 0) : group.categories.some((category_name) =>
-                    plottable.filter((category) => category.name == category_name).length > 0)
-            })
+            let custom = this.groups.filter((group) => group.type == 'line-graph')
 
             // вытаскиваем категории, которые не вошли в группы
             let not_custom = plottable.filter((category) =>
-                !custom.some((group) =>
-                    group.categories.includes(category.name)))
+                !custom.some((group) => group.categories.includes(category.name)))
 
             not_custom.forEach((category) => {
                 custom.push({
@@ -199,51 +111,34 @@ export default {
                 })
             })
 
-            // добавляем доп. группы
-            this.custom_graphs = this.custom_graphs.filter((group) =>
-                group.categories.filter((category_name) =>
-                    !group.optional.includes(category_name))
-                    .every((category_name) => plottable.filter((category) => category.name == category_name).length > 0))
-
-            custom = this.custom_graphs.concat(custom)
+            if (this.source == 'patient') custom = custom.filter(c => !c.only_doctor)
 
             return custom
         },
         plottable_heatmap_categories: function () {
-            return this.heatmaps.filter(heatmap =>
-                !heatmap.categories.filter(c => !this.categories.map(cc => cc.name).includes(c)).length)
+            let heatmaps = this.groups.filter((group) => group.type == 'heatmap')
+            if (this.source == 'patient') heatmaps = heatmaps.filter(c => !c.only_doctor)
+
+            return heatmaps
         },
         plottable_day_graphs: function () {
-            return this.day_graphs.filter(graph =>
-                graph.categories.filter(c => !this.categories.map(cc => cc.name).includes(c)).length != graph.categories.length)
+            return this.groups.filter((group) => group.type == 'day-graph')
         },
         report_categories: function () {
-            this.custom_reports[0].categories = this.categories.map(c => c.name).filter(c => c != 'doctor_action')
-            this.custom_reports[0].filters = this.categories.filter(c => c.name != 'doctor_action')
-
-            // Добавляет в отчеты категории с файлами
-            /*
-            let categories = this.categories.filter((category) => {
-              return category.type == 'file'
+            let reports = this.groups.filter((group) => group.type == 'report')
+            reports = reports.map(report => {
+                if (!report.categories.length) {
+                    report.categories = this.categories.map(c => c.name).filter(c => c != 'doctor_action')
+                    if (this.source == 'patient')
+                        report.categories = report.categories.filter(c => c != 'action')
+                    report.filters = this.categories.filter(c => report.categories.includes(c.name))
+                }
+                return report
             })
 
-            let custom = this.custom_reports
-            categories.forEach((category) => {
-              custom.push({
-                title: category.description,
-                categories: [category.name],
-                filters: undefined
-              })
-            })
-            */
+            if (this.source == 'patient') reports = reports.filter(c => !c.only_doctor)
 
-            let custom = this.custom_reports
-
-            if (this.source == 'patient') {
-                custom = custom.filter(c => c.title != 'История назначений')
-            }
-
-            return custom
+            return reports
         }
     },
     methods: {
@@ -251,75 +146,43 @@ export default {
             Event.fire('load-report', params)
         },
         load_graph: function (params, type) {
-            let end_date = new Date(moment(this.patient.end_date).set({
-                hour: 23,
-                minute: 59,
-                second: 59
-            }).format('YYYY-MM-DD HH:mm:ss'))
-            let today = new Date(moment().set({
-                hour: 23,
-                minute: 59,
-                second: 59
-            }).format('YYYY-MM-DD HH:mm:ss'))
-            let end_filter_date = end_date < today ? end_date : today
-
-            let data = {
-                group: params,
-                dates: [new Date(moment(end_filter_date).add(-14, 'days').format('YYYY-MM-DD')), end_filter_date],
-                onload: type != 'day-graph'
-            }
-
-            Event.fire('load-' + type, data)
+            Event.fire('load-' + type, params)
         },
     },
     mounted() {
+        this.axios.get(this.url('/api/categories')).then(response => {
+            this.categories = response.data.categories
+            this.categories.sort((a, b) => a.id - b.id)
+            this.groups = response.data.groups
+            this.groups.sort((a, b) => a.id - b.id)
 
-        Event.listen('back-to-dashboard', () => {
-            // понятия не имею, почему оно изменяется
-            this.day_graphs = [
-                {
-                    title: "Глюкоза",
-                    categories: ['glukose', 'glukose_fasting', 'glukose_food']
-                }
-            ]
-        })
-        console.log("object_id", this.object_id)
-        if (this.object_id) {
-
-            if (this.object_id == -1) {
-                this.load_report(this.custom_reports[0]);
-            } else {
-                let end_date = new Date(moment(this.patient.end_date).set({
-                    hour: 23,
-                    minute: 59,
-                    second: 59
-                }).format('YYYY-MM-DD HH:mm:ss'))
-                let today = new Date(moment().set({
-                    hour: 23,
-                    minute: 59,
-                    second: 59
-                }).format('YYYY-MM-DD HH:mm:ss'))
-                let end_filter_date = end_date < today ? end_date : today
-
-                this.axios.get(this.url('/api/categories')).then(response => {
-                    try {
-                        let category = response.data.filter(c => c.id == this.object_id)
+            if (window.OBJECT_ID) {
+                if (this.window_mode == 'graph-presenter') {
+                    if (window.OBJECT_ID == -1) {
+                        this.load_report(this.report_categories.filter(report => report.id == 1)[0]);
+                    } else {
+                        let category = this.categories.filter(c => c.id == window.OBJECT_ID)
                         if (category.length) {
-                            let name = category[0].name;
-                            let params = this.plottable_categories.filter(c => c.categories.includes(name))[0];
-                            let data = {
-                                group: params,
-                                dates: [new Date(moment(end_filter_date).add(-14, 'days').format('YYYY-MM-DD')), end_filter_date]
+                            let params = {
+                                title: category[0].description,
+                                categories: [category[0].name]
                             }
-
-                            Event.fire('load-graph', data);
+                            this.load_graph(params, 'line-graph')
                         }
-                    } catch (e) {
-                        console.log(e);
                     }
-                });
+                } else if (['group-presenter', 'log'].includes(this.window_mode)) {
+                    let group = this.groups.filter(g => g.id == this.object_id)
+                    if (group.length) {
+                        if (group[0].type == 'report') {
+                            this.load_report(this.report_categories.filter(report => report.id == this.object_id)[0]);
+                        } else {
+                            this.load_graph(group[0], group[0].type)
+                        }
+                    }
+                }
             }
-        }
+
+        });
     }
 }
 </script>
