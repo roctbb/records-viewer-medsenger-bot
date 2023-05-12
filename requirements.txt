@@ -4,3 +4,4 @@ transliterate
 weasyprint
 pytz
 medsenger-api>=0.1.28
+flask_cors

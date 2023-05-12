@@ -1,5 +1,6 @@
 MAIN_HOST = ''
 LOCALHOST = ''
+JSHOST = ''
 
 APP_KEY = ''
 

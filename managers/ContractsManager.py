@@ -41,6 +41,17 @@ class ContractManager(Manager):
 
         return contract
 
+    def check(self, contract_id, token):
+        contract = Contract.query.filter_by(id=contract_id).first()
+
+        if not contract:
+            return False
+
+        if contract.agent_token != token:
+            return False
+
+        return True
+
     def not_exists(self, contract_id):
         contract = Contract.query.filter_by(id=contract_id).first()
 

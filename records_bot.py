@@ -107,9 +107,14 @@ def get_report(args, form):
 
 
 @app.route('/api/get_records', methods=['POST'])
-@verify_args
+@verify_agent_args
 def get_records(args, form):
     contract_id = int(request.args.get('contract_id'))
+    agent_token = request.args.get('agent_token')
+
+    if not contract_manager.check(contract_id, agent_token):
+        abort(422)
+
     data = request.json
 
     options = data.get('options', None)

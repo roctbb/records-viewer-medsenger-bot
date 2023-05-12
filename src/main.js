@@ -33,6 +33,14 @@ Vue.mixin({
 
             return api_host + '/api/client/agents/' + agent_id + '/?action=' + action + '&contract_id=' + contract_id + '&agent_token=' + agent_token
         },
+        direct_url: function (action) {
+            let host = window.LOCALHOST;
+            let agent_token = window.AGENT_TOKEN;
+            let contract_id = window.CONTRACT_ID;
+            let agent_id = window.AGENT_ID;
+
+            return host + action + '?contract_id=' + contract_id + '&agent_token=' + agent_token
+        },
         group_by: function (data, field) {
             if (!data)
                 return []
@@ -50,7 +58,7 @@ Vue.mixin({
                 dates: dates, // [start, end]
                 options: options
             }
-            this.axios.post(this.url('/api/get_records'), data).then(response => {
+            this.axios.post(this.direct_url('/api/get_records'), data).then(response => {
                 Event.fire('loaded', response.data)
             });
         },
