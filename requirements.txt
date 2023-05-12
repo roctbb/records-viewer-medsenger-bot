@@ -3,4 +3,4 @@ requests
 transliterate
 weasyprint
 pytz
-medsenger-api>=0.1.24
+medsenger-api>=0.1.28
