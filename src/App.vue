@@ -60,7 +60,7 @@ export default {
     methods: {
         load: function () {
             this.loaded = false
-            this.axios.get(this.url('/api/settings/get_patient')).then(this.process_load_answer);
+            this.axios.get(this.direct_url('/api/settings/get_patient')).then(this.process_load_answer);
         },
         process_load_answer: function (response) {
             this.patient = response.data
