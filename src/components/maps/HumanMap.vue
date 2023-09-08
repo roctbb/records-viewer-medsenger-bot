@@ -1,7 +1,7 @@
 <template>
     <svg
-        :style="size + ' position: relative;'"
-        viewBox="20 20 170 270"
+        :style="size"
+        :viewBox="`50 29 ${originalWidth} ${originalHeight}`"
         :id="`human-map-${id}`">
         <path
             :fill="color('1')"
@@ -267,14 +267,18 @@ export default {
     props: ['parts', 'width', 'id'],
     data() {
         return {
-            originalWidth: 170,
-            originalHeight: 250
+            originalWidth: 112,
+            originalHeight: 246
         }
     },
     computed: {
         size() {
-            let w = this.mobile ? window.innerWidth - 20 : 400
-            return `width: ${w}px; height: ${this.originalHeight * w / this.originalWidth}px;`
+            let w = this.mobile ? window.innerWidth * 0.7 : 250
+            return `width: ${w}px; height: ${this.originalHeight * this.proportion}px;`
+        },
+        proportion() {
+            let w = this.mobile ? window.innerWidth * 0.7 : 250
+            return w / this.originalWidth
         }
     },
     methods: {
