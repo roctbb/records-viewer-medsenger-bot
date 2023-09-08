@@ -107,9 +107,14 @@ def get_report(args, form):
 
 
 @app.route('/api/get_records', methods=['POST'])
-@verify_args
+@verify_agent_args
 def get_records(args, form):
     contract_id = int(request.args.get('contract_id'))
+    agent_token = request.args.get('agent_token')
+
+    if not contract_manager.check(contract_id, agent_token):
+        abort(422)
+
     data = request.json
 
     options = data.get('options', None)
@@ -178,12 +183,25 @@ def group_page_with_args(args, form, category_id):
     return get_ui(contract, 'group-presenter', object_id=category_id)
 
 
-@app.route('/api/categories', methods=['GET'])
+@app.route('/params', methods=['GET'])
 @verify_args
-def graph_categories(args, form):
+def get_params(args, data):
     contract_id = args.get('contract_id')
+    return jsonify(search_params(contract_id))
+
+
+@app.route('/api/categories', methods=['GET'])
+@verify_agent_args
+def graph_categories(args, form):
+    contract_id = int(request.args.get('contract_id'))
+    agent_token = request.args.get('agent_token')
+
+    if not contract_manager.check(contract_id, agent_token):
+        abort(422)
+
     categories = medsenger_api.get_available_categories(contract_id)
     groups = category_groups_manager.get_all(list(map(lambda x: x['name'], categories)))
+
     answer = {
         'categories': categories,
         'groups': groups
@@ -192,24 +210,27 @@ def graph_categories(args, form):
     return jsonify(answer)
 
 
-@app.route('/params', methods=['GET'])
-@verify_args
-def get_params(args, data):
-    contract_id = args.get('contract_id')
-    return jsonify(search_params(contract_id))
-
-
 @app.route('/api/settings/get_patient', methods=['GET'])
-@verify_args
+@verify_agent_args
 def get_patient(args, form):
-    contract_id = request.args.get('contract_id')
+    contract_id = int(request.args.get('contract_id'))
+    agent_token = request.args.get('agent_token')
+
+    if not contract_manager.check(contract_id, agent_token):
+        abort(422)
+
     return jsonify(get_patient_data(contract_id))
 
 
 @app.route('/api/settings/get_file', methods=['POST'])
-@verify_args
+@verify_agent_args
 def get_file(args, form):
-    contract_id = request.args.get('contract_id')
+    contract_id = int(request.args.get('contract_id'))
+    agent_token = request.args.get('agent_token')
+
+    if not contract_manager.check(contract_id, agent_token):
+        abort(422)
+
     data = request.json
     file_id = data.get('id')
 

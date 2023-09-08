@@ -3,4 +3,6 @@ requests
 transliterate
 weasyprint
 pytz
-medsenger-api
+medsenger-api>=0.1.46
+flask_cors
+flask-compress

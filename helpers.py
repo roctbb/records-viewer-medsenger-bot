@@ -11,7 +11,7 @@ from medsenger_api import AgentApiClient
 
 from config import *
 
-medsenger_api = AgentApiClient(APP_KEY, MAIN_HOST, AGENT_ID, API_DEBUG)
+medsenger_api = AgentApiClient(APP_KEY, MAIN_HOST, AGENT_ID, API_DEBUG, USE_GRPC, GRPC_HOST, sentry_dsn=SENTRY)
 text_categories = ['symptom', 'medicine', 'patient_comment', 'information']
 
 
@@ -49,6 +49,22 @@ def verify_args(func):
     wrapper.__name__ = func.__name__
     return wrapper
 
+def verify_agent_args(func):
+    def wrapper(*args, **kwargs):
+        if not request.args.get('contract_id'):
+            abort(422)
+
+        if not request.args.get('agent_token'):
+            abort(401)
+        try:
+            return func(request.args, request.form, *args, **kwargs)
+        except Exception as e:
+            log(e, True)
+            abort(500)
+
+    wrapper.__name__ = func.__name__
+    return wrapper
+
 
 def verify_json(func):
     def wrapper(*args, **kwargs):
@@ -69,7 +85,7 @@ def verify_json(func):
 def get_ui(contract, mode='settings', object_id=None, source=None, params={}):
     return render_template('index.html', contract_id=contract.id, agent_token=contract.agent_token,
                            mode=mode, object_id=object_id, source=source, params=json.dumps(params),
-                           api_host=MAIN_HOST.replace('8001', '8000'), local_host=LOCALHOST,
+                           api_host=MAIN_HOST.replace('8001', '8000'), js_host=JSHOST, localhost=LOCALHOST,
                            agent_id=AGENT_ID, lc=dir_last_updated('static'))
 
 

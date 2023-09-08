@@ -1,5 +1,6 @@
 MAIN_HOST = ''
 LOCALHOST = ''
+JSHOST = ''
 
 APP_KEY = ''
 
@@ -10,3 +11,6 @@ API_DEBUG = ''
 
 PDF_DIR_PATH = ''
 RECORDS_LIMIT = ''
+
+USE_GRPC = True
+GRPC_HOST = "localhost"

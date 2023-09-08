@@ -150,7 +150,7 @@ export default {
         },
     },
     mounted() {
-        this.axios.get(this.url('/api/categories')).then(response => {
+        this.axios.get(this.direct_url('/api/categories')).then(response => {
             this.categories = response.data.categories
             this.categories.sort((a, b) => a.id - b.id)
             this.groups = response.data.groups
