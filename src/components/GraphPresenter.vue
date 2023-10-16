@@ -9,16 +9,11 @@
         <!-- Основная часть -->
         <loading v-if="!options.loaded && !errors.length"/>
         <div v-else>
-            <div v-if="no_data" class="content-container">
-                <p style="text-align: center"><img :src="images.nothing_found"/></p>
 
-                <p style="text-align: center">
-                    <small>Нет данных за выбранный период.</small>
-                </p>
-            </div>
-
+            <nothing-found v-if="no_data"/>
             <highcharts :constructor-type="'stockChart'" :options="graph_options"
                         style="padding-left: -15px; padding-right: -15px;" v-else/>
+
             <!-- Ошибки -->
             <error-block :errors="errors" v-if="errors.length"/>
 
@@ -79,6 +74,8 @@
                 <h5 class="text-center">Симптомы и события</h5>
                 <records-list :data="list_data"/>
             </div>
+
+
             <!-- Для экспорта -->
             <div v-show="false">
                 <div ref="to-export">
@@ -149,6 +146,7 @@ import FilterPanel from "./parts/FilterPanel";
 import html2pdf from "html2pdf.js";
 import arearange from 'highcharts/highcharts-more';
 import RecordsList from "./parts/RecordsList";
+import NothingFound from "./parts/NothingFound.vue";
 
 stockInit(Highcharts)
 heatmap(Highcharts);
@@ -157,7 +155,7 @@ arearange(Highcharts);
 
 export default {
     name: "GraphPresenter",
-    components: {RecordsList, FilterPanel, Loading, ErrorBlock, highcharts: Chart, DatePicker},
+    components: {NothingFound, RecordsList, FilterPanel, Loading, ErrorBlock, highcharts: Chart, DatePicker},
     props: ['patient', 'last_date'],
     data() {
         return {

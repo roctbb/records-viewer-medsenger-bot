@@ -1,12 +1,6 @@
 <template>
     <div v-if="data">
-        <div v-if="!data.length" class="content-container">
-            <p style="text-align: center"><img :src="images.nothing_found"/></p>
-
-            <p style="text-align: center">
-                <small>Ничего не найдено.</small>
-            </p>
-        </div>
+        <nothing-found v-if="!data.length"/>
         <div v-else>
             <div v-for="(info, date) in dates">
                 <table class="table table-hover fixed-columns">
@@ -145,10 +139,11 @@ import MoreInfoBlock from "./MoreInfoBlock";
 import downloadjs from "downloadjs";
 import Loading from "./Loading";
 import InteractiveMap from "./InteractiveMap";
+import NothingFound from "./NothingFound.vue";
 
 export default {
     name: "RecordsList",
-    components: {InteractiveMap, Loading, MoreInfoBlock},
+    components: {NothingFound, InteractiveMap, Loading, MoreInfoBlock},
     props: ['data', 'to_export'],
     data() {
         return {
