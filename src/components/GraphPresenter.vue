@@ -781,7 +781,7 @@ export default {
                 } else {
                     series.yAxis = 0
                     series.showInNavigator = true
-                    series.dashStyle = this.options.graph_type == 'day-line' ? undefined : 'ShortDot'
+                    series.dashStyle = this.options.graph_type == 'day-line' ? undefined : 'Solid'
                     series.lineWidth = 3
                     if (this.options.graph_type == 'day-line') {
                         series.states = {
@@ -1160,7 +1160,7 @@ export default {
                     enabled: false
                 },
                 lineWidth: 3,
-                dashStyle: 'ShortDot'
+                dashStyle: 'Solid'
             }
 
             this.collapsed_data.push(series)
@@ -1199,8 +1199,8 @@ export default {
                 dataGrouping: {
                     enabled: false
                 },
-                lineWidth: 3,
-                dashStyle: 'ShortDot'
+                lineWidth: 2,
+                dashStyle: 'Solid'
             }
 
             this.collapsed_data.push(Object.assign({}, series))
