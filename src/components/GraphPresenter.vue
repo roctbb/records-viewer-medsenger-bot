@@ -517,7 +517,6 @@ export default {
                 let sum_graph = this.records.filter(record => record.category_info.default_representation == 'day_sum').length
                 let too_much_points = this.records.length > 500 && !sum_graph
 
-                console.log(this.options.graph.disable_averaging)
                 if (!this.options.graph.disable_averaging && this.options.collapse_points_median == undefined) {
                     this.options.collapse_points_median = true
                     Event.fire('set-collapse-median-mode', true)
@@ -978,7 +977,7 @@ export default {
                 animation: false,
                 zoomType: this.mobile ? '' : 'x',
                 backgroundColor: "#fcfcfc",
-                marginLeft: 30,
+                marginLeft: this.options.graph_type != 'heatmap' ? 30 : undefined,
                 height: `${window.innerHeight - 230}`,
                 width: `${window.innerWidth * (this.mobile ? 1 : 0.89)}`,
                 renderTo: 'container',

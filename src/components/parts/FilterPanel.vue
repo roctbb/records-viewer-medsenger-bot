@@ -230,7 +230,6 @@ export default {
             if (!this.dates.range.some(d => d == undefined)) {
                 let duration = this.dates_difference(this.dates.range[0], this.dates.range[1])
                 this.dates.period = [30, 14, 7, 3, 1].includes(duration) ? duration : undefined
-                console.log(duration)
 
                 if (this.dates.range[0] > this.dates.range[1]) duration *= -1
                 if (duration < 0 || this.page.includes('heatmap') && duration > 30) {
