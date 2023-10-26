@@ -490,7 +490,7 @@ export default {
                 options.yAxis.splice(1, 2)
             }
 
-            if (this.options.graph_type == 'line' && this.options.graph.categories.includes('glukose'))
+            if (this.options.graph.options && this.options.graph.options.enable_plot_bands)
                 this.set_bands(options)
 
             return options
@@ -1003,49 +1003,9 @@ export default {
             return chart
         },
         set_bands: function (options) {
-            options.yAxis[0].plotBands = [{
-                from: 0,
-                to: 3,
-                color: "rgba(255,117,117,0.25)"
-            }, {
-                from: 18,
-                to: 100,
-                color: "rgba(255,117,117,0.25)"
-            }, {
-                from: 3,
-                to: 4,
-                color: "rgba(255,209,117,0.25)"
-            }, {
-                from: 12,
-                to: 18,
-                color: "rgba(255,209,117,0.25)"
-            }, {
-                from: 4,
-                to: 12,
-                color: "rgba(186,255,117,0.25)"
-            }]
-
-            let min = null, max = null
-
-            this.axios.get(this.url('/params')).then(response => {
-                response.data.forEach(param => {
-                    if (param.name && param.value != null) {
-                        if (param.code == 'min_glukose' && (min == null || min > param.value))
-                            min = param.value
-                        if (param.code == 'max_glukose' && (max == null || max < param.value))
-                            max = param.value
-                    }
-                })
-
-                if (min != null) {
-                    options.yAxis[0].plotBands[2].to = min
-                    options.yAxis[0].plotBands[4].from = min
-                }
-                if (max != null) {
-                    options.yAxis[0].plotBands[3].from = max
-                    options.yAxis[0].plotBands[4].to = max
-                }
-            });
+            console.log(this.options.graph)
+            if (!this.options.graph.options.different_plot_bands)
+                options.yAxis[0].plotBands = this.options.graph.options.plot_bands
         },
 
         // Вспомогательные
