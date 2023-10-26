@@ -39,14 +39,18 @@
                 </button>
 
                 <!-- Настройки графика -->
-                <div class="col-3" v-if="page.includes('graph')">
+                <div class="col-12" v-if="page.includes('graph')">
                     <input type="checkbox" id="hide_legend" v-model="legend_mode"
                            @change="change_mode('legend', !legend_mode)"/>
                     <label for="hide_legend">Скрыть легенду</label>
-                    <input type="checkbox" id="collapse_points" v-model="points_mode"
-                           @change="change_mode('points', points_mode)"
-                           v-if="show_collapse"/>
-                    <label for="collapse_points" v-if="show_collapse">Усреднить</label>
+
+                    <input type="checkbox" id="collapse_points_median" v-model="median_mode"
+                           @change="change_mode('points-median', median_mode)"/>
+                    <label for="collapse_points_median">Медиана</label>
+
+                    <input type="checkbox" id="collapse_points_sma" v-model="sma_mode"
+                           @change="change_mode('points-sma', sma_mode)"/>
+                    <label for="collapse_points_sma">Скользящая средняя (7 дней)</label>
                 </div>
 
                 <!-- Тепловая карта -->
@@ -131,9 +135,14 @@
                         <input type="checkbox" id="hide_legend_mobile" v-model="legend_mode"
                                @change="change_mode('legend', !legend_mode)"/>
                         <label for="hide_legend_mobile">Скрыть легенду</label>
-                        <input type="checkbox" id="collapse_points_mobile" v-model="points_mode"
-                               @change="change_mode('points', points_mode)"/>
-                        <label for="collapse_points_mobile">Усреднить значения</label>
+                        <br>
+                        <input type="checkbox" id="collapse_points_median_mobile" v-model="median_mode"
+                               @change="change_mode('points-median', median_mode)"/>
+                        <label for="collapse_points_median_mobile">Медиана</label>
+                        <br>
+                        <input type="checkbox" id="collapse_points_sma_mobile" v-model="sma_mode"
+                               @change="change_mode('points-sma', sma_mode)"/>
+                        <label for="collapse_points_sma_mobile">Скользящая средняя (7 дней)</label>
                     </div>
 
                     <!-- Тепловая карта -->
@@ -166,7 +175,8 @@ export default {
             category: undefined,
             selected_categories: [],
             legend_mode: false,
-            points_mode: true,
+            median_mode: false,
+            sma_mode: false,
             medicines_mode: false,
             show_collapse: false
         }
@@ -220,7 +230,9 @@ export default {
             if (!this.dates.range.some(d => d == undefined)) {
                 let duration = this.dates_difference(this.dates.range[0], this.dates.range[1])
                 this.dates.period = [30, 14, 7, 3, 1].includes(duration) ? duration : undefined
+                console.log(duration)
 
+                if (this.dates.range[0] > this.dates.range[1]) duration *= -1
                 if (duration < 0 || this.page.includes('heatmap') && duration > 30) {
                     Event.fire('incorrect-dates', duration)
                     return
@@ -231,6 +243,7 @@ export default {
             this.update_dates()
         },
         select_period: function () {
+            if (!this.dates.period) return
             if (this.dates.period > 0) {
                 this.dates.range[0] = this.start_of_day(this.add_days(this.dates.range[1], -this.dates.period + 1))
             } else {
@@ -257,7 +270,8 @@ export default {
 
         Event.listen('back-to-dashboard', () => {
             this.legend_mode = false
-            this.points_mode = false
+            this.median_mode = false
+            this.sma_mode = false
             this.medicines_mode = false
         });
 
@@ -266,8 +280,13 @@ export default {
             this.$forceUpdate()
         })
 
-        Event.listen('set-collapse-mode', collapsed => {
-            this.points_mode = collapsed
+        Event.listen('set-collapse-median-mode', collapsed => {
+            this.median_mode = collapsed
+            this.$forceUpdate()
+        })
+
+        Event.listen('set-collapse-sma-mode', collapsed => {
+            this.sma_mode = collapsed
             this.$forceUpdate()
         })
 
@@ -302,12 +321,6 @@ export default {
 .multiselect__option {
     white-space: unset;
 }
-
-/*.graph .mx-icon-clear, .graph .mx-icon-calendar,*/
-/*.report-settings .mx-icon-clear, .report-settings .mx-icon-calendar {*/
-/*    top: 25%;*/
-/*    right: 25px;*/
-/*}*/
 
 </style>
 

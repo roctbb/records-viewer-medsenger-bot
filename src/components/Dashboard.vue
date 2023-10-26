@@ -94,7 +94,7 @@ export default {
         plottable_categories: function () {
             let plottable = this.categories.filter((category) => {
                 return !category.is_legacy && ['scatter', 'values', 'day_sum'].includes(category.default_representation) &&
-                    !['string', 'file'].includes(category.type)
+                    !['string', 'file', 'date'].includes(category.type)
             })
 
             // вытаскиваем группы
@@ -107,17 +107,18 @@ export default {
             not_custom.forEach((category) => {
                 custom.push({
                     title: category.description,
-                    categories: [category.name]
+                    categories: [category.name],
+                    disable_averaging: category.default_representation == 'day_sum'
                 })
             })
 
-            if (this.source == 'patient') custom = custom.filter(c => !c.only_doctor)
+            if (this.source == 'patient') custom = custom.filter(c => c.options && !c.options.only_doctor)
 
             return custom
         },
         plottable_heatmap_categories: function () {
             let heatmaps = this.groups.filter((group) => group.type == 'heatmap')
-            if (this.source == 'patient') heatmaps = heatmaps.filter(c => !c.only_doctor)
+            if (this.source == 'patient') heatmaps = heatmaps.filter(c => c.options && !c.options.only_doctor)
 
             return heatmaps
         },
@@ -136,7 +137,7 @@ export default {
                 return report
             })
 
-            if (this.source == 'patient') reports = reports.filter(c => !c.only_doctor)
+            if (this.source == 'patient') reports = reports.filter(c => c.options && !c.options.only_doctor)
 
             return reports
         }

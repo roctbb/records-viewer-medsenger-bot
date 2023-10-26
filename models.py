@@ -30,8 +30,7 @@ class CategoryGroup(db.Model):
     type = db.Column(db.String(255), nullable=True)
     required_categories = db.Column(db.JSON, nullable=True)
     optional_categories = db.Column(db.JSON, nullable=True)
-    at_least_one_category = db.Column(db.Boolean, default=False)
-    only_doctor = db.Column(db.Boolean, default=False)
+    options = db.Column(db.JSON, nullable=True)
 
     def as_dict(self):
         serialized = {
@@ -39,8 +38,7 @@ class CategoryGroup(db.Model):
             "title": self.title,
             "type": self.type,
             "categories": self.required_categories + (self.optional_categories if self.optional_categories else []),
-            "only_doctor": self.only_doctor,
-            'at_least_one_category': self.at_least_one_category
+            'options': self.options
         }
 
         return serialized

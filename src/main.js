@@ -67,9 +67,10 @@ Vue.mixin({
 
             if (arr[mid] == value)
                 return mid;
-            if (r - l == 0)
-                return r + (arr[r] < value ? 1 : 0);
-            if (arr[mid] < value) {
+            if (r - l <= 0)
+                return r + (arr[r] > value ? 1 : 0);
+
+            if (arr[mid] > value) {
                 l = (mid + 1) > r ? r : (mid + 1)
                 return this.binary_search(arr, value, l, r);
             }
@@ -99,7 +100,17 @@ Vue.mixin({
         },
         range_arr: function (size, startAt = 0) {
             return [...Array(size).keys()].map(i => i + startAt);
-        }
+        },
+
+
+        add_error: function (errors, error) {
+            errors = this.remove_error(errors, error)
+            errors.push(error)
+            return errors
+        },
+        remove_error: function (errors, error) {
+            return errors ? errors.filter(e => e != error) : []
+        },
     },
     computed: {
         mobile() {
@@ -124,6 +135,13 @@ Vue.mixin({
                 graph: 'https://common.medsenger.ru/images/icons8-graph-96.png',
                 heatmap: 'https://common.medsenger.ru/images/icons8-heat-map-96.png',
                 file: 'https://common.medsenger.ru/images/icons8-open-document-48.png'
+            },
+            error_messages: {
+                too_mach_points: 'За данный период в медицинской карте присутствует слишком большое количество записей (> 500). ',
+                averaged: 'Для удобства мы усреднили значения. Усреднение можно убрать с помощью выше, но в таком случае точные значения будут недоступны.',
+                not_averaged: 'Чтобы увидеть комментарии к точкам и симптомы, загрузите период с меньшим количеством записей или усредните значения.',
+                incorrect_period: 'Выбран некорректный период',
+                not_more_30_days: 'Пожалуйста, выберите период <strong>не больше</strong> 30 дней.'
             },
             axios: require('axios'),
             category_list: undefined,

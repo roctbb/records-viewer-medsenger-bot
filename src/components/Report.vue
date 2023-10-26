@@ -164,7 +164,7 @@ export default {
         })
 
         Event.listen('incorrect-dates', (duration) => {
-            this.errors = ['Выбран некорректный период']
+            this.errors = this.add_error(this.error_messages.incorrect_period)
         })
 
         Event.listen('back-to-dashboard', () => {

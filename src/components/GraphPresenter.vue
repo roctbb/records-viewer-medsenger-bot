@@ -2,9 +2,8 @@
     <div id="chart-container" v-if="options.graph">
 
         <h4>{{ options.graph.title }}</h4>
-        <filter-panel :page="options.graph_type == 'line' ? 'graph' : (options.graph_type == 'day-line' ? 'day-graph' :
-        (options.graph.categories && options.graph.categories.includes('symptom') ? 'symptoms-' : '') + options.graph_type)"
-                      :disable_downloading="no_data || options.exporting" :patient="patient"/>
+        <filter-panel :page="filter_page" :patient="patient"
+                      :disable_downloading="no_data || options.exporting" :disable_averaging="options.graph.disable_averaging"/>
 
         <!-- Основная часть -->
         <loading v-if="!options.loaded && !errors.length"/>
@@ -53,8 +52,8 @@
                     <table class="table table-hover">
                         <thead>
                         <tr class="table-info">
-                            <th scope="col" >Среднее</th>
-                            <th scope="col" >Мин</th>
+                            <th scope="col">Среднее</th>
+                            <th scope="col">Мин</th>
                             <th scope="col">Макс</th>
                         </tr>
                         </thead>
@@ -166,11 +165,13 @@ export default {
                 dates: undefined,
                 graph_type: undefined,
                 show_legend: true,
-                collapse_points: undefined,
+                collapse_points_median: undefined,
+                collapse_points_sma: false,
                 exporting: false,
             },
             records: [],
             records_by_categories: undefined,
+            additional_records: undefined, // sma
             graph_options: {},
             export_options: {},
             heatmap_data: {},
@@ -193,6 +194,23 @@ export default {
                 return !(this.records.filter(record =>
                     !this.text_categories.includes(record.category_info.name)).length)
             return !(this.records.length)
+        },
+        by_hours() {
+            return this.options.graph_type == 'day-graph' ? true : this.days < 4
+        },
+        days() {
+            return this.options.graph_type == 'day-graph' ? 1 :
+                Math.ceil((this.options.dates[1] - this.options.dates[0]) / this.day)
+        },
+        filter_page() {
+            return this.options.graph_type == 'line' ?
+                'graph' : (
+                    this.options.graph_type == 'day-line' ?
+                        'day-graph' : (
+                            this.options.graph.categories && this.options.graph.categories.includes('symptom') ?
+                                'symptoms-' :
+                                ''
+                    ) + this.options.graph_type)
         }
     },
     methods: {
@@ -200,13 +218,8 @@ export default {
             this.options.loaded = false
             this.errors = []
 
-            // Добавляю текстовые категории
             let categories = this.options.graph.categories
-            //
-            // if (this.options.dates[0])
-            //     this.options.dates[0] = this.start_of_day(this.options.dates[0])
-            // if (this.options.dates[1])
-            //     this.options.dates[1] = this.end_of_day(this.options.dates[1])
+
             let dates = this.options.dates.map(date => date ? date.getTime() / 1000 : date)
             let options = {
                 type: this.options.graph_type,
@@ -255,16 +268,21 @@ export default {
 
             this.options.loaded = true
         },
+
+        // График
         get_options: function () {
             let start = this.options.dates[0] ?
-                this.options.dates[0].getTime() :
+                +moment(this.options.dates[0]) :
                 this.records[this.records.length - 1].timestamp * 1000
 
             let end = this.options.dates[1] ?
-                this.options.dates[1].getTime() :
+                +moment(this.options.dates[1]) :
                 this.records[0].timestamp * 1000
 
-            let day_diff = this.dates_difference(new Date(start), new Date(end))
+            if (!this.options.dates[0]) {
+                this.options.dates[0] = new Date(start)
+                Event.fire('set-dates', this.options.dates)
+            }
 
             let options = {
                 chart: this.get_chart(),
@@ -276,6 +294,9 @@ export default {
                     text: this.options.graph.title +
                         (this.options.graph_type == 'day-line' ? ' (суточный график)' : '')
                 },
+                time: {
+                    useUTC: false
+                },
                 xAxis: {
                     type: 'datetime',
                     gridLineWidth: 1,
@@ -283,7 +304,7 @@ export default {
                     minorTickLength: 0,
                     minorTickInterval: this.day,
                     min: start,
-                    max: end + 60 * 60 * 1000,
+                    max: end + (this.by_hours ? (30 * 60 * 1000) : 0),
                     ordinal: false,
                     dateTimeLabelFormats: {
                         day: '%d.%m',
@@ -364,8 +385,9 @@ export default {
                     options.chart.height += 100
                 }
 
-                let days = this.options.graph_type == 'day-graph'? 1 :
-                    Math.ceil((this.options.dates[1] - this.options.dates[0]) / (1000 * 60 * 60 * 24)) + 1
+                let days = this.options.graph_type == 'day-graph' ? 1 :
+                    Math.ceil((this.options.dates[1] - this.options.dates[0]) / this.day)
+
                 if (days > 6) {
                     let t = days > 365 ? 30 : (days > 100 ? 10 : (days > 50 ? 5 : (days > 30 ? 2 : 1)))
 
@@ -380,7 +402,7 @@ export default {
 
                         ticks.info = {
                             unitName: 'day',
-                            count: 5,
+                            count: count,
                             higherRanks: {},
                             totalRange: interval * count
                         }
@@ -433,11 +455,10 @@ export default {
 
                     ticks.info = {
                         unitName: 'day',
-                        count: 5,
+                        count: count,
                         higherRanks: {},
                         totalRange: interval * count
                     }
-
 
                     return ticks;
                 }
@@ -496,31 +517,38 @@ export default {
                 let sum_graph = this.records.filter(record => record.category_info.default_representation == 'day_sum').length
                 let too_much_points = this.records.length > 500 && !sum_graph
 
-                if (graph_series.length && too_much_points) Event.fire('show-collapse', true)
-                else Event.fire('show-collapse', false)
+                console.log(this.options.graph.disable_averaging)
+                if (!this.options.graph.disable_averaging && this.options.collapse_points_median == undefined) {
+                    this.options.collapse_points_median = true
+                    Event.fire('set-collapse-median-mode', true)
+                } else if (this.options.graph.disable_averaging) {
+                    this.options.collapse_points_median = false
+                }
 
                 if (sum_graph) {
                     this.collapse(graph_series, this.collapse_sum_point, this.collapse_sum_series)
                     graph_series = this.collapsed_data
                 }
 
-                if (!this.options.collapse_points && this.options.collapse_points != undefined && too_much_points) {
-                    this.errors = ['За данный период в медицинской карте присутствует слишком большое количество записей (> 500). ',
-                        'Чтобы увидеть комментарии к точкам и симптомы, загрузите период с меньшим количеством записей или усредните значения.']
+                if (!this.options.collapse_points_median && !this.options.collapse_points_sma && too_much_points) {
+                    this.errors = [this.error_messages.too_mach_points, this.error_messages.not_averaged]
                     graph_series.forEach(s => {
                         s.data = s.data.map(d => [d.x, d.y])
                     })
                     options.plotOptions.line.dataLabels.enabled = false
-                    this.options.collapse_points = false
-                } else if ((this.options.collapse_points || this.options.collapse_points == undefined) && too_much_points) {
-                    this.errors = ['За данный период в медицинской карте присутствует слишком большое количество записей (> 500). ',
-                        'Для удобства мы усреднили значения. Усреднение можно убрать, воспользовавшись галочкой выше, но в таком случае значения будут недоступны.']
-                    this.collapse(graph_series, this.collapse_ranges_point, this.collapse_ranges_series)
+                    this.options.collapse_points_median = false
+                    this.options.collapse_points_sma = false
+                } else if (this.options.collapse_points_median) {
+                    if (too_much_points)
+                        this.errors = [this.error_messages.too_mach_points, this.error_messages.averaged]
+
+                    this.collapse(graph_series, this.collapse_median_ranges_point, this.collapse_median_ranges_series)
                     graph_series = this.collapsed_data
-
-                    if (this.options.collapse_points == undefined) Event.fire('set-collapse-mode', true)
-                    this.options.collapse_points = true
-
+                } else if (this.options.collapse_points_sma) {
+                    if (too_much_points)
+                        this.errors = [this.error_messages.too_mach_points, this.error_messages.averaged]
+                    this.collapse(graph_series, this.collapse_sma_ranges_point, this.collapse_sma_ranges_series)
+                    graph_series = this.collapsed_data
                     options.plotOptions.line.dataLabels.enabled = false
                 }
 
@@ -813,8 +841,9 @@ export default {
                             dataLabels: {
                                 enabled: false,
                             },
-                            x: (value.timestamp + this.offset) * 1000,
+                            x: +moment(value.timestamp * 1000),
                             y: data.y,
+                            timestamp: value.timestamp,
                             comment: this.get_comment({
                                 value: data.name + value.dose,
                                 timestamp: value.timestamp,
@@ -829,8 +858,9 @@ export default {
                             dataLabels: {
                                 enabled: false,
                             },
-                            x: (value.timestamp + this.offset) * 1000,
+                            x: +moment(value.timestamp * 1000),
                             y: data.y,
+                            timestamp: value.timestamp,
                             comment: this.get_comment(value, data.name),
                         }
                     })
@@ -846,8 +876,9 @@ export default {
                             }
                         }
                         return {
-                            x: (value.timestamp + this.offset) * 1000,
+                            x: +moment(value.timestamp * 1000),
                             y: value.value,
+                            timestamp: value.timestamp,
                             comment: this.get_comment(value, data.name),
                             dataLabels: dl,
                             marker: {
@@ -870,6 +901,7 @@ export default {
                             },
                             x: value.x,
                             y: data.y,
+                            timestamp: value.timestamp,
                             name: data.name,
                             value: value.color,
                             comment: `<strong>${value.date}</strong><br>${value.description}`,
@@ -887,6 +919,7 @@ export default {
                             },
                             x: value.x,
                             y: data.y,
+                            timestamp: value.timestamp,
                             name: data.name,
                             color: '#d1f6f6',
                             comment: value.description,
@@ -945,6 +978,7 @@ export default {
                 animation: false,
                 zoomType: this.mobile ? '' : 'x',
                 backgroundColor: "#fcfcfc",
+                marginLeft: 30,
                 height: `${window.innerHeight - 230}`,
                 width: `${window.innerWidth * (this.mobile ? 1 : 0.89)}`,
                 renderTo: 'container',
@@ -1014,6 +1048,7 @@ export default {
                 }
             });
         },
+
         // Вспомогательные
         get_color: function (point) {
             if (point.additions) {
@@ -1049,8 +1084,9 @@ export default {
             }
             return comment
         },
+
         format_time: function (date) {
-            return date.toTimeString().substr(0, 5)
+            return date.toTimeString().substring(0, 5)
         },
         format_date: function (date) {
             return date.toLocaleDateString()
@@ -1103,37 +1139,40 @@ export default {
             html2pdf().set(opt).from(element).save();
         },
 
+        // Схлопывание
         collapse: function (graph_series, point_handler, series_handler) {
             this.collapsed_data = []
             let by_hour = this.options.graph_type == 'day-graph' ? true :
-                Math.ceil((this.options.dates[1] - this.options.dates[0]) / (1000 * 60 * 60 * 24)) < 4
+                Math.ceil((this.options.dates[1] - this.options.dates[0]) / this.day) < 4
 
             graph_series.forEach((graph, i) => {
                 let data = []
                 graph.data.forEach(val => {
-                    let d = new Date(val.x)
+                    let d = new Date(val.timestamp * 1000)
                     val.date = this.format_date(d)
                     if (by_hour) val.date += ` ${d.getHours()}:00-${(d.getHours() + 1) % 24}:00`
                 })
 
-                let dates = new Set(graph.data.map(val => val.date))
-                dates.forEach(date => {
-                    let x_date = by_hour ? date : (date + ' 00:00')
-                    let points = graph.data.filter(val => val.date == date)
+                let data_by_dates = this.group_by(graph.data, 'date')
+
+                Object.entries(data_by_dates).forEach(([date, values]) => {
+                    let x_date = by_hour ? date : (date + ' 12:00')
+                    let points = values
+
                     let value = {
-                        x: +moment(x_date, 'DD.MM.YYYY hh:mm') + (by_hour ? (this.offset + 30 * 60) * 1000 : this.day),
+                        x: +moment(x_date, 'DD.MM.YYYY hh:mm'),
                         marker: {
                             symbol: 'circle',
                             radius: 5
                         }
                     }
-                    data.push(point_handler(value, points, date, graph))
+                    data.push(point_handler(value, points, date, graph, data_by_dates))
                 })
 
                 series_handler(graph, data, i)
             })
         },
-        collapse_sum_point: function (sum, points, date, graph) {
+        collapse_sum_point: function (sum, points, date, graph, data_by_dates) {
             sum.y = points.map(val => val.y).reduce((a, b) => a + b, 0)
             sum.comment = `<strong>${date}</strong> - ${graph.name}: ${sum.y}`
             return sum
@@ -1165,9 +1204,10 @@ export default {
 
             this.collapsed_data.push(series)
         },
-        collapse_ranges_point: function (median, points, date, graph) {
+        collapse_median_ranges_point: function (median, points, date, graph, data_by_dates) {
             median.count = points.length
             median.y = this.median(points.map(val => val.y))
+
             let low = Math.min.apply(Math, points.map(val => val.y))
             let high = Math.max.apply(Math, points.map(val => val.y))
             median.comment = `<strong>${graph.name}</strong><br>` +
@@ -1177,7 +1217,7 @@ export default {
                 `<strong>Медиана:</strong> ${median.y.toFixed(2) * 1}<br>`
             return {median: median, range: [median.x, low, high]}
         },
-        collapse_ranges_series: function (graph, data, i) {
+        collapse_median_ranges_series: function (graph, data, i) {
             let series = {
                 name: graph.name,
                 type: 'line',
@@ -1220,7 +1260,78 @@ export default {
             }
             this.collapsed_data.push(series)
         },
+        collapse_sma_ranges_point: function (sma, points, date, graph, data_by_dates) {
+            sma.count = points.length
+            let sma_data = {}
+            Object.assign(sma_data, data_by_dates, this.additional_records[graph.category_code])
 
+            let result = this.simple_moving_average(sma_data, 7, date)
+
+            if (!result.credible) {
+                sma.marker.enabled = false
+            }
+            if (result.filled_days == 0) {
+                result.value = points.map(val => val.y).reduce((a, b) => a + b, 0) / points.length
+            }
+            sma.y = result.value
+
+            let low = Math.min.apply(Math, points.map(val => val.y))
+            let high = Math.max.apply(Math, points.map(val => val.y))
+
+            sma.comment = `<strong>${graph.name}</strong><br>` +
+                `<strong>Дата:</strong> ${date}<br>` +
+                `<strong>Количество значений за день:</strong> ${points.length}<br>` +
+                (low != high ? `<strong>Разброс значений:</strong> ${low} - ${high}<br>` : '') +
+                `<strong>Среднее${result.filled_days == 0 ? ' за день' : ' скользящее за 7 дней'}:</strong> ${sma.y.toFixed(2) * 1}<br>` +
+                (!result.credible ? `<strong style="color: red">Ненадежный показатель – </strong> данные за ${result.filled_days} дн.<br>` : '')
+            return {sma: sma, range: [sma.x, low, high]}
+
+        },
+        collapse_sma_ranges_series: function (graph, data, i) {
+            let series = {
+                name: graph.name,
+                type: 'spline',
+                category_code: graph.category_code,
+                category_type: graph.category_type,
+                data: data.map(p => p.sma),
+                yAxis: 0,
+                showInNavigator: true,
+                color: this.colors[i],
+                states: {
+                    inactive: {
+                        opacity: 1,
+                    },
+                },
+                marker: {
+                    enabled: true,
+                    symbol: 'circle'
+                },
+                dataGrouping: {
+                    enabled: false
+                },
+                lineWidth: 2,
+                dashStyle: 'Solid'
+            }
+
+            this.collapsed_data.push(Object.assign({}, series))
+            series.type = 'arearange'
+            series.data = data.map(p => p.range)
+            series.dashStyle = 'Solid'
+            series.marker.radius = 4
+            series.linkedTo = ':previous'
+            series.opacity = 0.2
+            series.states = {
+                inactive: {
+                    opacity: 0.2,
+                },
+                hover: {
+                    opacity: 0.5
+                }
+            }
+            this.collapsed_data.push(series)
+        },
+
+        // Статистика
         refresh_stats: function (start, end) {
             let stats = []
 
@@ -1285,11 +1396,13 @@ export default {
         },
         find_visible_records: function (records, start, end) {
             let timestamps = records.map(record => record.timestamp * 1000)
-            let start_index = this.binary_search(timestamps, start, 0, timestamps.length - 1)
-            let end_index = this.binary_search(timestamps, end, 0, timestamps.length - 1)
+
+            let start_index = this.binary_search(timestamps, end, 0, timestamps.length - 1)
+            let end_index = this.binary_search(timestamps, start, 0, timestamps.length - 1)
 
             return records.slice(start_index, end_index).map(record => record.value)
         },
+
         median: function (arr) {
             const arrayHalf = arr.length / 2
             const sorted = [].concat(arr).sort((a, b) => a - b)
@@ -1297,6 +1410,25 @@ export default {
             return arr.length % 2 === 0
                 ? (sorted[arrayHalf] + sorted[arrayHalf + 1]) / 2
                 : sorted[~~(arrayHalf)]
+        },
+        simple_moving_average: function (data_by_dates, period, date) {
+            let tmp_date = moment(date, 'DD.MM.YYYY').subtract(1, 'day'), values = []
+            let filled_days = 0
+
+            for (let d = 0; d < period; d++) {
+                let formatted_date = tmp_date.format('DD.MM.YYYY')
+                let tmp_values = data_by_dates[formatted_date] ? data_by_dates[formatted_date].map(val => val.y) : []
+                if (tmp_values.length) filled_days++
+
+                values = values.concat(tmp_values)
+                tmp_date = tmp_date.subtract(1, 'day')
+            }
+
+            return {
+                value: (values.reduce((a, b) => a + b, 0) / values.length) || 0,
+                credible: period == filled_days,
+                filled_days: filled_days
+            }
         }
     },
     created() {
@@ -1349,11 +1481,12 @@ export default {
             this.records_by_categories = this.group_by(this.records, 'category')
 
             this.process_load_answer()
-        })
+        });
 
         Event.listen('set-export-chart', (data) => {
             this.export_chart = data
-        })
+        });
+
         Event.listen('set-export-chart-extremes', (data) => {
             if (this.export_chart && this.export_chart.axes)
                 this.export_chart.axes[0].setExtremes(data.start, data.end)
@@ -1395,41 +1528,41 @@ export default {
 
         Event.listen('refresh-stats', (data) => {
             this.refresh_stats(data.start, data.end)
-        })
+        });
 
         Event.listen('window-resized', () => {
-                if (this.graph_options.chart) {
-                    this.graph_options.chart.width = window.innerWidth * 0.89
-                    if (this.options.graph_type.includes('heatmap')) {
-                        let count = this.heatmap_data.categories.symptoms.length + this.heatmap_data.categories.medicines.length
-                        this.graph_options.chart.height = count * 20 + 80
+            if (this.graph_options.chart) {
+                this.graph_options.chart.width = window.innerWidth * 0.89
+                if (this.options.graph_type.includes('heatmap')) {
+                    let count = this.heatmap_data.categories.symptoms.length + this.heatmap_data.categories.medicines.length
+                    this.graph_options.chart.height = count * 20 + 80
 
-                        if (this.options.graph.categories.includes('symptom')) {
-                            this.graph_options.yAxis[0].height = 20 * this.heatmap_data.categories.symptoms.length
+                    if (this.options.graph.categories.includes('symptom')) {
+                        this.graph_options.yAxis[0].height = 20 * this.heatmap_data.categories.symptoms.length
 
-                            if (this.graph_options.yAxis[1]) {
-                                this.graph_options.yAxis[1].top = 20 * this.heatmap_data.categories.symptoms.length + 30
-                                this.graph_options.yAxis[1].height = 20 * this.heatmap_data.categories.medicines.length
-                            }
-
-                            if (!this.heatmap_data.show_medicines || !this.heatmap_data.categories.medicines.length) {
-                                let count = this.heatmap_data.categories.medicines.length
-                                this.graph_options.chart.height -= count * 20
-                            }
+                        if (this.graph_options.yAxis[1]) {
+                            this.graph_options.yAxis[1].top = 20 * this.heatmap_data.categories.symptoms.length + 30
+                            this.graph_options.yAxis[1].height = 20 * this.heatmap_data.categories.medicines.length
                         }
-                    } else {
-                        this.graph_options.chart.height = Math.max(window.innerHeight - 230, 500)
-                        if (this.mobile && this.graph_options.series.length > 2) {
-                            this.graph_options.chart.height += 50 * (this.graph_options.series.length - 2)
+
+                        if (!this.heatmap_data.show_medicines || !this.heatmap_data.categories.medicines.length) {
+                            let count = this.heatmap_data.categories.medicines.length
+                            this.graph_options.chart.height -= count * 20
                         }
+                    }
+                } else {
+                    this.graph_options.chart.height = Math.max(window.innerHeight - 230, 500)
+                    if (this.mobile && this.graph_options.series.length > 2) {
+                        this.graph_options.chart.height += 50 * (this.graph_options.series.length - 2)
                     }
                 }
             }
-        );
+        });
 
         Event.listen('back-to-dashboard', () => {
             this.options.loaded = false;
-            this.options.collapse_points = undefined
+            this.options.collapse_median_points = undefined
+            this.options.collapse_median_points = undefined
             window.OBJECT_ID = undefined;
         });
 
@@ -1438,10 +1571,59 @@ export default {
             this.load()
         });
 
-        Event.listen('update-points', (mode) => {
+        Event.listen('update-points-median', (mode) => {
+            this.options.collapse_points_median = mode
+
+            if (mode) {
+                this.options.collapse_points_sma = false
+                Event.fire('set-collapse-sma-mode', false)
+            }
+
             this.load()
-            this.options.collapse_points = mode
             this.$forceUpdate()
+        });
+
+        Event.listen('update-points-sma', (mode) => {
+            this.options.collapse_points_sma = mode
+
+            if (mode) {
+                this.options.collapse_points_median = false
+                Event.fire('set-collapse-median-mode', false)
+
+                let start_date = (this.options.dates[0].getTime() - this.day * 7) / 1000
+                let end_date = this.options.dates[0].getTime() / 1000
+
+                // вытаскиваю предыдущие 7 дней
+                let data = {
+                    categories: this.options.graph.categories,
+                    dates: [start_date, end_date], // [start, end]
+                    options: {
+                        type: this.options.graph_type
+                    }
+                }
+
+                this.axios.post(this.direct_url('/api/get_records'), data).then(response => {
+                    let records = response.data.records.map((r) => {
+                        r.category_code = r.category_info.name
+                        r.y = r.value
+                        return r
+                    })
+                    let records_by_categories = this.group_by(records, 'category_code')
+                    let records_by_categories_by_dates = {}
+                    Object.entries(records_by_categories).forEach(([category, records]) => {
+                        records_by_categories_by_dates[category] = this.group_by(records, 'formatted_date')
+                    })
+                    this.additional_records = records_by_categories_by_dates
+
+                    this.load()
+                    this.$forceUpdate()
+                });
+
+            } else {
+                this.load()
+                this.$forceUpdate()
+            }
+
         });
 
         Event.listen('update-legend', (mode) => {
@@ -1457,16 +1639,15 @@ export default {
         });
 
         Event.listen('incorrect-dates', (duration) => {
-            if (duration < 0 && this.errors[0] != '<strong>Выбран некорректный период</strong>')
-                this.errors.unshift('<strong>Выбран некорректный период</strong>')
-            else if (duration > 30 && this.errors[0] != 'Пожалуйста, выберите период <strong>не больше</strong> 30 дней.')
-                this.errors.unshift('Пожалуйста, выберите период <strong>не больше</strong> 30 дней.')
-        })
+            if (duration < 0) this.add_error(this.errors, this.error_messages.incorrect_period)
+            else if (duration > 30 && this.errors[0] != this.error_messages.not_more_30_days)
+                this.errors.unshift(this.error_messages.not_more_30_days)
+        });
 
         Event.listen('generate-report', () => {
             if (this.options.loaded)
                 this.generate_report()
-        })
+        });
     }
 }
 </script>
