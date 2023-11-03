@@ -108,7 +108,9 @@ export default {
                 custom.push({
                     title: category.description,
                     categories: [category.name],
-                    disable_averaging: category.default_representation == 'day_sum'
+                    options: {
+                        disable_averaging: category.default_representation == 'day_sum'
+                    }
                 })
             })
 

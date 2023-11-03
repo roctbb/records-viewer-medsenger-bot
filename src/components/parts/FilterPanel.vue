@@ -45,12 +45,17 @@
                     <label for="hide_legend">Скрыть легенду</label>
 
                     <input type="checkbox" id="collapse_points_median" v-model="median_mode"
-                           @change="change_mode('points-median', median_mode)"/>
-                    <label for="collapse_points_median">Медиана</label>
+                           @change="change_mode('points-median', median_mode)" v-if="options && !options.disable_averaging"/>
+                    <label for="collapse_points_median" v-if="options && !options.disable_averaging">Медиана</label>
 
                     <input type="checkbox" id="collapse_points_sma" v-model="sma_mode"
-                           @change="change_mode('points-sma', sma_mode)"/>
-                    <label for="collapse_points_sma">Скользящая средняя (7 дней)</label>
+                           @change="change_mode('points-sma', sma_mode)" v-if="options && !options.disable_averaging"/>
+                    <label for="collapse_points_sma" v-if="options && !options.disable_averaging">Скользящая средняя (7 дней)</label>
+
+
+                    <input type="checkbox" id="show_points_colors" v-model="colors_mode"
+                           @change="change_mode('points-colors', colors_mode)" v-if="options && options.enable_dots_colors"/>
+                    <label for="show_points_colors" v-if="options && options.enable_dots_colors">Показать цветовые зоны</label>
                 </div>
 
                 <!-- Тепловая карта -->
@@ -137,12 +142,16 @@
                         <label for="hide_legend_mobile">Скрыть легенду</label>
                         <br>
                         <input type="checkbox" id="collapse_points_median_mobile" v-model="median_mode"
-                               @change="change_mode('points-median', median_mode)"/>
-                        <label for="collapse_points_median_mobile">Медиана</label>
+                               @change="change_mode('points-median', median_mode)" v-if="options && !options.disable_averaging"/>
+                        <label for="collapse_points_median_mobile" v-if="options && !options.disable_averaging">Медиана</label>
                         <br>
                         <input type="checkbox" id="collapse_points_sma_mobile" v-model="sma_mode"
-                               @change="change_mode('points-sma', sma_mode)"/>
-                        <label for="collapse_points_sma_mobile">Скользящая средняя (7 дней)</label>
+                               @change="change_mode('points-sma', sma_mode)" v-if="options && !options.disable_averaging"/>
+                        <label for="collapse_points_sma_mobile" v-if="options && !options.disable_averaging">Скользящая средняя (7 дней)</label>
+                        <br>
+                        <input type="checkbox" id="show_points_colors_mobile" v-model="colors_mode"
+                               @change="change_mode('points-colors', colors_mode)" v-if="options && options.enable_dots_colors"/>
+                        <label for="show_points_colors_mobile" v-if="options && options.enable_dots_colors">Показать цветовые зоны</label>
                     </div>
 
                     <!-- Тепловая карта -->
@@ -167,7 +176,7 @@ import 'vue2-datepicker/locale/ru';
 
 export default {
     name: "FilterPanel",
-    props: ['data', 'categories', 'page', 'disable_downloading', 'patient', 'last_date'],
+    props: ['data', 'categories', 'page', 'disable_downloading', 'patient', 'last_date', 'options'],
     components: {DatePicker, Multiselect},
     data() {
         return {
@@ -177,6 +186,7 @@ export default {
             legend_mode: false,
             median_mode: false,
             sma_mode: false,
+            colors_mode: false,
             medicines_mode: false,
             show_collapse: false
         }
@@ -279,13 +289,18 @@ export default {
             this.$forceUpdate()
         })
 
-        Event.listen('set-collapse-median-mode', collapsed => {
-            this.median_mode = collapsed
+        Event.listen('set-collapse-median-mode', mode => {
+            this.median_mode = mode
             this.$forceUpdate()
         })
 
-        Event.listen('set-collapse-sma-mode', collapsed => {
-            this.sma_mode = collapsed
+        Event.listen('set-collapse-sma-mode', mode => {
+            this.sma_mode = mode
+            this.$forceUpdate()
+        })
+
+        Event.listen('set-points-color-mode', mode => {
+            this.colors_mode = mode
             this.$forceUpdate()
         })
 

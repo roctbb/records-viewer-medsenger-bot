@@ -3,7 +3,7 @@
 
         <h4>{{ options.graph.title }}</h4>
         <filter-panel :page="filter_page" :patient="patient"
-                      :disable_downloading="no_data || options.exporting" :disable_averaging="options.graph.disable_averaging"/>
+                      :disable_downloading="no_data || options.exporting" :options="options.graph.options"/>
 
         <!-- Основная часть -->
         <loading v-if="!options.loaded && !errors.length"/>
@@ -79,7 +79,7 @@
             <div v-show="false">
                 <div ref="to-export">
                     <h4>Отчет по мониторингу пациента {{ patient.name }} ({{ patient.birthday }})</h4>
-                    <span><strong>Период: </strong>{{
+                    <span><b>Период: </b>{{
                             options.dates[0] ? ` с ${options.dates[0].toLocaleDateString()}` : ''
                         }} {{ options.dates[1] ? ` по ${options.dates[1].toLocaleDateString()}` : '' }}</span>
                     <hr>
@@ -167,6 +167,7 @@ export default {
                 show_legend: true,
                 collapse_points_median: undefined,
                 collapse_points_sma: false,
+                show_points_colors: false,
                 exporting: false,
             },
             records: [],
@@ -207,9 +208,9 @@ export default {
                 'graph' : (
                     this.options.graph_type == 'day-line' ?
                         'day-graph' : (
-                            this.options.graph.categories && this.options.graph.categories.includes('symptom') ?
-                                'symptoms-' :
-                                ''
+                        this.options.graph.categories && this.options.graph.categories.includes('symptom') ?
+                            'symptoms-' :
+                            ''
                     ) + this.options.graph_type)
         }
     },
@@ -316,6 +317,7 @@ export default {
                     this.get_y_axis(1)
                 ],
                 tooltip: {
+                    useHTML: true,
                     formatter: function () {
                         let point = this.point ? this.point : this.points[0];
                         return point.comment
@@ -355,7 +357,7 @@ export default {
             if (this.options.graph_type.includes('line')) {
                 options.chart.height = `${Math.max(window.innerHeight - 230, 500)}px`
 
-                options.colors = this.colors
+                options.colors = this.options.show_points_colors ? this.grey_colors : this.colors
                 options.tooltip.formatter = undefined
 
                 options.plotOptions = {
@@ -517,6 +519,8 @@ export default {
                 let sum_graph = this.records.filter(record => record.category_info.default_representation == 'day_sum').length
                 let too_much_points = this.records.length > 500 && !sum_graph
 
+                console.log(this.options.collapse_points_median)
+
                 if (!this.options.graph.disable_averaging && this.options.collapse_points_median == undefined) {
                     this.options.collapse_points_median = true
                     Event.fire('set-collapse-median-mode', true)
@@ -527,9 +531,7 @@ export default {
                 if (sum_graph) {
                     this.collapse(graph_series, this.collapse_sum_point, this.collapse_sum_series)
                     graph_series = this.collapsed_data
-                }
-
-                if (!this.options.collapse_points_median && !this.options.collapse_points_sma && too_much_points) {
+                } else if (!this.options.collapse_points_median && !this.options.collapse_points_sma && too_much_points) {
                     this.errors = [this.error_messages.too_mach_points, this.error_messages.not_averaged]
                     graph_series.forEach(s => {
                         s.data = s.data.map(d => [d.x, d.y])
@@ -656,7 +658,7 @@ export default {
                             dose: !record.params || record.params.dose == null ? '' : ` (${record.params.dose})`
                         }],
                         date: record.formatted_date,
-                        description: `Прием препарата <strong>"${record.value}"</strong> в `,
+                        description: `Прием препарата <b>"${record.value}"</b> в `,
                         x: +x,
                     }
 
@@ -679,7 +681,7 @@ export default {
                             return a.time < b.time ? -1 : a.time > b.time ? 1 : 0
                         })
                         data.points.forEach(p => {
-                            data.description += `<br>• <strong>${this.format_time(p.time)}</strong> ${p.dose}`
+                            data.description += `<br>• <b>${this.format_time(p.time)}</b> ${p.dose}`
                         })
                     })
 
@@ -753,7 +755,7 @@ export default {
                             return a.time < b.time ? -1 : a.time > b.time ? 1 : 0
                         })
                         data.points.forEach(p => {
-                            data.description += `• <strong>${this.format_time(p.time)}</strong> - ${p.description}<br>`
+                            data.description += `• <b>${this.format_time(p.time)}</b> - ${p.description}<br>`
                         })
                     })
 
@@ -808,8 +810,8 @@ export default {
                 } else {
                     series.yAxis = 0
                     series.showInNavigator = true
-                    series.dashStyle = this.options.graph_type == 'day-line' ? undefined : 'Solid'
-                    series.lineWidth = 3
+                    series.dashStyle = this.options.graph_type == 'day-line' ? undefined : 'ShortDot'
+                    series.lineWidth = 2
                     if (this.options.graph_type == 'day-line') {
                         series.states = {
                             hover: {
@@ -883,6 +885,7 @@ export default {
                             marker: {
                                 symbol: this.get_symbol(value),
                                 lineColor: this.get_color(value),
+                                fillColor: this.get_color(value),
                                 radius: this.get_radius(value),
                             }
                         }
@@ -903,7 +906,7 @@ export default {
                             timestamp: value.timestamp,
                             name: data.name,
                             value: value.color,
-                            comment: `<strong>${value.date}</strong><br>${value.description}`,
+                            comment: `<b>${value.date}</b><br>${value.description}`,
                         }
                     })
                     res = this.fill_nulls(res, data.y)
@@ -1003,20 +1006,31 @@ export default {
             return chart
         },
         set_bands: function (options) {
-            console.log(this.options.graph)
             if (!this.options.graph.options.different_plot_bands)
                 options.yAxis[0].plotBands = this.options.graph.options.plot_bands
         },
 
         // Вспомогательные
+        comment_additions: function (point) {
+            return point.additions ?
+                point.additions.filter(a => a['addition']['comment']) : []
+        },
+        zone_addition: function (point) {
+            return point.additions ?
+                point.additions.filter(a => a['addition']['zone'])[0]['addition'] : undefined
+        },
         get_color: function (point) {
-            if (point.additions) {
+            let zone = this.zone_addition(point)
+            if (this.options.show_points_colors && zone) {
+                return zone['color'] ? zone['color'] : 'rgba(150,150,150,1)'
+            }
+            if (this.comment_additions(point).length) {
                 return '#FF0000';
             }
             return undefined;
         },
         get_symbol: function (point) {
-            if (point.additions) {
+            if (this.comment_additions(point).length) {
                 return 'url(' + this.images.warning + ')'
             }
             return undefined;
@@ -1029,18 +1043,26 @@ export default {
         },
         get_comment: function (point, category) {
             let date = new Date((point.timestamp) * 1000)
-            let comment = `${point.date}<br><strong>${this.format_time(date)}</strong> - ${category}: ${point.value}`
-            if (point.additions) {
-                point.additions.forEach((value) => {
-                    comment += `<br><strong style="color: red;">${value['addition']['comment']}</strong>`
-                })
-            }
+            let comment = `<u>${point.date}</u><br><b>${this.format_time(date)}</b> - ${category}: ${point.value}`
+
+            this.comment_additions(point).forEach((value) => {
+                comment += `<br><b style="color: red;">${value['addition']['comment']}</b>`
+            })
+
             if (point.comments && point.comments.length) {
-                comment += `<br><strong>Дополнительная информация:</strong>`
+                comment += `<br><b>Дополнительная информация:</b>`
                 point.comments.forEach((value) => {
                     comment += `<br>${value.value}`
                 })
             }
+
+            let zone = this.zone_addition(point)
+            if (this.options.show_points_colors && zone) {
+                let color = zone['color'] ? zone['color'].replace(',1)', ',0.3)') : 'transparent'
+                if (zone['zone'] == 'Оранжевая зона') console.log(color)
+                comment += `<br><b style="background-color: ${color};">${zone['zone']}</b>`
+            }
+
             return comment
         },
 
@@ -1133,7 +1155,7 @@ export default {
         },
         collapse_sum_point: function (sum, points, date, graph, data_by_dates) {
             sum.y = points.map(val => val.y).reduce((a, b) => a + b, 0)
-            sum.comment = `<strong>${date}</strong> - ${graph.name}: ${sum.y}`
+            sum.comment = `<b>${date}</b> - ${graph.name}: ${sum.y}`
             return sum
         },
         collapse_sum_series: function (graph, data, i) {
@@ -1157,7 +1179,7 @@ export default {
                 dataGrouping: {
                     enabled: false
                 },
-                lineWidth: 3,
+                lineWidth: 2,
                 dashStyle: 'Solid'
             }
 
@@ -1169,11 +1191,11 @@ export default {
 
             let low = Math.min.apply(Math, points.map(val => val.y))
             let high = Math.max.apply(Math, points.map(val => val.y))
-            median.comment = `<strong>${graph.name}</strong><br>` +
-                `<strong>Дата:</strong> ${date}<br>` +
-                `<strong>Количество значений:</strong> ${points.length}<br>` +
-                (low != high ? `<strong>Разброс значений:</strong> ${low} - ${high}<br>` : '') +
-                `<strong>Медиана:</strong> ${median.y.toFixed(2) * 1}<br>`
+            median.comment = `<u>${graph.name}</u><br>` +
+                `<b>Дата:</b> ${date}<br>` +
+                `<b>Количество значений:</b> ${points.length}<br>` +
+                (low != high ? `<b>Разброс значений:</b> ${low} - ${high}<br>` : '') +
+                `<b>Медиана:</b> ${median.y.toFixed(2) * 1}<br>`
             return {median: median, range: [median.x, low, high]}
         },
         collapse_median_ranges_series: function (graph, data, i) {
@@ -1185,7 +1207,7 @@ export default {
                 data: data.map(p => p.median),
                 yAxis: 0,
                 showInNavigator: true,
-                color: this.colors[i],
+                color: this.options.show_points_colors ? this.grey_colors[i] : this.colors[i],
                 states: {
                     inactive: {
                         opacity: 1,
@@ -1237,12 +1259,12 @@ export default {
             let low = Math.min.apply(Math, points.map(val => val.y))
             let high = Math.max.apply(Math, points.map(val => val.y))
 
-            sma.comment = `<strong>${graph.name}</strong><br>` +
-                `<strong>Дата:</strong> ${date}<br>` +
-                `<strong>Количество значений за день:</strong> ${points.length}<br>` +
-                (low != high ? `<strong>Разброс значений:</strong> ${low} - ${high}<br>` : '') +
-                `<strong>Среднее${result.filled_days == 0 ? ' за день' : ' скользящее за 7 дней'}:</strong> ${sma.y.toFixed(2) * 1}<br>` +
-                (!result.credible ? `<strong style="color: red">Ненадежный показатель – </strong> данные за ${result.filled_days} дн.<br>` : '')
+            sma.comment = `<b>${graph.name}</b><br>` +
+                `<b>Дата:</b> ${date}<br>` +
+                `<b>Количество значений за день:</b> ${points.length}<br>` +
+                (low != high ? `<b>Разброс значений:</b> ${low} - ${high}<br>` : '') +
+                `<b>Среднее${result.filled_days == 0 ? ' за день' : ' скользящее за 7 дней'}:</b> ${sma.y.toFixed(2) * 1}<br>` +
+                (!result.credible ? `<b style="color: red">Ненадежный показатель – </b> данные за ${result.filled_days} дн.<br>` : '')
             return {sma: sma, range: [sma.x, low, high]}
 
         },
@@ -1255,7 +1277,7 @@ export default {
                 data: data.map(p => p.sma),
                 yAxis: 0,
                 showInNavigator: true,
-                color: this.colors[i],
+                color: this.options.show_points_colors ? this.grey_colors[i] : this.colors[i],
                 states: {
                     inactive: {
                         opacity: 1,
@@ -1399,6 +1421,8 @@ export default {
         this.colors = ['#058DC7', '#50B432', '#aa27ce', '#fcff00',
             '#24CBE5', '#64E572', '#c355ff', '#fce200', '#6AF9C4']
 
+        this.grey_colors = ['rgba(100,100,100,0.5)', 'rgba(125,125,125,0.5)', 'rgba(150,150,150,0.5)', 'rgba(175,175,175,0.5)']
+
         Highcharts.setOptions({
             lang: {
                 loading: 'Загрузка...',
@@ -1459,6 +1483,7 @@ export default {
                 this.last_date
             ]
             this.load(true)
+            this.$forceUpdate()
         });
 
         Event.listen('load-day-graph', (params) => {
@@ -1520,9 +1545,18 @@ export default {
 
         Event.listen('back-to-dashboard', () => {
             this.options.loaded = false;
-            this.options.collapse_median_points = undefined
-            this.options.collapse_median_points = undefined
+            this.options.collapse_points_median = undefined
+
+            this.options.collapse_points_sma = false
+            Event.fire('set-collapse-sma-mode', false)
+
+
+            this.options.show_points_colors = false
+            Event.fire('set-points-color-mode', false)
+
             window.OBJECT_ID = undefined;
+
+            this.$forceUpdate()
         });
 
         Event.listen('graph-update-dates', (dates) => {
@@ -1536,7 +1570,27 @@ export default {
             if (mode) {
                 this.options.collapse_points_sma = false
                 Event.fire('set-collapse-sma-mode', false)
+
+
+                this.options.show_points_colors = false
+                Event.fire('set-points-color-mode', false)
             }
+
+            this.load()
+            this.$forceUpdate()
+        });
+
+        Event.listen('update-points-colors', (mode) => {
+            if (mode) {
+                this.options.collapse_points_median = false
+                Event.fire('set-collapse-median-mode', false)
+
+                this.options.collapse_points_sma = false
+                Event.fire('set-collapse-sma-mode', false)
+            }
+
+            this.options.show_points_colors = mode
+            Event.fire('set-colors-mode', mode)
 
             this.load()
             this.$forceUpdate()
@@ -1548,6 +1602,10 @@ export default {
             if (mode) {
                 this.options.collapse_points_median = false
                 Event.fire('set-collapse-median-mode', false)
+
+                this.options.show_points_colors = false
+                Event.fire('set-colors-mode', false)
+
 
                 let start_date = (this.options.dates[0].getTime() - this.day * 7) / 1000
                 let end_date = this.options.dates[0].getTime() / 1000
