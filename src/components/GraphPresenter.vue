@@ -1013,11 +1013,12 @@ export default {
         // Вспомогательные
         comment_additions: function (point) {
             return point.additions ?
-                point.additions.filter(a => a['addition']['comment']) : []
+                point.additions.filter(a => a && a['addition'] && a['addition']['comment']) : []
         },
         zone_addition: function (point) {
-            return point.additions ?
-                point.additions.filter(a => a['addition']['zone'])[0]['addition'] : undefined
+            let zones =  point.additions ?
+                point.additions.filter(a => a && a['addition'] && a['addition']['zone']) : undefined
+            return zones && zones.length ? zones[0]['addition'] : undefined
         },
         get_color: function (point) {
             let zone = this.zone_addition(point)
@@ -1489,7 +1490,19 @@ export default {
         Event.listen('load-day-graph', (params) => {
             this.options.graph_type = 'day-line'
             this.options.graph = params
+
             this.options.dates = [undefined, this.last_date]
+
+            this.options.collapse_points_median = false
+            Event.fire('set-collapse-median-mode', false)
+
+            this.options.collapse_points_sma = false
+            Event.fire('set-collapse-sma-mode', false)
+
+
+            this.options.show_points_colors = false
+            Event.fire('set-points-color-mode', false)
+
             this.load(true)
         });
 
