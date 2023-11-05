@@ -135,11 +135,11 @@
 </template>
 
 <script>
-import MoreInfoBlock from "./MoreInfoBlock";
+import MoreInfoBlock from "./MoreInfoBlock.vue";
 import downloadjs from "downloadjs";
-import Loading from "./Loading";
-import InteractiveMap from "./InteractiveMap";
-import NothingFound from "./NothingFound.vue";
+import Loading from "../../../common/Loading.vue";
+import InteractiveMap from "./InteractiveMap.vue";
+import NothingFound from "../../../common/NothingFound.vue";
 
 export default {
     name: "RecordsList",

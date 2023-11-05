@@ -44,7 +44,6 @@
                     <card :image="images.heatmap" :title="category.title">
                         <a @click="load_graph(category, 'heatmap')" href="#" class="btn btn-default">Открыть</a>
                     </card>
-
                 </div>
             </div>
         </div>
@@ -72,9 +71,9 @@
 </template>
 
 <script>
-import Card from "./parts/Card";
+import Card from "../../common/Card.vue";
 import * as moment from "moment/moment";
-import report from "./Report";
+import report from "../report/Report.vue";
 
 export default {
     name: "Dashboard",
@@ -146,7 +145,7 @@ export default {
     },
     methods: {
         load_report: function (params) {
-            Event.fire('load-report', params)
+            Event.fire('load-' + type, params)
         },
         load_graph: function (params, type) {
             Event.fire('load-' + type, params)

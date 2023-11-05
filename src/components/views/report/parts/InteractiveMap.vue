@@ -7,8 +7,8 @@
 
 <script>
 
-import HumanMap from "../maps/HumanMap";
-import ChildMap from "../maps/ChildMap";
+import HumanMap from "../../../maps/HumanMap.vue";
+import ChildMap from "../../../maps/ChildMap.vue";
 
 export default {
   name: "InteractiveMap",

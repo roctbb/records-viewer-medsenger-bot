@@ -50,11 +50,11 @@
 </template>
 
 <script>
-import RecordsList from "./parts/RecordsList";
-import FilterPanel from "./parts/FilterPanel";
+import RecordsList from "./parts/RecordsList.vue";
+import FilterPanel from "../../common/FilterPanel.vue";
 import html2pdf from "html2pdf.js";
-import Loading from "./parts/Loading";
-import ErrorBlock from "./parts/ErrorBlock";
+import Loading from "../../common/Loading.vue";
+import ErrorBlock from "../../common/ErrorBlock.vue";
 
 export default {
     name: "Report",

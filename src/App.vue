@@ -19,14 +19,15 @@
 </template>
 
 <script>
-import DashboardHeader from "./components/parts/DashboardHeader";
-import Loading from "./components/parts/Loading";
-import Report from "./components/Report";
-import Dashboard from "./components/Dashboard";
-import LoadError from "./components/LoadError";
-import GraphPresenter from "./components/GraphPresenter";
-import ConclusionEditor from "./components/ConclusionEditor";
-import ActionDone from "./components/ActionDone";
+import DashboardHeader from "./components/views/dashboard/DashboardHeader.vue";
+import Loading from "./components/common/Loading.vue";
+import Report from "./components/views/report/Report.vue";
+import Dashboard from "./components/views/dashboard/Dashboard.vue";
+import LoadError from "./components/common/LoadError.vue";
+import GraphPresenter from "./components/views/graph/GraphPresenter.vue";
+import ConclusionEditor from "./components/views/conclusion/ConclusionEditor.vue";
+import ActionDone from "./components/common/ActionDone.vue";
+//import FormalizedReport from "./components/views/formolized-report/FormalizedReport.vue";
 
 export default {
     name: 'App',

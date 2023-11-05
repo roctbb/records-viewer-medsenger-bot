@@ -63,9 +63,9 @@
 </template>
 
 <script>
-import Card from "./parts/Card";
+import Card from "../../common/Card.vue";
 import JSSoup from 'jssoup';
-import FormGroup48 from "./parts/FormGroup-4-8";
+import FormGroup48 from "../../common/FormGroup-4-8.vue";
 
 export default {
   name: "ConclusionEditor",

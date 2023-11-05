@@ -136,16 +136,16 @@ import DatePicker from 'vue2-datepicker';
 import 'vue2-datepicker/index.css';
 import 'vue2-datepicker/locale/ru';
 import * as moment from "moment/moment";
-import ErrorBlock from "./parts/ErrorBlock";
-import Loading from "./parts/Loading";
+import ErrorBlock from "../../common/ErrorBlock.vue";
+import Loading from "../../common/Loading.vue";
 import boost from "highcharts/modules/boost";
 import heatmap from "highcharts/modules/heatmap";
 import 'highcharts/modules/heatmap.src.js';
-import FilterPanel from "./parts/FilterPanel";
+import FilterPanel from "../../common/FilterPanel.vue";
 import html2pdf from "html2pdf.js";
 import arearange from 'highcharts/highcharts-more';
-import RecordsList from "./parts/RecordsList";
-import NothingFound from "./parts/NothingFound.vue";
+import RecordsList from "../report/parts/RecordsList.vue";
+import NothingFound from "../../common/NothingFound.vue";
 
 stockInit(Highcharts)
 heatmap(Highcharts);
@@ -518,8 +518,6 @@ export default {
 
                 let sum_graph = this.records.filter(record => record.category_info.default_representation == 'day_sum').length
                 let too_much_points = this.records.length > 500 && !sum_graph
-
-                console.log(this.options.collapse_points_median)
 
                 if (!this.options.graph.disable_averaging && this.options.collapse_points_median == undefined) {
                     this.options.collapse_points_median = true
@@ -1060,7 +1058,6 @@ export default {
             let zone = this.zone_addition(point)
             if (this.options.show_points_colors && zone) {
                 let color = zone['color'] ? zone['color'].replace(',1)', ',0.3)') : 'transparent'
-                if (zone['zone'] == 'Оранжевая зона') console.log(color)
                 comment += `<br><b style="background-color: ${color};">${zone['zone']}</b>`
             }
 
@@ -1445,7 +1442,7 @@ export default {
         });
 
         Event.listen('loaded', (data) => {
-            if (data.info.type == 'report') return
+            if (!['line', 'day-line', 'heatmap'].includes(data.info.type)) return
 
             if (data.info.first_load) {
                 this.options.dates = [
@@ -1480,7 +1477,7 @@ export default {
             this.options.graph_type = 'line'
             this.options.graph = params
             this.options.dates = [
-                this.start_of_day(this.add_days(this.last_date, -14)),
+                this.start_of_day(this.add_days(this.last_date, -13)),
                 this.last_date
             ]
             this.load(true)
