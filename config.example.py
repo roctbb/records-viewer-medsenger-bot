@@ -5,6 +5,13 @@ JSHOST = ''
 APP_KEY = ''
 
 AGENT_ID = ''
+AGENTS = {
+    'FORMS_AGENT_ID': 0,
+    'LIBRARY_AGENT_ID': 0,
+    'CDSS_AGENT_ID': 0
+}
+
+
 HOST = ''
 PORT = ''
 API_DEBUG = ''

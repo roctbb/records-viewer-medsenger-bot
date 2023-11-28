@@ -15,6 +15,7 @@
             integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
     <script>
         window.AGENT_ID = '{{ agent_id }}';
+        window.FORMS_AGENT_ID = '{{ forms_agent_id }}';
         window.AGENT_TOKEN = '{{ agent_token }}';
         window.CONTRACT_ID = parseInt('{{ contract_id }}');
         window.API_HOST = '{{ api_host }}';
@@ -24,6 +25,7 @@
         window.OBJECT_ID = parseInt('{{ object_id }}');
         window.SOURCE = '{{ source }}';
         window.PARAMS = JSON.parse('{{ params | safe }}');
+        window.AGENTS = JSON.parse('{{ agents | safe }}')
     </script>
 </head>
 <body>

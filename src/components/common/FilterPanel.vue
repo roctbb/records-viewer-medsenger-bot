@@ -54,7 +54,7 @@
 
 
                     <input type="checkbox" id="show_points_colors" v-model="colors_mode"
-                           @change="change_mode('points-colors', colors_mode)" v-if="options && options.enable_dots_colors"/>
+                           @change="change_mode('points-color', colors_mode)" v-if="options && options.enable_dots_colors"/>
                     <label for="show_points_colors" v-if="options && options.enable_dots_colors">Показать цветовые зоны</label>
                 </div>
 
@@ -150,7 +150,7 @@
                         <label for="collapse_points_sma_mobile" v-if="options && !options.disable_averaging">Скользящая средняя (7 дней)</label>
                         <br>
                         <input type="checkbox" id="show_points_colors_mobile" v-model="colors_mode"
-                               @change="change_mode('points-colors', colors_mode)" v-if="options && options.enable_dots_colors"/>
+                               @change="change_mode('points-color', colors_mode)" v-if="options && options.enable_dots_colors"/>
                         <label for="show_points_colors_mobile" v-if="options && options.enable_dots_colors">Показать цветовые зоны</label>
                     </div>
 
@@ -208,7 +208,7 @@ export default {
             Event.fire('generate-report')
         },
         update_dates: function () {
-            let action = (this.page == 'report' ? this.page : 'graph') + '-update-dates'
+            let action = (!['line', 'day-line', 'heatmap'].includes(this.page) ? this.page : 'graph') + '-update-dates'
             this.dates.range = [
                 this.dates.range[0] ? this.start_of_day(this.dates.range[0]) : undefined,
                 this.dates.range[1] ? this.end_of_day(this.dates.range[1]) : undefined

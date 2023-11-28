@@ -183,6 +183,35 @@ def group_page_with_args(args, form, category_id):
     return get_ui(contract, 'group-presenter', object_id=category_id)
 
 
+@app.route('/group/<category_id>/<mode>/<int:date_from>/<int:date_to>', methods=['GET'])
+@verify_args
+def group_page_with_args_report(args, form, category_id, mode, date_from, date_to):
+    contract_id = request.args.get('contract_id', '')
+
+    if contract_manager.not_exists(contract_id):
+        contract_manager.add(contract_id)
+
+    contract = contract_manager.get(args.get('contract_id'))
+    return get_ui(contract, 'group-presenter', object_id=category_id, params={
+        "mode": mode,
+        "date_from": date_from,
+        "date_to": date_to
+    })
+
+
+@app.route('/api/send_order', methods=['POST'])
+@verify_args
+def send_order(args, data):
+    contract_id = args.get('contract_id')
+
+    data = request.json
+    answer = medsenger_api.send_order(contract_id, data['order'], receiver_id=data['agent_id'], params=data['params'])
+
+    result = answer['results'].get(str(data['agent_id']), [])
+
+    return result
+
+
 @app.route('/params', methods=['GET'])
 @verify_args
 def get_params(args, data):

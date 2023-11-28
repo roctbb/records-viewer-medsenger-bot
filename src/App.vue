@@ -10,6 +10,7 @@
                 <div class="container slim-container" style="margin-top: 15px;">
                     <dashboard :patient="patient" v-show="state == 'dashboard' || state == 'graph-category-chooser'"/>
                     <report :patient="patient" :last_date="last_date" v-show="state == 'report'"/>
+                    <formalized-report :patient="patient" :last_date="last_date" v-show="state == 'formalized-report'"/>
                     <graph-presenter :patient="patient" :last_date="last_date" v-show="state == 'graph'"/>
                     <conclusion-editor :patient="patient" v-show="state == 'conclusion'"/>
                 </div>
@@ -27,7 +28,7 @@ import LoadError from "./components/common/LoadError.vue";
 import GraphPresenter from "./components/views/graph/GraphPresenter.vue";
 import ConclusionEditor from "./components/views/conclusion/ConclusionEditor.vue";
 import ActionDone from "./components/common/ActionDone.vue";
-//import FormalizedReport from "./components/views/formolized-report/FormalizedReport.vue";
+import FormalizedReport from "./components/views/formolized-report/FormalizedReport.vue";
 
 export default {
     name: 'App',
@@ -38,6 +39,7 @@ export default {
         LoadError,
         Dashboard,
         Report,
+        FormalizedReport,
         Loading,
         DashboardHeader,
     },
@@ -98,6 +100,10 @@ export default {
 
         Event.listen('load-report', (report) => {
             this.state = 'report'
+        })
+
+        Event.listen('load-formalized-report', (report) => {
+            this.state = 'formalized-report'
         })
 
         Event.listen('load-line-graph', (params) => {

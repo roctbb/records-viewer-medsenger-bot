@@ -4,9 +4,9 @@
             <h5>Отчеты</h5>
             <div class="row">
                 <div v-for="(report, i) in report_categories" :key="'report_' + i"
-                     class="col-lg-2 col-md-3">
+                     class="col-lg-3 col-md-3">
                     <card :image="images.report" :title="report.title">
-                        <a @click="load_report(report)" href="#" class="btn btn-default">Открыть</a>
+                        <a @click="load_page(report)" href="#" class="btn btn-default">Открыть</a>
                     </card>
                 </div>
             </div>
@@ -16,9 +16,9 @@
             <h5>Графики</h5>
             <div class="row">
                 <div v-for="(category, i) in plottable_categories" :key="'graph_' + i"
-                     class="col-lg-2 col-md-3">
+                     class="col-lg-3 col-md-3">
                     <card :image="images.graph" :title="category.title">
-                        <a @click="load_graph(category, 'line-graph')" href="#" class="btn btn-default">Открыть</a>
+                        <a @click="load_page(category)" href="#" class="btn btn-default">Открыть</a>
                     </card>
                 </div>
             </div>
@@ -28,9 +28,9 @@
             <h5>Графики по суткам</h5>
             <div class="row">
                 <div v-for="(category, i) in plottable_day_graphs" :key="'day_graph_' + i"
-                     class="col-lg-2 col-md-3">
+                     class="col-lg-3 col-md-3">
                     <card :image="images.graph" :title="category.title">
-                        <a @click="load_graph(category, 'day-graph')" href="#" class="btn btn-default">Открыть</a>
+                        <a @click="load_page(category)" href="#" class="btn btn-default">Открыть</a>
                     </card>
                 </div>
             </div>
@@ -40,9 +40,9 @@
             <h5>Тепловые карты</h5>
             <div class="row">
                 <div v-for="(category, i) in plottable_heatmap_categories" :key="'heatmap_' + i"
-                     class="col-lg-2 col-md-3">
+                     class="col-lg-3 col-md-3">
                     <card :image="images.heatmap" :title="category.title">
-                        <a @click="load_graph(category, 'heatmap')" href="#" class="btn btn-default">Открыть</a>
+                        <a @click="load_page(category)" href="#" class="btn btn-default">Открыть</a>
                     </card>
                 </div>
             </div>
@@ -107,6 +107,7 @@ export default {
                 custom.push({
                     title: category.description,
                     categories: [category.name],
+                    type: 'line-graph',
                     options: {
                         disable_averaging: category.default_representation == 'day_sum'
                     }
@@ -127,7 +128,10 @@ export default {
             return this.groups.filter((group) => group.type == 'day-graph')
         },
         report_categories: function () {
-            let reports = this.groups.filter((group) => group.type == 'report')
+            let reports = this.groups
+                .filter((group) => ['report', 'formalized-report'].includes(group.type))
+                .filter(group => !group.options || !group.options.scenario || group.options && group.options.scenario && group.options.scenario.includes(this.patient.scenario.id))
+
             reports = reports.map(report => {
                 if (!report.categories.length) {
                     report.categories = this.categories.map(c => c.name).filter(c => c != 'doctor_action')
@@ -138,18 +142,21 @@ export default {
                 return report
             })
 
-            if (this.source == 'patient') reports = reports.filter(c => c.options && !c.options.only_doctor)
+            if (this.source == 'patient') reports = reports.filter(r => r.options && !r.options.only_doctor)
 
             return reports
         }
     },
     methods: {
         load_report: function (params) {
-            Event.fire('load-' + type, params)
+            Event.fire('load-' + params.type, params)
         },
         load_graph: function (params, type) {
             Event.fire('load-' + type, params)
         },
+        load_page: function (params) {
+            Event.fire('load-' + params.type, params)
+        }
     },
     mounted() {
         this.axios.get(this.direct_url('/api/categories')).then(response => {

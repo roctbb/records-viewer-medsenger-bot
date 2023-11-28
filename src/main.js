@@ -2,6 +2,8 @@ import Vue from 'vue'
 import App from './App.vue'
 import vmodal from 'vue-js-modal'
 import VueConfirmDialog from 'vue-confirm-dialog'
+import VueEllipseProgress from 'vue-ellipse-progress';
+import * as moment from "moment";
 
 window.Event = new class {
     constructor() {
@@ -41,17 +43,100 @@ Vue.mixin({
 
             return host + action + '?contract_id=' + contract_id + '&agent_token=' + agent_token
         },
+        image_url: function (file_name) {
+            return 'https://common.medsenger.ru/images/' + file_name
+        },
+
         group_by: function (data, field) {
             if (!data)
                 return []
 
             return data.reduce((groups, item) => {
-                const group = (groups[item[field] ? item[field] : 'Общее'] || []);
+                const group = (groups[item[field] != undefined ? item[field] : 'Общее'] || []);
                 group.push(item);
-                groups[item[field] ? item[field] : 'Общее'] = group;
+                groups[item[field] != undefined ? item[field] : 'Общее'] = group;
                 return groups;
             }, {});
         },
+        group_records_by_categories_by_dates: function (records, by_categories = false) {
+            let records_by_categories = by_categories ?
+                records :
+                this.group_by(records, 'category_code')
+            let records_by_categories_by_dates = {}
+
+            Object.entries(records_by_categories).forEach(([category, records]) => {
+                records_by_categories_by_dates[category] = this.group_by(records, 'formatted_date')
+            })
+            return records_by_categories_by_dates
+        },
+        get_record_groups: function (records, get_comments = false) {
+            let records_by_groups = this.group_by(records, 'group')
+
+            let groups = []
+
+            Object.entries(records_by_groups).forEach(([uid, group_records]) => {
+
+                let group = {
+                    records: group_records,
+                    records_by_categories: this.group_by(group_records, 'category_code'),
+                    timestamp: group_records[0].timestamp,
+                    formatted_date: group_records[0].formatted_date,
+                    formatted_time: group_records[0].formatted_time
+                }
+
+                groups.push(group)
+            })
+
+            groups.forEach((group) => {
+                if (get_comments) {
+                    group.comments = []
+                    group.records.forEach((record) => {
+                        group.comments = group.comments
+                            .concat(record.comments)
+                            .filter((comment => comment))
+                    })
+                }
+            })
+            groups.sort((a, b) => a.timestamp - b.timestamp)
+
+            return groups
+        },
+        filter_groups: function (records, categories, group_filters) {
+            let get_comments = 'comments' in group_filters
+            let groups = this.get_record_groups(records, get_comments)
+
+
+            groups.forEach((group) => {
+                group.records = group.records
+                    .filter((record) => categories.includes(record.category_code))
+            })
+
+            if (group_filters) {
+                if (group_filters['comments']) {
+                    groups = groups.filter((group) => group.comments.length)
+                }
+                if (group_filters['grade'] != undefined) {
+                    groups.forEach((group) => {
+                        group.records = group.records.filter((record) =>
+                            record.params && record.params.grade == group_filters['grade'])
+                    })
+                }
+                if (group_filters["general_answer"]) {
+                    groups.forEach((group) => {
+                        group.records = group.records.filter((record) =>
+                            record.params && record.params.general_answer)
+                    })
+                }
+            }
+
+            groups = groups.filter((group) => group.records.length)
+            groups.forEach((group) => {
+                group.records_by_categories = this.group_by(group.records, 'category_code')
+            })
+
+            return groups
+        },
+
         load_data: function (categories, dates, options = null) {
             let data = {
                 categories: categories,
@@ -59,9 +144,90 @@ Vue.mixin({
                 options: options
             }
             this.axios.post(this.direct_url('/api/get_records'), data).then(response => {
+                response.data.records = response.data.records.map((r) => {
+                    r.category_code = r.category_info.name
+                    r.y = r.value
+
+                    let d = new Date(r.timestamp * 1000)
+                    r.formatted_date = this.format_date(d)
+                    r.formatted_time = this.format_time(d)
+
+                    return r
+                })
                 Event.fire('loaded', response.data)
             });
         },
+        load_additional_data: function (categories, end_date, period, type) {
+            end_date /= 1000
+            let start_date = end_date - this.day * period / 1000
+
+            // вытаскиваю предыдущие 7 дней
+            let data = {
+                categories: categories,
+                dates: [start_date, end_date], // [start, end]
+                options: {
+                    type: type
+                }
+            }
+
+            this.axios
+                .post(this.direct_url('/api/get_records'), data)
+                .then((response) => {
+                    let records = response.data.records.map((r) => {
+                        r.category_code = r.category_info.name
+
+                        let d = new Date(r.timestamp * 1000)
+                        r.formatted_date = this.format_date(d)
+                        r.formatted_time = this.format_time(d)
+
+                        return r
+                    })
+
+                    Event.fire('additional-loaded', records)
+                })
+        },
+        send_order: function (order, agent_id, params, event_name) {
+            let data = {order: order, agent_id: agent_id, params: params}
+            this.axios
+                .post(this.url('/api/send_order'), data)
+                .then((response) => {
+                    let result = response.data
+
+                    if (order == 'get_compliance') {
+                        response.data.forms.forEach((f, i) => {
+                            f.category_code = 'form_compliance'
+                            f.group = `${f.category_code}_${i}`
+                        })
+                        response.data.medicines.forEach((m, i) => {
+                            m.category_code = 'medicine_compliance'
+                            m.group = `${m.category_code}_${i}`
+                        })
+                        result = response.data.forms.concat(response.data.medicines)
+                        result = result.filter((r) => r.requested)
+                    }
+
+                    if (order == 'get_medicines') {
+                        result.forEach((r, i) => {
+                            r.category_code = r.is_created_by_patient ? 'added_medicine' : 'prescribed_medicine'
+                            r.group = `${r.category_code}_${i}`
+                            r.date = new Date(r.prescribed_timestamp * 1000)
+                        })
+                    }
+
+
+                    result = result.map((p, i) => {
+                        let d = p.date ? p.date : new Date()
+
+                        p.formatted_date = this.format_date(d)
+                        p.formatted_time = this.format_time(d)
+
+                        return p
+                    })
+
+                    Event.fire(event_name, result)
+                })
+        },
+
         binary_search: function (arr, value, l, r) {
             let mid = Math.floor((r - l) / 2) + l
 
@@ -76,6 +242,47 @@ Vue.mixin({
             }
             r = (mid - 1) < l ? l : (mid - 1)
             return this.binary_search(arr, value, l, r);
+        },
+
+        median: function (arr) {
+            const arrayHalf = arr.length / 2
+            const sorted = [].concat(arr).sort((a, b) => a - b)
+
+            return arr.length % 2 === 0
+                ? (sorted[arrayHalf] + sorted[arrayHalf + 1]) / 2
+                : sorted[~~(arrayHalf)]
+        },
+        simple_moving_average: function (data_by_dates, additional_data_by_dates, period, date) {
+            let tmp_date = moment(date, 'DD.MM.YYYY').subtract(1, 'day'), values = []
+            let filled_days = 0
+
+            let sma_data = {}
+            Object.assign(sma_data, data_by_dates, additional_data_by_dates)
+
+            for (let d = 0; d < period; d++) {
+                let formatted_date = tmp_date.format('DD.MM.YYYY')
+
+                let tmp_values = sma_data[formatted_date] ?
+                    sma_data[formatted_date].map(val => val.value ? val.value : val.y) : []
+                if (tmp_values.length) filled_days++
+
+                values = values.concat(tmp_values)
+                tmp_date = tmp_date.subtract(1, 'day')
+            }
+
+            return {
+                value: (values.reduce((a, b) => a + b, 0) / values.length) || 0,
+                credible: period == filled_days,
+                filled_days: filled_days
+            }
+        },
+
+        // dates
+        format_time: function (date) {
+            return date.toTimeString().substring(0, 5)
+        },
+        format_date: function (date) {
+            return date.toLocaleDateString()
         },
         add_days: function (date, days) {
             let new_date = new Date(date.valueOf());
@@ -111,6 +318,17 @@ Vue.mixin({
         remove_error: function (errors, error) {
             return errors ? errors.filter(e => e != error) : []
         },
+
+        zone_addition: function (record) {
+            let zones = record.additions ?
+                record.additions.filter((a) => a && a['addition'] && a['addition']['zone_description']) : undefined
+            return zones && zones.length ? zones[0]['addition'] : undefined
+        },
+        comment_additions: function (record) {
+            return record.additions ?
+                record.additions.filter((a) => a && a['addition'] && a['addition']['comment']) : []
+        }
+
     },
     computed: {
         mobile() {
@@ -126,22 +344,32 @@ Vue.mixin({
     data() {
         return {
             images: {
-                logo: 'https://common.medsenger.ru/images/logo.png',
-                ok: 'https://common.medsenger.ru/images/icons8-ok-128.png',
-                error: 'https://common.medsenger.ru/images/icons8-delete-128.png',
-                nothing_found: 'https://common.medsenger.ru/images/icons8-nothing-found-100.png',
-                warning: 'https://common.medsenger.ru/images/icons8-error-18.png',
-                report: 'https://common.medsenger.ru/images/icons8-search-property-96.png',
-                graph: 'https://common.medsenger.ru/images/icons8-graph-96.png',
-                heatmap: 'https://common.medsenger.ru/images/icons8-heat-map-96.png',
-                file: 'https://common.medsenger.ru/images/icons8-open-document-48.png'
+                logo: this.image_url('logo.png'),
+                ok: this.image_url('icons8-ok-128.png'),
+                error: this.image_url('icons8-delete-128.png'),
+                nothing_found: this.image_url('icons8-nothing-found-100.png'),
+                warning: this.image_url('icons8-error-18.png'),
+                report: this.image_url('icons8-search-property-96.png'),
+                graph: this.image_url('icons8-graph-96.png'),
+                heatmap: this.image_url('icons8-heat-map-96.png'),
+                file: this.image_url('icons8-open-document-48.png'),
+                yellow_alert: this.image_url('icons8-yellow-alert-96.png'),
+                red_alert: this.image_url('icons8-red-alert-96.png'),
+                message: this.image_url('icons8-communication-96.png'),
+                medicines: this.image_url('icons8-medicines-96.png'),
+                fill_form: this.image_url('icons8-fill-in-form-48.png'),
             },
             error_messages: {
                 too_mach_points: 'За данный период в медицинской карте присутствует слишком большое количество записей (> 500). ',
                 averaged: 'Для удобства мы усреднили значения. Усреднение можно убрать с помощью выше, но в таком случае точные значения будут недоступны.',
                 not_averaged: 'Чтобы увидеть комментарии к точкам и симптомы, загрузите период с меньшим количеством записей или усредните значения.',
                 incorrect_period: 'Выбран некорректный период',
-                not_more_30_days: 'Пожалуйста, выберите период <strong>не больше</strong> 30 дней.'
+                not_more_30_days: 'Пожалуйста, выберите период <b>не больше</b> 30 дней.'
+            },
+            colors: {
+                red: '#EC6446',
+                green: '#61AC00',
+                yellow: '#ecb746'
             },
             axios: require('axios'),
             category_list: undefined,
@@ -158,7 +386,9 @@ window.onresize = function () {
 
 Vue.use(vmodal, {componentName: 'Modal'})
 Vue.use(VueConfirmDialog)
+Vue.use(VueEllipseProgress)
 Vue.component('vue-confirm-dialog', VueConfirmDialog.default)
+Vue.component('vue-ellipse-progress', VueEllipseProgress.default)
 
 new Vue({
     render: h => h(App),

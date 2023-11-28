@@ -49,6 +49,7 @@ def verify_args(func):
     wrapper.__name__ = func.__name__
     return wrapper
 
+
 def verify_agent_args(func):
     def wrapper(*args, **kwargs):
         if not request.args.get('contract_id'):
@@ -84,7 +85,7 @@ def verify_json(func):
 
 def get_ui(contract, mode='settings', object_id=None, source=None, params={}):
     return render_template('index.html', contract_id=contract.id, agent_token=contract.agent_token,
-                           mode=mode, object_id=object_id, source=source, params=json.dumps(params),
+                           mode=mode, object_id=object_id, source=source, params=json.dumps(params), agents=json.dumps(AGENTS),
                            api_host=MAIN_HOST.replace('8001', '8000'), js_host=JSHOST, localhost=LOCALHOST,
                            agent_id=AGENT_ID, lc=dir_last_updated('static'))
 
@@ -155,9 +156,6 @@ def get_records_list(contract_id, categories, dates, options=None):
     for record in records:
         if record['category_info']['default_representation'] == 'non_zero_dates' and record['value'] == 0:
             continue
-
-        record['formatted_date'] = datetime.fromtimestamp(record['timestamp']).strftime('%d.%m.%Y')
-        record['formatted_time'] = datetime.fromtimestamp(record['timestamp']).strftime('%H:%M')
 
     answer = {
         'records': records,

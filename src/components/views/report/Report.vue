@@ -143,6 +143,14 @@ export default {
         Event.listen('load-report', (report) => {
             this.options.selected_page = 0
             this.options.report = report
+
+            if (window.PARAMS && window.PARAMS.date_from && window.PARAMS.date_to) {
+                this.options.dates = [
+                    new Date(window.PARAMS.date_from),
+                    new Date(window.PARAMS.date_to)
+                ]
+            }
+
             this.load(true)
         })
 

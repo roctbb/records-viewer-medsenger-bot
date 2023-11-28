@@ -506,7 +506,9 @@ export default {
                 y: -3
             }))
 
-            if (!(this.options.graph_type == 'heatmap' && this.options.graph.categories.includes('symptom') && !this.heatmap_data.show_medicines)) {
+            if (!(this.options.graph_type == 'heatmap' &&
+                this.options.graph.categories.includes('symptom') &&
+                !this.heatmap_data.show_medicines)) {
                 series = series.concat(this.get_medicine_series())
             }
             if (this.options.graph_type == 'heatmap') {
@@ -515,8 +517,11 @@ export default {
 
             if (this.options.graph_type.includes('line')) {
                 let graph_series = this.get_line_graph_series()
+                Event.fire('set-points-color-mode', this.options.show_points_colors)
 
-                let sum_graph = this.records.filter(record => record.category_info.default_representation == 'day_sum').length
+
+                let sum_graph = this.records.filter(record =>
+                    record.category_info.default_representation == 'day_sum').length
                 let too_much_points = this.records.length > 500 && !sum_graph
 
                 if (!this.options.graph.disable_averaging && this.options.collapse_points_median == undefined) {
@@ -546,6 +551,8 @@ export default {
                 } else if (this.options.collapse_points_sma) {
                     if (too_much_points)
                         this.errors = [this.error_messages.too_mach_points, this.error_messages.averaged]
+                    Event.fire('set-collapse-sma-mode', true)
+
                     this.collapse(graph_series, this.collapse_sma_ranges_point, this.collapse_sma_ranges_series)
                     graph_series = this.collapsed_data
                     options.plotOptions.line.dataLabels.enabled = false
@@ -846,8 +853,8 @@ export default {
                             comment: this.get_comment({
                                 value: data.name + value.dose,
                                 timestamp: value.timestamp,
-                                date: value.date,
-                                time: value.time
+                                date: value.formatted_date,
+                                time: value.formatted_time
                             }, `Прием лекарства`),
                         }
                     })
@@ -870,7 +877,7 @@ export default {
                             dl = {
                                 enabled: true,
                                 formatter: function () {
-                                    return `${value.value} (${value.date})`
+                                    return `${value.value} (${value.formatted_date})`
                                 }
                             }
                         }
@@ -904,7 +911,7 @@ export default {
                             timestamp: value.timestamp,
                             name: data.name,
                             value: value.color,
-                            comment: `<b>${value.date}</b><br>${value.description}`,
+                            comment: `<b>${value.formatted_date}</b><br>${value.description}`,
                         }
                     })
                     res = this.fill_nulls(res, data.y)
@@ -1009,15 +1016,6 @@ export default {
         },
 
         // Вспомогательные
-        comment_additions: function (point) {
-            return point.additions ?
-                point.additions.filter(a => a && a['addition'] && a['addition']['comment']) : []
-        },
-        zone_addition: function (point) {
-            let zones =  point.additions ?
-                point.additions.filter(a => a && a['addition'] && a['addition']['zone']) : undefined
-            return zones && zones.length ? zones[0]['addition'] : undefined
-        },
         get_color: function (point) {
             let zone = this.zone_addition(point)
             if (this.options.show_points_colors && zone) {
@@ -1041,8 +1039,7 @@ export default {
             return undefined;
         },
         get_comment: function (point, category) {
-            let date = new Date((point.timestamp) * 1000)
-            let comment = `<u>${point.date}</u><br><b>${this.format_time(date)}</b> - ${category}: ${point.value}`
+            let comment = `<u>${point.formatted_date}</u><br><b>${point.formatted_time}</b> - ${category}: ${point.value}`
 
             this.comment_additions(point).forEach((value) => {
                 comment += `<br><b style="color: red;">${value['addition']['comment']}</b>`
@@ -1058,18 +1055,12 @@ export default {
             let zone = this.zone_addition(point)
             if (this.options.show_points_colors && zone) {
                 let color = zone['color'] ? zone['color'].replace(',1)', ',0.3)') : 'transparent'
-                comment += `<br><b style="background-color: ${color};">${zone['zone']}</b>`
+                comment += `<br><b style="background-color: ${color};">${zone['zone_description']}</b>`
             }
 
             return comment
         },
 
-        format_time: function (date) {
-            return date.toTimeString().substring(0, 5)
-        },
-        format_date: function (date) {
-            return date.toLocaleDateString()
-        },
         fill_nulls: function (data, y) {
             let start = +this.middle_of_day(new Date(this.options.dates[0].getTime()))
             let end = +this.middle_of_day(new Date(this.options.dates[1].getTime()))
@@ -1130,6 +1121,8 @@ export default {
                     let d = new Date(val.timestamp * 1000)
                     val.date = this.format_date(d)
                     if (by_hour) val.date += ` ${d.getHours()}:00-${(d.getHours() + 1) % 24}:00`
+
+                    val.value = val.y
                 })
 
                 let data_by_dates = this.group_by(graph.data, 'date')
@@ -1241,17 +1234,17 @@ export default {
         },
         collapse_sma_ranges_point: function (sma, points, date, graph, data_by_dates) {
             sma.count = points.length
-            let sma_data = {}
-            Object.assign(sma_data, data_by_dates, this.additional_records[graph.category_code])
-
-            let result = this.simple_moving_average(sma_data, 7, date)
+            let result = this.simple_moving_average(data_by_dates,
+                this.additional_records[graph.category_code], 7, date)
 
             if (!result.credible) {
                 sma.marker.enabled = false
             }
+
             if (result.filled_days == 0) {
                 result.value = points.map(val => val.y).reduce((a, b) => a + b, 0) / points.length
             }
+
             sma.y = result.value
 
             let low = Math.min.apply(Math, points.map(val => val.y))
@@ -1381,34 +1374,6 @@ export default {
 
             return records.slice(start_index, end_index).map(record => record.value)
         },
-
-        median: function (arr) {
-            const arrayHalf = arr.length / 2
-            const sorted = [].concat(arr).sort((a, b) => a - b)
-
-            return arr.length % 2 === 0
-                ? (sorted[arrayHalf] + sorted[arrayHalf + 1]) / 2
-                : sorted[~~(arrayHalf)]
-        },
-        simple_moving_average: function (data_by_dates, period, date) {
-            let tmp_date = moment(date, 'DD.MM.YYYY').subtract(1, 'day'), values = []
-            let filled_days = 0
-
-            for (let d = 0; d < period; d++) {
-                let formatted_date = tmp_date.format('DD.MM.YYYY')
-                let tmp_values = data_by_dates[formatted_date] ? data_by_dates[formatted_date].map(val => val.y) : []
-                if (tmp_values.length) filled_days++
-
-                values = values.concat(tmp_values)
-                tmp_date = tmp_date.subtract(1, 'day')
-            }
-
-            return {
-                value: (values.reduce((a, b) => a + b, 0) / values.length) || 0,
-                credible: period == filled_days,
-                filled_days: filled_days
-            }
-        }
     },
     created() {
         this.options.dates = {
@@ -1416,7 +1381,7 @@ export default {
             period: 14
         }
 
-        this.colors = ['#058DC7', '#50B432', '#aa27ce', '#fcff00',
+        this.colors = ['rgba(5,141,199,0.99)', '#50B432', '#aa27ce', '#fcff00',
             '#24CBE5', '#64E572', '#c355ff', '#fce200', '#6AF9C4']
 
         this.grey_colors = ['rgba(100,100,100,0.5)', 'rgba(125,125,125,0.5)', 'rgba(150,150,150,0.5)', 'rgba(175,175,175,0.5)']
@@ -1449,8 +1414,9 @@ export default {
                     new Date(data.info.dates[0] * 1000),
                     new Date(data.info.dates[1] * 1000)
                 ]
-                Event.fire('set-dates', this.options.dates)
             }
+
+            Event.fire('set-dates', this.options.dates)
 
             this.records = data.records.map((record) => {
                 record.category = record.category_info.name
@@ -1463,6 +1429,15 @@ export default {
 
             this.process_load_answer()
         });
+
+        Event.listen('additional-loaded', (data) => {
+            if (!this.options.graph) return
+
+            this.additional_records = this.group_records_by_categories_by_dates(data)
+
+            this.load()
+            this.$forceUpdate()
+        })
 
         Event.listen('set-export-chart', (data) => {
             this.export_chart = data
@@ -1480,8 +1455,20 @@ export default {
                 this.start_of_day(this.add_days(this.last_date, -13)),
                 this.last_date
             ]
-            this.load(true)
-            this.$forceUpdate()
+
+            if (window.PARAMS && window.PARAMS.date_from && window.PARAMS.date_to) {
+                this.options.dates = [
+                    new Date(window.PARAMS.date_from),
+                    new Date(window.PARAMS.date_to)
+                ]
+            }
+
+            if (window.PARAMS && window.PARAMS.mode && this.options.collapse_points_median == undefined) {
+                Event.fire('update-' + window.PARAMS.mode, true)
+            } else {
+                this.load(!window.PARAMS)
+                this.$forceUpdate()
+            }
         });
 
         Event.listen('load-day-graph', (params) => {
@@ -1489,6 +1476,13 @@ export default {
             this.options.graph = params
 
             this.options.dates = [undefined, this.last_date]
+
+            if (window.PARAMS && window.PARAMS.date_from && window.PARAMS.date_to) {
+                this.options.dates = [
+                    new Date(window.PARAMS.date_from),
+                    new Date(window.PARAMS.date_to)
+                ]
+            }
 
             this.options.collapse_points_median = false
             Event.fire('set-collapse-median-mode', false)
@@ -1506,7 +1500,15 @@ export default {
         Event.listen('load-heatmap', (params) => {
             this.options.graph_type = 'heatmap'
             this.options.graph = params
+
             this.options.dates = [undefined, this.last_date]
+
+            if (window.PARAMS && window.PARAMS.date_from && window.PARAMS.date_to) {
+                this.options.dates = [
+                    new Date(window.PARAMS.date_from),
+                    new Date(window.PARAMS.date_to)
+                ]
+            }
 
             this.heatmap_data = {
                 medicine_series: [],
@@ -1517,7 +1519,7 @@ export default {
                 show_medicines: false
             }
 
-            this.load(true)
+            this.load(!window.PARAMS)
         });
 
         Event.listen('refresh-stats', (data) => {
@@ -1571,6 +1573,12 @@ export default {
 
         Event.listen('graph-update-dates', (dates) => {
             this.options.dates = dates
+
+            if (this.options.collapse_points_sma) {
+                this.load_additional_data(this.options.graph.categories,
+                    this.options.dates[0].getTime(), 7, this.options.graph_type)
+            }
+
             this.load()
         });
 
@@ -1590,7 +1598,7 @@ export default {
             this.$forceUpdate()
         });
 
-        Event.listen('update-points-colors', (mode) => {
+        Event.listen('update-points-color', (mode) => {
             if (mode) {
                 this.options.collapse_points_median = false
                 Event.fire('set-collapse-median-mode', false)
@@ -1600,7 +1608,7 @@ export default {
             }
 
             this.options.show_points_colors = mode
-            Event.fire('set-colors-mode', mode)
+            Event.fire('set-points-color-mode', mode)
 
             this.load()
             this.$forceUpdate()
@@ -1614,38 +1622,10 @@ export default {
                 Event.fire('set-collapse-median-mode', false)
 
                 this.options.show_points_colors = false
-                Event.fire('set-colors-mode', false)
+                Event.fire('set-points-color-mode', false)
 
-
-                let start_date = (this.options.dates[0].getTime() - this.day * 7) / 1000
-                let end_date = this.options.dates[0].getTime() / 1000
-
-                // вытаскиваю предыдущие 7 дней
-                let data = {
-                    categories: this.options.graph.categories,
-                    dates: [start_date, end_date], // [start, end]
-                    options: {
-                        type: this.options.graph_type
-                    }
-                }
-
-                this.axios.post(this.direct_url('/api/get_records'), data).then(response => {
-                    let records = response.data.records.map((r) => {
-                        r.category_code = r.category_info.name
-                        r.y = r.value
-                        return r
-                    })
-                    let records_by_categories = this.group_by(records, 'category_code')
-                    let records_by_categories_by_dates = {}
-                    Object.entries(records_by_categories).forEach(([category, records]) => {
-                        records_by_categories_by_dates[category] = this.group_by(records, 'formatted_date')
-                    })
-                    this.additional_records = records_by_categories_by_dates
-
-                    this.load()
-                    this.$forceUpdate()
-                });
-
+                this.load_additional_data(this.options.graph.categories,
+                    this.options.dates[0].getTime(), 7, this.options.graph_type)
             } else {
                 this.load()
                 this.$forceUpdate()

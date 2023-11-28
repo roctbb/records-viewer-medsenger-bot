@@ -5,15 +5,14 @@
             <div v-if="description">
                 <span class="text-muted">{{ description }}</span>
             </div>
-
         </div>
+
         <div class="col-md-8" :class="{'col-2': check}">
             <slot></slot>
             <div v-if="errors">
                 <span style="color: red;">{{ errors }}</span>
             </div>
         </div>
-
     </div>
 </template>
 
@@ -37,5 +36,8 @@ strong.big {
     color: red;
     content: ' *';
     font-size: 18px;
+}
+.row {
+    grid-column-gap: 0;
 }
 </style>
