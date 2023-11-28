@@ -368,8 +368,12 @@ Vue.mixin({
             },
             colors: {
                 red: '#EC6446',
+                orange: '#ec8b46',
+                yellow: '#ecbd46',
                 green: '#61AC00',
-                yellow: '#ecb746'
+                blue: '#46a7ec',
+                darkblue: '#3277e0',
+                purple: '#8846ec'
             },
             axios: require('axios'),
             category_list: undefined,

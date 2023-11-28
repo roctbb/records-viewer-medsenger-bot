@@ -357,7 +357,7 @@ export default {
             if (this.options.graph_type.includes('line')) {
                 options.chart.height = `${Math.max(window.innerHeight - 230, 500)}px`
 
-                options.colors = this.options.show_points_colors ? this.grey_colors : this.colors
+                options.colors = this.options.show_points_colors ? this.grey_graph_colors : this.graph_colors
                 options.tooltip.formatter = undefined
 
                 options.plotOptions = {
@@ -1198,7 +1198,7 @@ export default {
                 data: data.map(p => p.median),
                 yAxis: 0,
                 showInNavigator: true,
-                color: this.options.show_points_colors ? this.grey_colors[i] : this.colors[i],
+                color: this.options.show_points_colors ? this.grey_graph_colors[i] : this.graph_colors[i],
                 states: {
                     inactive: {
                         opacity: 1,
@@ -1268,7 +1268,7 @@ export default {
                 data: data.map(p => p.sma),
                 yAxis: 0,
                 showInNavigator: true,
-                color: this.options.show_points_colors ? this.grey_colors[i] : this.colors[i],
+                color: this.options.show_points_colors ? this.grey_graph_colors[i] : this.graph_colors[i],
                 states: {
                     inactive: {
                         opacity: 1,
@@ -1381,10 +1381,10 @@ export default {
             period: 14
         }
 
-        this.colors = ['rgba(5,141,199,0.99)', '#50B432', '#aa27ce', '#fcff00',
+        this.graph_colors = ['#058dc7', '#50B432', '#aa27ce', '#fcff00',
             '#24CBE5', '#64E572', '#c355ff', '#fce200', '#6AF9C4']
 
-        this.grey_colors = ['rgba(100,100,100,0.5)', 'rgba(125,125,125,0.5)', 'rgba(150,150,150,0.5)', 'rgba(175,175,175,0.5)']
+        this.grey_graph_colors = ['rgba(100,100,100,0.5)', 'rgba(125,125,125,0.5)', 'rgba(150,150,150,0.5)', 'rgba(175,175,175,0.5)']
 
         Highcharts.setOptions({
             lang: {
