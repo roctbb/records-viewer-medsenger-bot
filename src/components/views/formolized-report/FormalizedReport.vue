@@ -287,8 +287,8 @@ export default {
                 this.options.loaded = false
 
                 this.send_order('get_medicines', window.AGENTS.FORMS_AGENT_ID, {
-                    from_timestamp: this.options.dates[0].getTime() / 1000,
-                    to_timestamp: this.options.dates[1].getTime() / 1000
+                    from_timestamp: Math.floor(this.options.dates[0].getTime() / 1000),
+                    to_timestamp: Math.floor(this.options.dates[1].getTime() / 1000)
                 }, 'prescriptions-loaded')
             }
 
@@ -296,8 +296,8 @@ export default {
                 this.options.loaded = false
 
                 this.send_order('get_compliance', window.AGENTS.FORMS_AGENT_ID, {
-                    from_timestamp: this.options.dates[0].getTime() / 1000,
-                    to_timestamp: this.options.dates[1].getTime() / 1000
+                    from_timestamp: Math.floor(this.options.dates[0].getTime() / 1000),
+                    to_timestamp: Math.floor(this.options.dates[1].getTime() / 1000)
                 }, 'compliance-loaded')
             }
             this.$forceUpdate()

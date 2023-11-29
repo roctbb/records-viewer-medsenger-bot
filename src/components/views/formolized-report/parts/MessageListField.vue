@@ -3,7 +3,7 @@
         <loading v-if="!options.loaded"/>
         <div v-else>
             <div class="alert alert-success" role="alert"
-                 v-if="!groups.length && field.record_groups">
+                 v-if="!groups.length">
                 {{ field.nothing_found_message }}
             </div>
 
