@@ -249,7 +249,7 @@ Vue.mixin({
             const sorted = [].concat(arr).sort((a, b) => a - b)
 
             return arr.length % 2 === 0
-                ? (sorted[arrayHalf] + sorted[arrayHalf + 1]) / 2
+                ? (sorted[arrayHalf] + sorted[arrayHalf - 1]) / 2
                 : sorted[~~(arrayHalf)]
         },
         simple_moving_average: function (data_by_dates, additional_data_by_dates, period, date) {
