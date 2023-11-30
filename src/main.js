@@ -114,19 +114,25 @@ Vue.mixin({
             })
 
             if (group_filters) {
-                if (group_filters['comments']) {
+                if (group_filters.comments) {
                     groups = groups.filter((group) => group.comments.length)
                 }
-                if (group_filters['grade'] != undefined) {
+                if (group_filters.grade != undefined) {
                     groups.forEach((group) => {
                         group.records = group.records.filter((record) =>
                             record.params && record.params.grade == group_filters['grade'])
                     })
                 }
-                if (group_filters["general_answer"]) {
+                if (group_filters.general_answer) {
                     groups.forEach((group) => {
                         group.records = group.records.filter((record) =>
                             record.params && record.params.general_answer)
+                    })
+                }
+                if (group_filters.other_doctor) {
+                    groups.forEach((group) => {
+                        group.records = group.records.filter((record) =>
+                            record.contract_id != this.contract_id)
                     })
                 }
             }
@@ -399,7 +405,8 @@ Vue.mixin({
             category_list: undefined,
             window_mode: window.MODE,
             object_id: window.OBJECT_ID,
-            source: window.SOURCE
+            source: window.SOURCE,
+            contract_id: window.CONTRACT_ID
         }
     }
 })
