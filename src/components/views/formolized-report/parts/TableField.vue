@@ -6,7 +6,7 @@
                  v-if="!record_groups.length && field.record_groups">
                 {{ field.nothing_found_message }}
             </div>
-            <table class="table table-hover" v-else>
+            <table class="table table-hover" :class="mobile ? 'table-responsive' : ''" v-else>
                 <!-- ШИРИНА СТОЛБЦОВ -->
                 <colgroup v-if="!field.fixed_col_width">
                     <col span="1" style="width: 25%;">
