@@ -339,8 +339,15 @@ export default {
                 this.start_of_day(this.add_days(this.last_date, -6)),
                 this.last_date
             ]
-            this.load_data_format_codes()
 
+            if (window.PARAMS && window.PARAMS.date_from && window.PARAMS.date_to) {
+                this.options.dates = [
+                    new Date(window.PARAMS.date_from),
+                    new Date(window.PARAMS.date_to)
+                ]
+            }
+
+            this.load_data_format_codes()
             this.load()
         })
 

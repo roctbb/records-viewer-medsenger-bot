@@ -6,11 +6,11 @@
                 <form-group48 :title="bar.text" :big="true" style="margin: 5px 0">
                     <div class="progress" style="height: 30px;">
                         <div class="progress-bar" role="progressbar"
-                             :style="`width: ${data.stats.zones[bar.category][part.zone_index]['percent']}%; background-color: ${part.color.replace(',1)', ',0.6)')}; color:black`"
-                             :aria-valuenow="data.stats.zones[bar.category][part.zone_index]['percent']"
+                             :style="get_part_style(bar, part)"
+                             :aria-valuenow="data.stats.zones[bar.category][part.zone_index].percent"
                              aria-valuemin="0" aria-valuemax="100"
                              v-if="part.code == 'zone_percent' && data.stats.zones[bar.category]" v-for="part in field.parts">
-                            <b>{{ data.stats.zones[bar.category][part.zone_index]['percent'].toFixed(0) * 1 }}%</b>
+                            <b>{{ data.stats.zones[bar.category][part.zone_index].percent.toFixed(0) * 1 }}%</b>
                         </div>
                     </div>
                 </form-group48>
@@ -46,7 +46,13 @@ export default {
     created() {
         this.options.loaded = true
     },
-    methods: {},
+    methods: {
+        get_part_style: function (bar, part) {
+            return `width: ${this.data.stats.zones[bar.category][part.zone_index].percent}%;
+                    background-color: ${this.color_transparency(this.colors[part.color], 80)};
+                    color: black`
+        }
+    },
     computed: {
         categories() {
             return this.field.bars

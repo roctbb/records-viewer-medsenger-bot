@@ -27,6 +27,7 @@ window.Event = new class {
 
 Vue.mixin({
     methods: {
+        // urls
         url: function (action) {
             let api_host = window.API_HOST;
             let agent_token = window.AGENT_TOKEN;
@@ -47,6 +48,7 @@ Vue.mixin({
             return 'https://common.medsenger.ru/images/' + file_name
         },
 
+        // data
         group_by: function (data, field) {
             if (!data)
                 return []
@@ -136,7 +138,6 @@ Vue.mixin({
 
             return groups
         },
-
         load_data: function (categories, dates, options = null) {
             let data = {
                 categories: categories,
@@ -161,7 +162,7 @@ Vue.mixin({
             end_date /= 1000
             let start_date = end_date - this.day * period / 1000
 
-            // вытаскиваю предыдущие 7 дней
+            // вытаскиваю предыдущие n дней
             let data = {
                 categories: categories,
                 dates: [start_date, end_date], // [start, end]
@@ -228,6 +229,7 @@ Vue.mixin({
                 })
         },
 
+        // values
         binary_search: function (arr, value, l, r) {
             let mid = Math.floor((r - l) / 2) + l
 
@@ -310,6 +312,7 @@ Vue.mixin({
         },
 
 
+        // data processing
         add_error: function (errors, error) {
             errors = this.remove_error(errors, error)
             errors.push(error)
@@ -327,6 +330,17 @@ Vue.mixin({
         comment_additions: function (record) {
             return record.additions ?
                 record.additions.filter((a) => a && a['addition'] && a['addition']['comment']) : []
+        },
+        color_transparency: function (color, percentage) {
+            if (color.includes('rgb')) {
+                let p = percentage / 100
+                return color.split(',').length == 3 ? color.replace(')', `,${p})`) : color.replace(',1)', `,${p})`)
+            } else {
+                let dec = (percentage * 255 / 100).toFixed(0) * 1
+                let hex = dec.toString(16)
+                console.log(color, dec, hex)
+                return color + hex
+            }
         }
 
     },
@@ -367,13 +381,13 @@ Vue.mixin({
                 not_more_30_days: 'Пожалуйста, выберите период <b>не больше</b> 30 дней.'
             },
             colors: {
-                red: '#EC6446',
-                orange: '#ec8b46',
-                yellow: '#ecbd46',
-                green: '#61AC00',
-                blue: '#46a7ec',
-                darkblue: '#3277e0',
-                purple: '#8846ec'
+                red: '#fd3737',
+                orange: '#ff961e',
+                yellow: '#ffc800',
+                green: '#7dda06',
+                blue: '#36c3ff',
+                darkblue: '#095cf5',
+                purple: '#853cff'
             },
             axios: require('axios'),
             category_list: undefined,
