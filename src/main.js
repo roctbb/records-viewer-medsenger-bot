@@ -159,6 +159,11 @@ Vue.mixin({
             });
         },
         load_additional_data: function (categories, end_date, period, type) {
+            if (period == 0) {
+                Event.fire('additional-loaded', [])
+                return
+            }
+
             end_date /= 1000
             let start_date = end_date - this.day * period / 1000
 

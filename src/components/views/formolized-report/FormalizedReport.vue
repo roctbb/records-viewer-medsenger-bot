@@ -112,6 +112,7 @@ export default {
 
             // this.stats = {}
             this.stats.zones = {}
+            this.stats.sma = {}
 
             this.options.report.options.blocks.forEach((block) => {
                 block.fields.forEach((field) => {
@@ -144,6 +145,7 @@ export default {
                     parts.forEach((part) => {
                         if (!(part.code in codes)) codes[part.code] = new Set()
                         categories.forEach(codes[part.code].add, codes[part.code])
+                        if (part.code.includes('sma') && part.period) this.stats.sma.period = part.period
 
                         if (part.code.includes('zone')) {
                             categories.forEach((category) => {
@@ -199,12 +201,12 @@ export default {
 
         // values
         get_sma: function () {
-            this.stats.sma = {}
+            this.stats.sma = {period: this.stats.sma.period}
             this.options.data_format_codes.sma.forEach((category) => {
                 this.stats.sma[category] = this.simple_moving_average(
                     this.data.records_by_categories_by_dates[category],
                     this.data.additional_records[category],
-                    this.options.period, this.format_date(this.options.dates[1])
+                    this.stats.sma.period, this.format_date(this.options.dates[1])
                 )
             })
 
@@ -257,7 +259,7 @@ export default {
         Event.listen('loaded', (data) => {
             if (data.info.type != 'formalized-report') return
 
-            this.stats.sma = {}
+            this.stats.sma = {period: this.stats.sma.period}
             this.stats.compliance = []
 
             if ('zone_cnt' in this.options.data_format_codes ||
@@ -279,9 +281,12 @@ export default {
 
             this.options.loaded = true
 
-            if ('sma' in this.options.data_format_codes)
+            if ('sma' in this.options.data_format_codes) {
+                let period = Math.max(0, this.stats.sma.period - this.options.period + 1)
+                console.log(this.stats.sma.period, period)
                 this.load_additional_data(this.options.data_format_codes.sma, this.options.dates[0].getTime(),
-                    1, 'formalized-report')
+                    period, 'formalized-report')
+            }
 
             if ('medicine_description' in this.options.data_format_codes) {
                 this.options.loaded = false
