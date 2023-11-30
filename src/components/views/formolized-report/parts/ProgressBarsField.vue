@@ -3,18 +3,22 @@
         <loading v-if="!options.loaded"/>
         <div v-else>
             <div v-for="(bar, i) in field.bars" :key="'bar_' + i">
-                <form-group48 :title="bar.text" :big="true" style="margin: 5px 0">
-                    <div class="progress" style="height: 30px;">
-                        <div class="progress-bar" role="progressbar"
-                             :style="get_part_style(bar, part)"
-                             :aria-valuenow="data.stats.zones[bar.category][part.zone_index].percent"
-                             aria-valuemin="0" aria-valuemax="100"
-                             v-if="part.code == 'zone_percent' && data.stats.zones[bar.category]" v-for="part in field.parts">
-                            <b>{{ data.stats.zones[bar.category][part.zone_index].percent.toFixed(0) * 1 }}%</b>
+                <div class="row" style="margin:  10px -5px">
+                    <div class="col-md-3">
+                        {{ bar.text }}
+                    </div>
+                    <div class="col-md-9">
+                        <div class="progress" style="height: 30px;">
+                            <div class="progress-bar" role="progressbar"
+                                 :style="get_part_style(bar, part)"
+                                 :aria-valuenow="data.stats.zones[bar.category][part.zone_index].percent"
+                                 aria-valuemin="0" aria-valuemax="100"
+                                 v-if="part.code == 'zone_percent' && data.stats.zones[bar.category]" v-for="part in field.parts">
+                                <b>{{ data.stats.zones[bar.category][part.zone_index].percent.toFixed(0) * 1 }}%</b>
+                            </div>
                         </div>
                     </div>
-                </form-group48>
-
+                </div>
             </div>
         </div>
     </div>
@@ -69,5 +73,7 @@ export default {
 </script>
 
 <style scoped>
-
+.row {
+    grid-column-gap: 0;
+}
 </style>

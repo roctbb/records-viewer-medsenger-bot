@@ -1,6 +1,12 @@
 <template>
     <div v-if="field" style="margin-top: 15px; margin-bottom: 5px;">
-        <a class="btn btn-primary" target="_blank" :href="get_url">{{field.text}}</a>
+        <div class="row" style="margin: -5px">
+            <div class="col-md-3">
+                <a class="btn btn-primary btn-block" target="_blank" :href="get_url">{{ field.text }}</a>
+            </div>
+            <div class="col-md-9">
+            </div>
+        </div>
     </div>
 </template>
 

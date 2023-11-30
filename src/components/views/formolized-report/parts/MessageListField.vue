@@ -9,7 +9,7 @@
 
             <div v-else>
                 <div class="row">
-                    <div class="col-6" v-for="(group, i) in groups" :key="'group_' + i">
+                    <div class="col-md-6" v-for="(group, i) in groups" :key="'group_' + i">
                         <card :image="field.card_image ? images[field.card_image] : undefined" :big="true"
                               additional_style="display: block; padding: 10px; background-color: rgb(145,225,230,0.05);">
                             <div v-for="part in field.message_parts">

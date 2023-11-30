@@ -9,8 +9,8 @@
             <table class="table table-hover" v-else>
                 <!-- ШИРИНА СТОЛБЦОВ -->
                 <colgroup v-if="!field.fixed_col_width">
-                    <col span="1" style="width: 30%;">
-                    <col span="1" :style="`width: ${70 / field.cols.length}%;`" v-for="col in field.cols">
+                    <col span="1" style="width: 25%;">
+                    <col span="1" :style="`width: ${75 / field.cols.length}%;`" v-for="col in field.cols">
                 </colgroup>
                 <colgroup v-else>
                     <col span="1" :style="`width: ${col.width}%;`" v-for="col in field.cols">
@@ -25,7 +25,7 @@
 
                 <tbody>
                 <tr v-for="row in field.rows" v-if="!field.record_groups">
-                    <td>{{ row.text }}</td>
+                    <td style="padding-left: 0">{{ row.text }}</td>
                     <td v-for="col in field.cols" :style="get_cell_color(col)">
 
                         <!-- SIMPLE MOVING AVERAGE -->
