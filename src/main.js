@@ -332,13 +332,14 @@ Vue.mixin({
                 record.additions.filter((a) => a && a['addition'] && a['addition']['comment']) : []
         },
         color_transparency: function (color, percentage) {
+            if (color in this.colors) color = this.colors[color]
+
             if (color.includes('rgb')) {
                 let p = percentage / 100
                 return color.split(',').length == 3 ? color.replace(')', `,${p})`) : color.replace(',1)', `,${p})`)
             } else {
                 let dec = (percentage * 255 / 100).toFixed(0) * 1
                 let hex = dec.toString(16)
-                console.log(color, dec, hex)
                 return color + hex
             }
         }

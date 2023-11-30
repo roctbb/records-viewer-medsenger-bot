@@ -49,7 +49,7 @@ export default {
     methods: {
         get_part_style: function (bar, part) {
             return `width: ${this.data.stats.zones[bar.category][part.zone_index].percent}%;
-                    background-color: ${this.color_transparency(this.colors[part.color], 80)};
+                    background-color: ${this.color_transparency(part.color, 80)};
                     color: black`
         }
     },
