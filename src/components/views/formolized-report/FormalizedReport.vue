@@ -4,11 +4,11 @@
         <filter-panel page="formalized-report" :patient="patient"
                       :disable_downloading="false" :last_date="last_date"/>
 
+        <!-- Ошибки -->
+        <error-block :errors="errors" v-if="errors.length"/>
         <loading v-if="!options.loaded"/>
-
+        <nothing-found v-else-if="no_data"/>
         <div v-else>
-            <!-- Ошибки -->
-            <error-block :errors="errors" v-if="errors.length"/>
 
             <!-- Описание -->
             <div style="margin-top: 15px;" class="alert alert-info" role="alert"
@@ -54,10 +54,11 @@ import html2pdf from "html2pdf.js";
 import Loading from "../../common/Loading.vue";
 import ErrorBlock from "../../common/ErrorBlock.vue";
 import ReportBlock from "./parts/ReportBlock.vue";
+import NothingFound from "../../common/NothingFound.vue";
 
 export default {
     name: "FormalizedReport",
-    components: {ReportBlock, Loading, FilterPanel, ErrorBlock},
+    components: {NothingFound, ReportBlock, Loading, FilterPanel, ErrorBlock},
     props: {
         patient: {required: true},
         last_date: {required: true},
@@ -99,6 +100,12 @@ export default {
                 params: this.params,
                 type: 'formalized-report'
             }
+        },
+        no_data() {
+            if (!this.data.records) return true
+            console.log(this.options.report)
+            let records = this.data.records.filter((r) => this.options.report.required_categories.includes(r.category_code))
+            return !records.length
         }
     },
     methods: {
@@ -387,7 +394,7 @@ export default {
             }
             if (need_added_medicine_stats) {
                 let medicines = this.data.prescriptions.filter((m) => m.category_code == 'added_medicine')
-                this.stats.count.added_medicine = {value:  medicines.length}
+                this.stats.count.added_medicine = {value: medicines.length}
             }
 
             this.options.loaded = true

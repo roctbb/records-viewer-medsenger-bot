@@ -37,6 +37,7 @@ class CategoryGroup(db.Model):
             "id": self.id,
             "title": self.title,
             "type": self.type,
+            "required_categories": self.required_categories,
             "categories": self.required_categories + (self.optional_categories if self.optional_categories else []),
             'options': self.options
         }
