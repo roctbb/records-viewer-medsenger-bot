@@ -343,6 +343,7 @@ Vue.mixin({
                 record.additions.filter((a) => a && a['addition'] && a['addition']['comment']) : []
         },
         color_transparency: function (color, percentage) {
+            if (!color) return 'transparent'
             if (color in this.colors) color = this.colors[color]
 
             if (color.includes('rgb')) {
@@ -384,6 +385,7 @@ Vue.mixin({
                 message: this.image_url('icons8-communication-96.png'),
                 medicines: this.image_url('icons8-medicines-96.png'),
                 fill_form: this.image_url('icons8-fill-in-form-48.png'),
+                checkmark: this.image_url('icons8-checkmark-96.png')
             },
             error_messages: {
                 too_mach_points: 'За данный период в медицинской карте присутствует слишком большое количество записей (> 500). ',

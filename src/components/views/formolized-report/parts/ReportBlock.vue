@@ -4,9 +4,10 @@
             <div v-for="(field, i) in block.fields">
                 <header-field :field="field" v-if="field.type == 'header'"/>
                 <table-field :data="data" :field="field" v-else-if="field.type == 'table'"/>
-                <action-field :data="data" :field="field" v-else-if="field.type == 'action'"/>
+                <action-field :data="data" :field="field" v-else-if="field.type == 'action' && !to_export"/>
                 <message-list-field :data="data" :field="field" v-else-if="field.type == 'message_list'"/>
                 <progress-bars-field :data="data" :field="field" v-else-if="field.type == 'progress_bars'"/>
+                <report-status-field :data="data" :field="field" :statuses="report.statuses" v-else-if="field.type == 'report_status'"/>
             </div>
         </card>
     </div>
@@ -20,17 +21,16 @@ import TableField from "./TableField.vue";
 import ActionField from "./ActionField.vue";
 import MessageListField from "./MessageListField.vue";
 import ProgressBarsField from "./ProgressBarsField.vue";
+import ReportStatusField from "./ReportStatusField.vue";
 
 export default {
     name: "ReportBlock",
-    components: {ProgressBarsField, MessageListField, ActionField, TableField, HeaderField, FormGroup48, Card},
+    components: {ReportStatusField, ProgressBarsField, MessageListField, ActionField, TableField, HeaderField, FormGroup48, Card},
     props: {
-        block: {
-            required: true
-        },
-        data: {
-            required: true
-        }
+        report: {required: true},
+        block: {required: true},
+        data: {required: true},
+        to_export: {required: false}
     },
     data() {
         return {}

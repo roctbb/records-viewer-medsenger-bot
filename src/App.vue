@@ -11,7 +11,7 @@
                 <div class="container slim-container" style="margin-top: 15px;">
                     <dashboard :patient="patient" v-show="state == 'dashboard' || state == 'graph-category-chooser'"/>
                     <report :patient="patient" :last_date="last_date" v-show="state == 'report'"/>
-                    <formalized-report :patient="patient" :last_date="last_date" v-show="state == 'formalized-report'"/>
+                    <formalized-report :params="params" :patient="patient" :last_date="last_date" v-show="state == 'formalized-report'"/>
                     <graph-presenter :patient="patient" :last_date="last_date" v-show="state == 'graph'"/>
                     <conclusion-editor :patient="patient" v-show="state == 'conclusion'"/>
                 </div>
@@ -34,21 +34,17 @@ import FormalizedReport from "./components/views/formolized-report/FormalizedRep
 export default {
     name: 'App',
     components: {
-        ActionDone,
-        ConclusionEditor,
-        GraphPresenter,
-        LoadError,
-        Dashboard,
-        Report,
-        FormalizedReport,
-        Loading,
-        DashboardHeader,
+        ActionDone, Loading, LoadError,
+        GraphPresenter, Report, FormalizedReport,
+        Dashboard, DashboardHeader,
+        ConclusionEditor
     },
     data() {
         return {
             state: "loading",
             patient: undefined,
             data: undefined,
+            params: {},
             loaded: false
         }
     },
@@ -64,7 +60,11 @@ export default {
     methods: {
         load: function () {
             this.loaded = false
-            this.axios.get(this.direct_url('/api/settings/get_patient')).then(this.process_load_answer);
+            this.axios
+                .get(this.direct_url('/api/settings/get_patient'))
+                .then(this.process_load_answer);
+
+            this.send_order('get_params', window.AGENTS.FORMS_AGENT_ID, {}, 'params-loaded')
         },
         process_load_answer: function (response) {
             this.patient = response.data
@@ -116,6 +116,21 @@ export default {
         Event.listen('load-heatmap', (params) => {
             this.state = 'graph'
         });
+
+
+        Event.listen('params-loaded', (data) => {
+            this.params = {}
+
+            data.forEach((param) => {
+                this.params[param.code] = {
+                    name: param.name,
+                    value: param.value
+                }
+            })
+
+            this.$forceUpdate()
+        })
+
 
     },
 }

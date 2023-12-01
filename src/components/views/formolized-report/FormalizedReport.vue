@@ -2,7 +2,7 @@
     <div v-if="options.report">
         <h4>{{ options.report.title }}</h4>
         <filter-panel page="formalized-report" :patient="patient"
-                      :disable_downloading="!data.records || !data.records.length" :last_date="last_date"/>
+                      :disable_downloading="false" :last_date="last_date"/>
 
         <loading v-if="!options.loaded"/>
 
@@ -17,7 +17,7 @@
             </div>
 
             <!-- Блоки -->
-            <report-block :block="block" :data="block_data"
+            <report-block :block="block" :data="block_data" :report="options.report.options"
                           :key="'block-' + i"
                           v-for="(block, i) in options.report.options.blocks"/>
 
@@ -31,8 +31,16 @@
                             options.dates[0] ? ` с ${options.dates[0].toLocaleDateString()}` : ''
                         }} {{ options.dates[1] ? ` по ${options.dates[1].toLocaleDateString()}` : '' }}</span>
                     <hr>
+                    <!-- Описание -->
+                    <div class="alert alert-info" role="alert"
+                         v-if="options.report.options.description">
+                        <span v-html="options.report.options.description"/>
+                    </div>
+                    <!-- Блоки -->
+                    <report-block :block="block" :data="block_data" :report="options.report.options"
+                                  :key="'export-block-' + i" :to_export="true" style="page-break-inside: avoid;"
+                                  v-for="(block, i) in options.report.options.blocks"/>
 
-                    <hr>
                 </div>
             </div>
         </div>
@@ -51,12 +59,9 @@ export default {
     name: "FormalizedReport",
     components: {ReportBlock, Loading, FilterPanel, ErrorBlock},
     props: {
-        patient: {
-            required: true
-        },
-        last_date: {
-            required: true
-        }
+        patient: {required: true},
+        last_date: {required: true},
+        params: {required: false}
     },
     data() {
         return {
@@ -65,7 +70,8 @@ export default {
                 report: undefined,
                 dates: undefined,
                 period: undefined,
-                data_format_codes: undefined
+                data_format_codes: undefined,
+                report_status_codes: undefined
             },
             data: {
                 records: [],
@@ -90,6 +96,7 @@ export default {
                 period: this.options.period,
                 data: this.data,
                 stats: this.stats,
+                params: this.params,
                 type: 'formalized-report'
             }
         }
@@ -107,12 +114,24 @@ export default {
 
             this.load_data(categories, dates, options)
         },
-        load_data_format_codes: function () {
+        load_report_status_codes: function () {
             let codes = {}
 
-            // this.stats = {}
-            this.stats.zones = {}
-            this.stats.sma = {}
+            this.options.report.options.statuses.forEach((status) => {
+                status.rules.forEach((rule) => {
+                    let categories = rule.conditions.map((c) => c.category)
+
+                    if (!(rule.code in codes)) codes[rule.code] = new Set()
+                    categories.forEach(codes[rule.code].add, codes[rule.code])
+                })
+            })
+
+            Object.entries(codes).forEach(([code, categories]) => codes[code] = Array.from(categories))
+
+            this.options.report_status_codes = codes
+        },
+        load_data_format_codes: function () {
+            let codes = {}
 
             this.options.report.options.blocks.forEach((block) => {
                 block.fields.forEach((field) => {
@@ -144,10 +163,17 @@ export default {
 
                     parts.forEach((part) => {
                         if (!(part.code in codes)) codes[part.code] = new Set()
+
                         categories.forEach(codes[part.code].add, codes[part.code])
-                        if (part.code.includes('sma') && part.period) this.stats.sma.period = part.period
+
+                        if (part.code.includes('sma') && part.period) {
+                            if (!this.stats.sma) this.stats.sma = {}
+                            this.stats.sma.period = part.period
+                        }
 
                         if (part.code.includes('zone')) {
+                            if (!this.stats.zones) this.stats.zones = {}
+
                             categories.forEach((category) => {
                                 if (!(category in this.stats.zones)) this.stats.zones[category] = {}
                                 this.stats.zones[category][part.zone_index] = {
@@ -176,10 +202,17 @@ export default {
             })
         },
         add_comments: function (records) {
+            let need_stats = 'count' in this.options.report_status_codes && this.options.report_status_codes.count.includes('algorithm_comments')
+            if (need_stats)
+                this.stats.count.algorithm_comments = {value: 0}
+
             records.forEach(record => {
                 if (this.options.data_format_codes.algorithm_comments.includes(record.category_code)) {
                     let comment_additions = this.comment_additions(record)
                     record.comments = comment_additions.map((a) => a['addition']['comment'])
+
+                    if (need_stats)
+                        this.stats.count.algorithm_comments.value += record.comments.length
                 }
             })
         },
@@ -251,6 +284,24 @@ export default {
              */
         },
 
+        get_stats: function () {
+            Object.entries(this.options.report_status_codes).forEach(([code, categories]) => {
+                if (code == 'max_grade') {
+                    this.stats.max_grade = {}
+                    categories.forEach((c) => {
+                        let grades = this.data.records_by_categories[c] ?
+                            this.data.records_by_categories[c].filter((r) => r.params && r.params.grade).map((r) => r.params.grade) :
+                            []
+                        this.stats.max_grade[c] = {value: grades.length ? Math.max(...grades) : undefined}
+                    })
+                }
+
+                if (code == 'count') {
+                    this.stats.count = {}
+                }
+
+            })
+        }
     },
     mounted() {
         this.options.dates = [undefined, this.last_date]
@@ -262,16 +313,18 @@ export default {
             this.stats.sma = {period: this.stats.sma.period}
             this.stats.compliance = []
 
-            if ('zone_cnt' in this.options.data_format_codes ||
-                'zone_percent' in this.options.data_format_codes) this.add_zones(data.records)
-
-            if ('algorithm_comments' in this.options.data_format_codes) this.add_comments(data.records)
-
             this.data.records = data.records
             this.data.records_by_categories = this.group_by(data.records, 'category_code')
             this.data.records_by_categories_by_dates = this.group_records_by_categories_by_dates(this.data.records_by_categories, true)
             this.data.record_groups = this.get_record_groups(data.records, true)
             this.data.prescriptions = []
+
+            this.get_stats()
+
+            if ('zone_cnt' in this.options.data_format_codes ||
+                'zone_percent' in this.options.data_format_codes) this.add_zones(data.records)
+
+            if ('algorithm_comments' in this.options.data_format_codes) this.add_comments(data.records)
 
             Event.fire('set-dates', this.options.dates)
             this.options.period = this.dates_difference(this.options.dates[0], this.options.dates[1])
@@ -305,6 +358,7 @@ export default {
                     to_timestamp: Math.floor(this.options.dates[1].getTime() / 1000)
                 }, 'compliance-loaded')
             }
+
             this.$forceUpdate()
         })
 
@@ -322,6 +376,19 @@ export default {
             if (!data || !this.options.report) return
 
             this.data.prescriptions = this.data.prescriptions.concat(data)
+
+            let need_other_medicine_stats = 'count' in this.options.report_status_codes && this.options.report_status_codes.count.includes('other_doctor_prescribed_medicine')
+            let need_added_medicine_stats = 'count' in this.options.report_status_codes && this.options.report_status_codes.count.includes('added_medicine')
+
+
+            if (need_other_medicine_stats) {
+                let medicines = this.data.prescriptions.filter((m) => m.category_code == 'prescribed_medicine' && m.contract_id != this.contract_id)
+                this.stats.count.other_doctor_prescribed_medicine = {value: medicines.length}
+            }
+            if (need_added_medicine_stats) {
+                let medicines = this.data.prescriptions.filter((m) => m.category_code == 'added_medicine')
+                this.stats.count.added_medicine = {value:  medicines.length}
+            }
 
             this.options.loaded = true
             this.$forceUpdate()
@@ -353,6 +420,8 @@ export default {
             }
 
             this.load_data_format_codes()
+            if (this.options.report.options.statuses != undefined) this.load_report_status_codes()
+
             this.load()
         })
 
@@ -363,7 +432,7 @@ export default {
         })
 
 
-        Event.listen('generate-formalized-report', () => {
+        Event.listen('generate-report', () => {
             if (this.options.loaded)
                 this.generate_report()
         })

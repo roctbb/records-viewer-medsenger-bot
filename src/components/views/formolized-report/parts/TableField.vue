@@ -110,13 +110,13 @@ export default {
         get_cell_color: function (col, group) {
             let style = `background-color: `
             if (col.color)
-                return style + col.color.replace(',1)', ',0.3)')
+                return style + this.color_transparency(col.color, 30)
 
             if (col.code == 'category') {
-                let record = group.records_by_categories[col.category][0]
+                let record = group.records_by_categories[col.category] ? group.records_by_categories[col.category][0] : undefined
 
-                if (this.field.cell_color_conditions['comments'] && record.comments.length)
-                    return style + `rgb(255, 0, 0, 0.2)`
+                if (record && this.field.cell_color_conditions['comments'] && record.comments.length)
+                    return style + this.color_transparency('red', 30)
 
             }
             return ''
