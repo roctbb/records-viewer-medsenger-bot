@@ -294,6 +294,17 @@ def send_conclusion(args, form):
     return 'ok'
 
 
+@app.route('/send_message', methods=['POST'])
+@verify_args
+def send_recommendation(args, form):
+    contract_id = int(args.get('contract_id'))
+    data = request.json
+
+    medsenger_api.send_message(contract_id, data['message'])
+
+    return 'ok'
+
+
 with app.app_context():
     db.create_all()
 

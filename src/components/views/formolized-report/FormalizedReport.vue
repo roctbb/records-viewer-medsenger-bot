@@ -283,7 +283,7 @@ export default {
 
             if ('sma' in this.options.data_format_codes) {
                 let period = Math.max(0, this.stats.sma.period - this.options.period + 1)
-                console.log(this.stats.sma.period, period)
+
                 this.load_additional_data(this.options.data_format_codes.sma, this.options.dates[0].getTime(),
                     period, 'formalized-report')
             }
