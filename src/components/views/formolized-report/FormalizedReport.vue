@@ -254,7 +254,7 @@ export default {
             *     filled_days: ..
             * }
             */
-
+            Event.fire('refresh-report-status')
         },
         get_zones_distribution: function () {
             Object.entries(this.stats.zones).forEach(([category, zones]) => {
@@ -286,6 +286,7 @@ export default {
              *   }
              * }
              */
+            Event.fire('refresh-report-status')
         },
 
         get_stats: function () {
@@ -396,6 +397,7 @@ export default {
 
             this.options.loaded = true
             this.$forceUpdate()
+            Event.fire('refresh-report-status')
         })
 
 
@@ -408,13 +410,14 @@ export default {
             if (need_min_compliance_stats) {
                 this.stats.min_compliance = {}
                 this.options.report_status_codes.min_compliance.forEach((c) => {
-                    let values = this.stats.compliance.filter((r) => r.category_code == c).map((r) => r.requested ? r.done / r.requested : 1)
+                    let values = this.stats.compliance.filter((r) => r.category_code == c).map((r) => r.requested ? (r.done / r.requested ): 1)
                     this.stats.min_compliance[c] = {value: Math.min(...values) * 100}
                 })
             }
 
             this.options.loaded = true
             this.$forceUpdate()
+            Event.fire('refresh-report-status')
         })
 
         Event.listen('load-formalized-report', (report) => {

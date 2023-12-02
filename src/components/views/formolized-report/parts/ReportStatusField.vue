@@ -46,37 +46,45 @@ export default {
     },
     created() {
         this.options.loaded = false
-        this.report_status = undefined
-        let comments = []
+        Event.listen('refresh-report-status', () => this.refresh())
+    },
+    methods: {
+        refresh: function () {
+            this.options.loaded = false
+            this.report_status = undefined
+            let comments = []
 
-        this.statuses.forEach((report_status) => {
-            if (this.report_status) return
-            report_status.rules.forEach((rule) => {
-                let stats = this.data.stats[rule.code]
+            this.statuses.forEach((report_status) => {
+                if (this.report_status) return
+                report_status.rules.forEach((rule) => {
+                    let stats = this.data.stats[rule.code]
+                    if (!stats) return
 
-                rule.conditions.forEach((condition) => {
-                    let value = stats[condition.category].value
-                    let condition_eval = condition.condition.replaceAll('@value', value)
-                    let comment = condition.description.replaceAll('@value', value)
+                    rule.conditions.forEach((condition) => {
+                        if (!stats[condition.category]) return
 
-                    condition.params.forEach((p) => {
-                        comment = comment.replaceAll('@' + p, this.data.params[p].value)
-                        condition_eval = condition_eval.replaceAll('@' + p, this.data.params[p].value)
+                        let value = stats[condition.category].value
+                        let condition_eval = condition.condition.replaceAll('@value', value)
+                        let comment = condition.description.replaceAll('@value', value)
+
+                        condition.params.forEach((p) => {
+                            comment = comment.replaceAll('@' + p, this.data.params[p].value)
+                            condition_eval = condition_eval.replaceAll('@' + p, this.data.params[p].value)
+                        })
+
+                        if (eval(condition_eval)) comments.push(comment)
                     })
-
-                    if (eval(condition_eval)) comments.push(comment)
                 })
+
+                if (comments.length) {
+                    this.report_status = report_status
+                    this.report_status.comments = comments
+                }
             })
 
-            if (comments.length) {
-                this.report_status = report_status
-                this.report_status.comments = comments
-            }
-        })
-
-        this.options.loaded = true
+            this.options.loaded = true
+        }
     },
-    methods: {},
     computed: {
         description: function () {
             if (!this.report_status.description) return ''
