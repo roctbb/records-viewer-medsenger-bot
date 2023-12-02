@@ -23,7 +23,7 @@
 
             <!-- Для экспорта -->
             <div v-show="false" v-if="options.loaded">
-                <div ref="to-export" >
+                <div ref="to-export">
                     <h4>{{ options.report.title }}</h4>
                     <h6>Пациент: {{ patient.name }} ({{ patient.birthday }})</h6>
                     <span><b>Период: </b>{{
@@ -101,7 +101,6 @@ export default {
         },
         no_data() {
             if (!this.data.records) return true
-            console.log(this.options.report)
             let records = this.data.records.filter((r) => this.options.report.required_categories.includes(r.category_code))
             return !records.length
         }
@@ -404,6 +403,15 @@ export default {
             if (!data || !this.options.report) return
 
             this.stats.compliance = this.stats.compliance.concat(data)
+
+            let need_min_compliance_stats = 'min_compliance' in this.options.report_status_codes
+            if (need_min_compliance_stats) {
+                this.stats.min_compliance = {}
+                this.options.report_status_codes.min_compliance.forEach((c) => {
+                    let values = this.stats.compliance.filter((r) => r.category_code == c).map((r) => r.requested ? r.done / r.requested : 1)
+                    this.stats.min_compliance[c] = {value: Math.min(...values) * 100}
+                })
+            }
 
             this.options.loaded = true
             this.$forceUpdate()

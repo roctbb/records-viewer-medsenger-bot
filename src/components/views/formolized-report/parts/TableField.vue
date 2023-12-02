@@ -39,7 +39,7 @@
                             <span style="color: red" v-else>
                                 <b>Ненадежный показатель</b>
                                 <br>
-                                <i>*Данные за {{ data.stats.sma[row.category].filled_days }} дн. из {{ data.period }}</i>
+                                <i>*Данные за {{ data.stats.sma[row.category].filled_days }} дн. из {{ data.stats.sma.period }}</i>
                             </span>
                         </span>
 

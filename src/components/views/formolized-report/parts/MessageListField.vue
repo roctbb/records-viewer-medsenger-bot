@@ -9,7 +9,7 @@
 
             <div v-else>
                 <div class="row">
-                    <div class="col-md-6" v-for="(group, i) in groups" :key="'group_' + i">
+                    <div class="col-lg-4 col-md-6" v-for="(group, i) in groups" :key="'group_' + i">
                         <card :image="field.card_image ? images[field.card_image] : undefined" :big="true"
                               :additional_style="`display: block; padding: 10px; background-color: ${color_transparency(field.card_color, 10)};`">
                             <div v-for="part in field.message_parts">
@@ -47,7 +47,7 @@
 
                                 <div class="text-center" v-if="part.code == 'compliance'">
                                     <vue-ellipse-progress :progress="get_compliance_percent(group)"
-                                                          :color="get_compliance_color(group)" animation="default 0 0"
+                                                          :color="get_compliance_color(group, part)" animation="default 0 0"
                                                           :size="100" thickness="12"/>
                                 </div>
 
@@ -100,8 +100,8 @@ export default {
         get_compliance_percent: function (group) {
             return (group.records[0].done / group.records[0].requested * 100).toFixed(1) * 1
         },
-        get_compliance_color: function (group) {
-            return this.get_compliance_percent(group) > 50 ? this.colors.green : this.colors.red
+        get_compliance_color: function (group, part) {
+            return this.get_compliance_percent(group) > (part.target_value ? part.target_value : 50) ? this.colors.green : this.colors.red
         },
     },
     computed: {
