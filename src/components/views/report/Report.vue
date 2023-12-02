@@ -120,7 +120,7 @@ export default {
                 page_break: {mode: 'css'},
                 // image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas: {dpi: 192, letterRendering: true},
-                jsPDF: {unit: 'in', format: 'letter', orientation: 'portrait'}
+                jsPDF: {unit: 'in', format: 'a4', orientation: 'portrait'}
             };
 
             html2pdf().set(opt).from(element).save();

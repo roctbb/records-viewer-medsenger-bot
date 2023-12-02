@@ -23,9 +23,8 @@
 
             <!-- Для экспорта -->
             <div v-show="false" v-if="options.loaded">
-                <div ref="to-export" class="to-export">
+                <div ref="to-export" >
                     <h4>{{ options.report.title }}</h4>
-                    <br>
                     <h6>Пациент: {{ patient.name }} ({{ patient.birthday }})</h6>
                     <span><b>Период: </b>{{
                             options.dates[0] ? ` с ${options.dates[0].toLocaleDateString()}` : ''
@@ -40,7 +39,6 @@
                     <report-block :block="block" :data="block_data" :report="options.report.options"
                                   :key="'export-block-' + i" :to_export="true" style="page-break-inside: avoid;"
                                   v-for="(block, i) in options.report.options.blocks"/>
-
                 </div>
             </div>
         </div>
@@ -228,12 +226,12 @@ export default {
             let element = this.$refs['to-export']
 
             let opt = {
-                margin: 0.5,
+                margin: [0.5, 0.25],
                 filename: this.patient.name + '.pdf',
                 page_break: {mode: 'css'},
-                // image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas: {dpi: 192, letterRendering: true},
-                jsPDF: {unit: 'in', format: 'letter', orientation: 'portrait'}
+                image: {type: "jpeg", quality: 1},
+                html2canvas: {dpi: 300, letterRendering: true}, // useCORS: true
+                jsPDF: {unit: 'in', format: 'a4', orientation: 'portrait'}
             };
 
             html2pdf().set(opt).from(element).save();

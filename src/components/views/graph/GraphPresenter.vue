@@ -1101,7 +1101,7 @@ export default {
                 filename: `${this.options.graph.title}_${this.patient.name}.pdf`,
                 page_break: {mode: 'css'},
                 html2canvas: {dpi: 192, letterRendering: true},
-                jsPDF: {unit: 'in', format: 'letter', orientation: 'portrait'}
+                jsPDF: {unit: 'in', format: 'a4', orientation: 'portrait'}
             };
             setTimeout(() => {
                 this.options.exporting = false;

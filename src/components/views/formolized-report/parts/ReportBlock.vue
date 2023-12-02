@@ -2,12 +2,14 @@
     <div v-if="block">
         <card :title="block.title" :big="true" additional_style="display: block">
             <div v-for="(field, i) in block.fields">
-                <header-field :field="field" v-if="field.type == 'header'"/>
-                <table-field :data="data" :field="field" v-else-if="field.type == 'table'"/>
-                <action-field :data="data" :field="field" v-else-if="field.type == 'action' && !to_export"/>
-                <message-list-field :data="data" :field="field" v-else-if="field.type == 'message_list'"/>
-                <progress-bars-field :data="data" :field="field" v-else-if="field.type == 'progress_bars'"/>
-                <report-status-field :data="data" :field="field" :statuses="report.statuses" v-else-if="field.type == 'report_status'"/>
+                <div v-if="!(to_export && field.hide_in_pdf)">
+                    <header-field :field="field" v-if="field.type == 'header'"/>
+                    <table-field :data="data" :field="field" v-else-if="field.type == 'table'"/>
+                    <action-field :data="data" :field="field" v-else-if="field.type == 'action' && !to_export"/>
+                    <message-list-field :data="data" :field="field" v-else-if="field.type == 'message_list'"/>
+                    <progress-bars-field :data="data" :field="field" v-else-if="field.type == 'progress_bars'"/>
+                    <report-status-field :data="data" :field="field" :statuses="report.statuses" v-else-if="field.type == 'report_status'"/>
+                </div>
             </div>
         </card>
     </div>
