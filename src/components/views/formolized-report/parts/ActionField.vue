@@ -38,13 +38,21 @@ export default {
     },
     computed: {
         get_url() {
-            let action = this.field.action
-                .replace('@start_date', (this.data.dates[0].getTime()).toString())
+            let paster = (S) => {
+                return S.replace('@start_date', (this.data.dates[0].getTime()).toString())
                 .replace('@end_date', (this.data.dates[1].getTime()).toString())
                 .replace('@library_agent_id', `@${window.AGENTS.LIBRARY_AGENT_ID}`)
                 .replace('@cdss_agent_id', `@${window.AGENTS.CDSS_AGENT_ID}`)
+            }
 
-            return this.url(action, this.field.agent)
+            let action = paster(this.field.action)
+            let agent = undefined
+
+            if (this.field.agent) {
+                agent = paster(this.field.agent)
+            }
+
+            return this.url(action, agent)
         },
     },
     methods: {
