@@ -207,7 +207,7 @@ def send_order(args, data):
     data = request.json
     answer = medsenger_api.send_order(contract_id, data['order'], receiver_id=data['agent_id'], params=data['params'])
 
-    result = answer['results'].get(str(data['agent_id']), [])
+    result = answer.get('results', {}).get(str(data['agent_id']), [])
 
     return result
 
