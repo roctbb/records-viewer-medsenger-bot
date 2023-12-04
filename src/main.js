@@ -28,11 +28,15 @@ window.Event = new class {
 Vue.mixin({
     methods: {
         // urls
-        url: function (action) {
+        url: function (action, agent_id) {
             let api_host = window.API_HOST;
             let agent_token = window.AGENT_TOKEN;
             let contract_id = window.CONTRACT_ID;
-            let agent_id = window.AGENT_ID;
+
+            if (!agent_id) {
+                agent_id = window.AGENT_ID;
+            }
+
 
             return api_host + '/api/client/agents/' + agent_id + '/?action=' + action + '&contract_id=' + contract_id + '&agent_token=' + agent_token
         },
