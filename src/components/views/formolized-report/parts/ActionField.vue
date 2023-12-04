@@ -41,8 +41,8 @@ export default {
             let paster = (S) => {
                 return S.replace('@start_date', (this.data.dates[0].getTime()).toString())
                 .replace('@end_date', (this.data.dates[1].getTime()).toString())
-                .replace('@library_agent_id', `@${window.AGENTS.LIBRARY_AGENT_ID}`)
-                .replace('@cdss_agent_id', `@${window.AGENTS.CDSS_AGENT_ID}`)
+                .replace('@library_agent_id', `${window.AGENTS.LIBRARY_AGENT_ID}`)
+                .replace('@cdss_agent_id', `${window.AGENTS.CDSS_AGENT_ID}`)
             }
 
             let action = paster(this.field.action)
