@@ -130,7 +130,7 @@ export default {
         report_categories: function () {
             let reports = this.groups
                 .filter((group) => ['report', 'formalized-report'].includes(group.type))
-                .filter(group => !group.options || !group.options.scenario || group.options && group.options.scenario && group.options.scenario.includes(this.patient.scenario.id))
+                .filter(group => !group.options || !group.options.scenario || this.patient.scenario && group.options && group.options.scenario && group.options.scenario.includes(this.patient.scenario.id))
 
             reports = reports.map(report => {
                 if (!report.categories.length) {
