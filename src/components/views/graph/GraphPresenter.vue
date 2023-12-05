@@ -1027,10 +1027,19 @@ export default {
             return undefined;
         },
         get_symbol: function (point) {
-            if (this.comment_additions(point).length) {
+            let additions = this.comment_additions(point)
+
+            let show_warning = true
+
+            additions.forEach(addition => {
+                if (addition.show_warning === false) {
+                    show_warning = false
+                }
+            })
+
+            if (show_warning) {
                 return 'url(' + this.images.warning + ')'
             }
-            return undefined;
         },
         get_radius: function (point) {
             if (point.additions) {
