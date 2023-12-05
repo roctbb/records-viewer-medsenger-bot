@@ -1035,7 +1035,7 @@ export default {
             let show_warning = true
 
             additions.forEach(addition => {
-                if (this.is_warning_addition(addition)) {
+                if (!this.is_warning_addition(addition)) {
                     show_warning = false
                 }
             })
