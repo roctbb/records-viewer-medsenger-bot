@@ -525,8 +525,8 @@ export default {
                 let too_much_points = this.records.length > 500 && !sum_graph
 
                 if (!this.options.graph.disable_averaging && this.options.collapse_points_median == undefined) {
-                    this.options.collapse_points_median = true
-                    Event.fire('set-collapse-median-mode', true)
+                    // this.options.collapse_points_median = true
+                    // Event.fire('set-collapse-median-mode', true)
                 } else if (this.options.graph.disable_averaging) {
                     this.options.collapse_points_median = false
                 }
