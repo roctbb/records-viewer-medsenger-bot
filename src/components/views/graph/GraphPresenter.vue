@@ -1021,23 +1021,29 @@ export default {
             if (this.options.show_points_colors && zone) {
                 return zone['color'] ? zone['color'] : 'rgba(150,150,150,1)'
             }
-            if (this.comment_additions(point).length) {
+            if (this.has_warning(point)) {
                 return '#FF0000';
             }
             return undefined;
         },
-        get_symbol: function (point) {
+        is_warning_addition(addition) {
+            return addition['addition'] && addition['addition'].show_warning === false
+        },
+        has_warning(point) {
             let additions = this.comment_additions(point)
 
             let show_warning = true
 
             additions.forEach(addition => {
-                if (addition.show_warning === false) {
+                if (this.is_warning_addition(addition)) {
                     show_warning = false
                 }
             })
 
-            if (show_warning) {
+            return show_warning
+        },
+        get_symbol: function (point) {
+            if (this.has_warning(point)) {
                 return 'url(' + this.images.warning + ')'
             }
         },
@@ -1051,7 +1057,13 @@ export default {
             let comment = `<u>${point.formatted_date}</u><br><b>${point.formatted_time}</b> - ${category}: ${point.value}`
 
             this.comment_additions(point).forEach((value) => {
-                comment += `<br><b style="color: red;">${value['addition']['comment']}</b>`
+                if (this.is_warning_addition(value))
+                {
+                    comment += `<br><b style="color: red;">${value['addition']['comment']}</b>`
+                }
+                else {
+                    comment += `<br>${value['addition']['comment']}`
+                }
             })
 
             if (point.comments && point.comments.length) {
