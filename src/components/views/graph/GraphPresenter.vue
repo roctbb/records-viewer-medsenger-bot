@@ -1015,11 +1015,18 @@ export default {
                 options.yAxis[0].plotBands = this.options.graph.options.plot_bands
         },
 
+        get_color_from_additions(point) {
+            let zone = this.zone_addition(point)
+            if (zone && zone['color']) {
+                return zone['color']
+            }
+            return 'rgba(150,150,150,1)'
+        },
+
         // Вспомогательные
         get_color: function (point) {
-            let zone = this.zone_addition(point)
-            if (this.options.show_points_colors && zone) {
-                return zone['color'] ? zone['color'] : 'rgba(150,150,150,1)'
+            if (this.options.show_points_colors) {
+                return this.get_color_from_additions(point)
             }
             if (this.has_warning(point)) {
                 return '#FF0000';
@@ -1043,7 +1050,7 @@ export default {
             return show_warning
         },
         get_symbol: function (point) {
-            if (this.has_warning(point)) {
+            if (this.has_warning(point) && !this.options.show_points_colors) {
                 return 'url(' + this.images.warning + ')'
             }
         },
@@ -1057,11 +1064,9 @@ export default {
             let comment = `<u>${point.formatted_date}</u><br><b>${point.formatted_time}</b> - ${category}: ${point.value}`
 
             this.comment_additions(point).forEach((value) => {
-                if (this.is_warning_addition(value))
-                {
+                if (this.is_warning_addition(value)) {
                     comment += `<br><b style="color: red;">${value['addition']['comment']}</b>`
-                }
-                else {
+                } else {
                     comment += `<br>${value['addition']['comment']}`
                 }
             })
