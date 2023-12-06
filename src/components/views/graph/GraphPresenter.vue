@@ -1039,6 +1039,10 @@ export default {
         has_warning(point) {
             let additions = this.comment_additions(point)
 
+            if (!additions || additions.length === 0) {
+                return false
+            }
+
             let show_warning = true
 
             additions.forEach(addition => {
