@@ -1154,7 +1154,7 @@ export default {
                     val.date = this.format_date(d)
                     if (by_hour) val.date += ` ${d.getHours()}:00-${(d.getHours() + 1) % 24}:00`
 
-                    val.value = val.y
+                    val.value = Math.ceil(val.y)
                 })
 
                 let data_by_dates = this.group_by(graph.data, 'date')
