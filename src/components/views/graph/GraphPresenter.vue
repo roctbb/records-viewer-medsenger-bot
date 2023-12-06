@@ -1154,7 +1154,7 @@ export default {
                     val.date = this.format_date(d)
                     if (by_hour) val.date += ` ${d.getHours()}:00-${(d.getHours() + 1) % 24}:00`
 
-                    val.value = Math.ceil(val.y)
+                    val.value = val.y
                 })
 
                 let data_by_dates = this.group_by(graph.data, 'date')
@@ -1177,7 +1177,7 @@ export default {
             })
         },
         collapse_sum_point: function (sum, points, date, graph, data_by_dates) {
-            sum.y = points.map(val => val.y).reduce((a, b) => a + b, 0)
+            sum.y = Math.round(points.map(val => val.y).reduce((a, b) => a + b, 0))
             sum.comment = `<b>${date}</b> - ${graph.name}: ${sum.y}`
             return sum
         },
