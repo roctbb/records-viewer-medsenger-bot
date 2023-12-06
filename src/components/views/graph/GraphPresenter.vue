@@ -728,14 +728,15 @@ export default {
                 let y = 0;
 
                 this.records_by_categories[data.name].forEach((record) => {
-                    console.log(record)
                     let x = this.middle_of_day(new Date((record.timestamp) * 1000))
                     let data = {
                         points: [{
                             time: new Date(record.timestamp * 1000),
                             description: record.value,
+                            formatted_date: record.formatted_date
                         }],
                         date: record.formatted_date,
+                        formatted_date: record.formatted_date,
                         color: record.params.color != null ? record.params.color : 0.7,
                         description: '',
                         x: +x
