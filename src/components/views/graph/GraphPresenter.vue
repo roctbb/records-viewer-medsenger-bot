@@ -1507,7 +1507,10 @@ export default {
             this.options.graph_type = 'day-line'
             this.options.graph = params
 
-            this.options.dates = [undefined, this.last_date]
+            this.options.dates = [
+                this.start_of_day(this.add_days(this.last_date, -13)),
+                this.last_date
+            ]
 
             if (window.PARAMS && window.PARAMS.date_from && window.PARAMS.date_to) {
                 this.options.dates = [
@@ -1533,7 +1536,10 @@ export default {
             this.options.graph_type = 'heatmap'
             this.options.graph = params
 
-            this.options.dates = [undefined, this.last_date]
+            this.options.dates = [
+                this.start_of_day(this.add_days(this.last_date, -13)),
+                this.last_date
+            ]
 
             if (window.PARAMS && window.PARAMS.date_from && window.PARAMS.date_to) {
                 this.options.dates = [
