@@ -728,6 +728,7 @@ export default {
                 let y = 0;
 
                 this.records_by_categories[data.name].forEach((record) => {
+                    console.log(record)
                     let x = this.middle_of_day(new Date((record.timestamp) * 1000))
                     let data = {
                         points: [{

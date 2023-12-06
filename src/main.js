@@ -299,7 +299,6 @@ Vue.mixin({
             return date.toTimeString().substring(0, 5)
         },
         format_date: function (date) {
-            console.log("Asked for date for", date, "answer is", date.toLocaleDateString())
             return date.toLocaleDateString()
         },
         add_days: function (date, days) {
