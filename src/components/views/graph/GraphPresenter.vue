@@ -221,7 +221,7 @@ export default {
 
             let categories = this.options.graph.categories
 
-            let dates = this.options.dates.map(date => date ? date.getTime() / 1000 : date)
+            let dates = this.options.dates.map(date => date ? Math.round(date.getTime() / 1000) : date)
             let options = {
                 type: this.options.graph_type,
                 first_load: first_load,
@@ -593,7 +593,7 @@ export default {
                     date.setFullYear(today_arr[0], today_arr[1], today_arr[2])
                     if (date.getHours() < 5) date = this.add_days(date, 1)
 
-                    record.timestamp = date.getTime() / 1000
+                    record.timestamp = Math.round(date.getTime() / 1000)
                 })
 
                 this.records = this.records.sort((a, b) => {

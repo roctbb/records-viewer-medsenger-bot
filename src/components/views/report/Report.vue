@@ -99,7 +99,7 @@ export default {
             this.errors = []
 
             let categories = this.options.selected_categories.length ? this.options.selected_categories.map(c => c.name) : this.categories
-            let dates = this.options.dates.map(date => date ? date.getTime() / 1000 : date)
+            let dates = this.options.dates.map(date => date ? Math.round(date.getTime() / 1000) : date)
             let options = {
                 type: 'report',
                 page: this.options.selected_page,
@@ -143,9 +143,12 @@ export default {
                 this.options.page_count = data.info.page_count
             this.options.loaded = true
         })
+
         Event.listen('load-report', (report) => {
             this.options.selected_page = 0
             this.options.report = report
+
+            this.options.selected_categories = []
 
             if (window.PARAMS && window.PARAMS.date_from && window.PARAMS.date_to) {
                 this.options.dates = [

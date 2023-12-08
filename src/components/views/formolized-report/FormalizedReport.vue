@@ -111,7 +111,7 @@ export default {
             this.errors = []
 
             let categories = this.options.report.categories
-            let dates = this.options.dates.map(date => date ? date.getTime() / 1000 : date)
+            let dates = this.options.dates.map(date => date ? Math.round(date.getTime() / 1000) : date)
             let options = {
                 type: 'formalized-report'
             }
