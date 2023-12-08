@@ -128,7 +128,10 @@ export default {
     },
     mounted() {
         this.options.selected_page = 0
-        this.options.dates = [undefined, this.last_date]
+        this.options.dates = [
+            this.start_of_day(this.add_days(this.last_date, -6)),
+            this.last_date
+        ]
     },
     created() {
         Event.listen('loaded', (data) => {
