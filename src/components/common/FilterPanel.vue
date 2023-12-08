@@ -208,7 +208,7 @@ export default {
             Event.fire('generate-report')
         },
         update_dates: function () {
-            let action = (!['line', 'day-line', 'heatmap'].includes(this.page) ? this.page : 'graph') + '-update-dates'
+            let action = (!['line', 'day-line', 'heatmap', 'symptoms-heatmap'].includes(this.page) ? this.page : 'graph') + '-update-dates'
             //let action = 'graph-update-dates'
             this.dates.range = [
                 this.dates.range[0] ? this.start_of_day(this.dates.range[0]) : undefined,
