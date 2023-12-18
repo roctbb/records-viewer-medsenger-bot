@@ -1498,7 +1498,8 @@ export default {
             if (window.PARAMS && window.PARAMS.mode && this.options.collapse_points_median == undefined) {
                 Event.fire('update-' + window.PARAMS.mode, true)
             } else {
-                this.load(!window.PARAMS)
+                console.log(window.PARAMS)
+                this.load(!window.PARAMS.mode)
                 this.$forceUpdate()
             }
         });
@@ -1557,7 +1558,7 @@ export default {
                 show_medicines: false
             }
 
-            this.load(!window.PARAMS)
+            this.load(!window.PARAMS.mode)
         });
 
         Event.listen('refresh-stats', (data) => {
