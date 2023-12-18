@@ -348,7 +348,10 @@ Vue.mixin({
         },
         comment_additions: function (record) {
             return record.additions ?
-                record.additions.filter((a) => a && a['addition'] && a['addition']['comment']) : []
+                record.additions.filter((a) => a && a['addition'] && a['addition']['comment'] && this.is_warning_addition(a)) : []
+        },
+        is_warning_addition(addition) {
+            return !(addition['addition'] && addition['addition'].show_warning === false)
         },
         color_transparency: function (color, percentage) {
             if (!color) return 'transparent'

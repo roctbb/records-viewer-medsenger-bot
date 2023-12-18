@@ -1035,9 +1035,6 @@ export default {
             }
             return undefined;
         },
-        is_warning_addition(addition) {
-            return !(addition['addition'] && addition['addition'].show_warning === false)
-        },
         has_warning(point) {
             let additions = this.comment_additions(point)
 
