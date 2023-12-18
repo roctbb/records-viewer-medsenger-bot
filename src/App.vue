@@ -29,7 +29,7 @@ import LoadError from "./components/common/LoadError.vue";
 import GraphPresenter from "./components/views/graph/GraphPresenter.vue";
 import ConclusionEditor from "./components/views/conclusion/ConclusionEditor.vue";
 import ActionDone from "./components/common/ActionDone.vue";
-import FormalizedReport from "./components/views/formolized-report/FormalizedReport.vue";
+import FormalizedReport from "./components/views/formalized-report/FormalizedReport.vue";
 
 export default {
     name: 'App',
