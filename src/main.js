@@ -210,14 +210,18 @@ Vue.mixin({
                     let result = response.data
 
                     if (order == 'get_compliance') {
+                        if (!response.data.forms) response.data.forms = []
                         response.data.forms.forEach((f, i) => {
                             f.category_code = 'form_compliance'
                             f.group = `${f.category_code}_${i}`
                         })
+
+                        if (!response.data.medicines) response.data.medicines = []
                         response.data.medicines.forEach((m, i) => {
                             m.category_code = 'medicine_compliance'
                             m.group = `${m.category_code}_${i}`
                         })
+
                         result = response.data.forms.concat(response.data.medicines)
                         result = result.filter((r) => r.requested)
                     }

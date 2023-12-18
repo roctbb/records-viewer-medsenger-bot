@@ -68,8 +68,9 @@ export default {
                         let comment = condition.description.replaceAll('@value', value)
 
                         condition.params.forEach((p) => {
-                            comment = comment.replaceAll('@' + p, this.data.params[p].value)
-                            condition_eval = condition_eval.replaceAll('@' + p, this.data.params[p].value)
+                            let p_value = this.data.params[p] ? this.data.params[p].value : 0
+                            comment = comment.replaceAll('@' + p, p_value)
+                            condition_eval = condition_eval.replaceAll('@' + p, p_value)
                         })
 
                         if (eval(condition_eval)) comments.push(comment)
