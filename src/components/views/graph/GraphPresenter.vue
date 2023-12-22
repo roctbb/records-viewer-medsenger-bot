@@ -641,7 +641,9 @@ export default {
                     let dict = {
                         timestamp: record.timestamp,
                         dose: !record.params || record.params.dose == null ? '' : ` (${record.params.dose})`,
-                        date: record.formatted_date
+                        date: record.formatted_date,
+                        formatted_date: record.formatted_date,
+                        formatted_time: record.formatted_time
                     }
                     if (record.value in medicines)
                         medicines[record.value].push(dict)
@@ -858,6 +860,7 @@ export default {
             if (this.options.graph_type.includes('line')) {
                 if (data.code == 'medicine') {
                     res = data.values.map((value) => {
+                        console.log(value)
                         return {
                             dataLabels: {
                                 enabled: false,
@@ -868,8 +871,8 @@ export default {
                             comment: this.get_comment({
                                 value: data.name + value.dose,
                                 timestamp: value.timestamp,
-                                date: value.formatted_date,
-                                time: value.formatted_time
+                                formatted_date: value.formatted_date,
+                                formatted_time: value.formatted_time
                             }, `Прием лекарства`),
                         }
                     })
@@ -975,7 +978,6 @@ export default {
                 if (index) axis.top = '85%'
                 if (this.options.graph_type == 'day-line') axis.height = '100%'
             } else {
-                console.log(this.options.graph)
                 axis.title = {
                     text: index ? 'Лекарства' : this.options.graph.title
                 }
@@ -1078,8 +1080,11 @@ export default {
             return undefined;
         },
         get_comment: function (point, category) {
+            if (category == 'medicine')  console.log(point)
+
             let comment = `<u>${point.formatted_date}</u><br><b>${point.formatted_time}</b> - ${category}: ${point.value}`
 
+            if (category == 'medicine')  console.log(comment)
             this.comment_additions(point).forEach((value) => {
                 if (this.is_warning_addition(value)) {
                     comment += `<br><b style="color: red;">${value['addition']['comment']}</b>`
@@ -1514,7 +1519,6 @@ export default {
             if (window.PARAMS && window.PARAMS.mode && this.options.collapse_points_median == undefined) {
                 Event.fire('update-' + window.PARAMS.mode, true)
             } else {
-                console.log(window.PARAMS)
                 this.load(!window.PARAMS.mode)
                 this.$forceUpdate()
             }
