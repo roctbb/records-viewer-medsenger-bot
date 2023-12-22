@@ -788,9 +788,9 @@ export default {
                 });
 
                 if (data.name == 'symptom')
-                this.heatmap_data.categories.symptoms = Object.keys(records)
+                    this.heatmap_data.categories.symptoms = Object.keys(records)
                 if (data.name == 'side_effect')
-                this.heatmap_data.categories.side_effects = Object.keys(records)
+                    this.heatmap_data.categories.side_effects = Object.keys(records)
             }
 
             return series
@@ -1581,14 +1581,15 @@ export default {
             if (this.graph_options.chart) {
                 this.graph_options.chart.width = window.innerWidth * 0.89
                 if (this.options.graph_type.includes('heatmap')) {
-                    let count = this.heatmap_data.categories.symptoms.length + this.heatmap_data.categories.medicines.length
+                    let rec_count = this.heatmap_data.categories.symptoms.length + this.heatmap_data.categories.side_effects.length
+                    let count = rec_count + this.heatmap_data.categories.medicines.length
                     this.graph_options.chart.height = count * 20 + 80
 
                     if (this.options.graph.categories.includes('symptom')) {
-                        this.graph_options.yAxis[0].height = 20 * this.heatmap_data.categories.symptoms.length
+                        this.graph_options.yAxis[0].height = 20 * rec_count
 
                         if (this.graph_options.yAxis[1]) {
-                            this.graph_options.yAxis[1].top = 20 * this.heatmap_data.categories.symptoms.length + 30
+                            this.graph_options.yAxis[1].top = 20 * rec_count + 30
                             this.graph_options.yAxis[1].height = 20 * this.heatmap_data.categories.medicines.length
                         }
 
