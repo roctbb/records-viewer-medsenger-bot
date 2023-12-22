@@ -179,7 +179,7 @@ export default {
             collapsed_data: {},
             statistics: [],
             export_chart: undefined,
-            text_categories: ['symptom', 'medicine', 'patient_comment', 'information']
+            text_categories: ['symptom', 'medicine', 'patient_comment', 'information', 'side_effect']
         }
     },
     computed: {
@@ -208,7 +208,7 @@ export default {
                 'graph' : (
                     this.options.graph_type == 'day-line' ?
                         'day-graph' : (
-                        this.options.graph.categories && this.options.graph.categories.includes('symptom') ?
+                        this.options.graph.categories && (this.options.graph.categories.includes('symptom') || this.options.graph.categories.includes('side_effect')) ?
                             'symptoms-' :
                             ''
                     ) + this.options.graph_type)
@@ -436,10 +436,12 @@ export default {
             options.series = this.get_series(options)
 
             if (this.options.graph_type == 'heatmap') {
-                let count = this.heatmap_data.categories.symptoms.length + this.heatmap_data.categories.medicines.length
+                let count = this.heatmap_data.categories.symptoms.length +
+                    this.heatmap_data.categories.medicines.length +
+                    this.heatmap_data.categories.side_effects.length
                 options.chart.height = count * 20 + 80
 
-                options.yAxis[0].categories = this.heatmap_data.categories.symptoms
+                options.yAxis[0].categories = this.heatmap_data.categories.symptoms.concat(this.heatmap_data.categories.side_effects)
                 options.yAxis[1].categories = this.heatmap_data.categories.medicines
 
                 options.xAxis.labels = {
@@ -465,10 +467,10 @@ export default {
                     return ticks;
                 }
 
-                if (this.options.graph.categories.includes('symptom')) {
-                    options.yAxis[0].height = 20 * this.heatmap_data.categories.symptoms.length
+                if (this.options.graph.categories.includes('symptom') || this.options.graph.categories.includes('side_effect')) {
+                    options.yAxis[0].height = 20 * (this.heatmap_data.categories.symptoms.length + this.heatmap_data.categories.side_effects.length)
 
-                    options.yAxis[1].top = 20 * this.heatmap_data.categories.symptoms.length + 30
+                    options.yAxis[1].top = options.yAxis[0].height + 30
                     options.yAxis[1].height = 20 * this.heatmap_data.categories.medicines.length
 
                     if (!this.heatmap_data.show_medicines || !this.heatmap_data.categories.medicines.length) {
@@ -500,6 +502,13 @@ export default {
         get_series: function (options) {
             let series = []
             series = series.concat(this.get_text_series({
+                name: 'side_effect',
+                description: 'Побочный эффект',
+                color: '#0eca59',
+                y: -3
+            }))
+
+            series = series.concat(this.get_text_series({
                 name: 'symptom',
                 description: 'Симптом',
                 color: '#ad0eca',
@@ -507,10 +516,11 @@ export default {
             }))
 
             if (!(this.options.graph_type == 'heatmap' &&
-                this.options.graph.categories.includes('symptom') &&
+                (this.options.graph.categories.includes('symptom') || this.options.graph.categories.includes('side_effect')) &&
                 !this.heatmap_data.show_medicines)) {
                 series = series.concat(this.get_medicine_series())
             }
+
             if (this.options.graph_type == 'heatmap') {
                 this.heatmap_data.medicine_series = this.get_medicine_series()
             }
@@ -724,7 +734,7 @@ export default {
                     this.prepare_series(series_data)
                 ]
             } else if (this.options.graph_type == 'heatmap') {
-                let symptoms = {}
+                let records = {}
                 let y = 0;
 
                 this.records_by_categories[data.name].forEach((record) => {
@@ -743,21 +753,21 @@ export default {
                     }
 
                     let group = record.params.symptom_group ? record.params.symptom_group : record.value
-                    if (group in symptoms) {
-                        let old = symptoms[group].find(s => s.x == data.x)
+                    if (group in records) {
+                        let old = records[group].find(s => s.x == data.x)
                         if (old) {
                             old.color = old.color > data.color ? old.color : data.color
                             old.points.push(data.points[0])
                         } else {
-                            symptoms[group].push(data)
+                            records[group].push(data)
                         }
                     } else {
-                        symptoms[group] = [data]
+                        records[group] = [data]
                     }
                 })
 
-                series = Object.entries(symptoms).map(([symptom, symptom_data]) => {
-                    symptom_data.forEach(data => {
+                series = Object.entries(records).map(([rec, rec_data]) => {
+                    rec_data.forEach(data => {
                         data.points.sort((a, b) => {
                             return a.time < b.time ? -1 : a.time > b.time ? 1 : 0
                         })
@@ -767,9 +777,9 @@ export default {
                     })
 
                     let series_data = {
-                        name: symptom,
-                        code: 'symptom',
-                        values: symptom_data,
+                        name: rec,
+                        code: data.name,
+                        values: rec_data,
                         y: y
                     }
 
@@ -777,7 +787,10 @@ export default {
                     return this.prepare_series(series_data)
                 });
 
-                this.heatmap_data.categories.symptoms = Object.keys(symptoms)
+                if (data.name == 'symptom')
+                this.heatmap_data.categories.symptoms = Object.keys(records)
+                if (data.name == 'side_effect')
+                this.heatmap_data.categories.side_effects = Object.keys(records)
             }
 
             return series
@@ -833,7 +846,7 @@ export default {
                 series.colsize = this.day
                 series.connectNulls = true
 
-                series.nullColor = 'rgba(80,180,50,0.5)'
+                series.nullColor = 'rgba(80,180,50,0.75)'
                 series.borderWidth = 1
                 series.borderColor = '#555555'
             }
@@ -899,7 +912,7 @@ export default {
                     })
                 }
             } else {
-                if (data.code == 'symptom') {
+                if (['symptom', 'side_effect'].includes(data.code)) {
                     res = data.values.map(value => {
                         return {
                             dataLabels: {
@@ -962,8 +975,9 @@ export default {
                 if (index) axis.top = '85%'
                 if (this.options.graph_type == 'day-line') axis.height = '100%'
             } else {
+                console.log(this.options.graph)
                 axis.title = {
-                    text: index ? 'Лекарства' : 'Симптомы'
+                    text: index ? 'Лекарства' : this.options.graph.title
                 }
 
                 axis.labels = {
@@ -1550,7 +1564,8 @@ export default {
                 medicine_series: [],
                 categories: {
                     symptoms: [],
-                    medicines: []
+                    medicines: [],
+                    side_effects: []
                 },
                 show_medicines: false
             }
