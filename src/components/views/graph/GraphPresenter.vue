@@ -1468,6 +1468,11 @@ export default {
                 record.time = this.format_time(d)
                 return record
             })
+
+            if (data.info.type == 'heatmap') {
+                this.records = this.records.filter((record) => !(record.params && record.params.general_answer))
+            }
+
             this.records_by_categories = this.group_by(this.records, 'category')
 
             this.process_load_answer()

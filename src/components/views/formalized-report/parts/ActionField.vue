@@ -58,7 +58,7 @@ export default {
             return window.innerWidth < window.innerHeight
         },
         link_target() {
-            if (this.mobile) {
+            if (!this.mobile) {
                 return "_blank"
             }
         }
