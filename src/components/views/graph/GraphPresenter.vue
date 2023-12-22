@@ -505,7 +505,7 @@ export default {
                 name: 'side_effect',
                 description: 'Побочный эффект',
                 color: '#0eca59',
-                y: -3
+                y: -2
             }))
 
             series = series.concat(this.get_text_series({
