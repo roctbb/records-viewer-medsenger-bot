@@ -2,8 +2,8 @@
     <div v-if="field" style="margin-top: 15px; margin-bottom: 5px;">
         <div class="row" style="margin: -5px">
             <div class="col-md-5">
-                <a class="btn btn-primary btn-block" :target="link_target" :href="get_url" v-if="!field.params">{{ field.text }}</a>
-                <button class="btn btn-primary btn-block" @click="send_request()" v-else>{{ field.text }}</button>
+                <a class="btn btn-success" :target="link_target" :href="get_url" v-if="!field.params">{{ field.text }}</a>
+                <button class="btn btn-success" @click="send_request()" v-else>{{ field.text }}</button>
             </div>
             <div class="col-md-7" v-if="field.params">
                 <div v-for="param in field.params">
