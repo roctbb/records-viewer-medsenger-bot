@@ -1,19 +1,10 @@
 from flask import Flask
-from infrastructure import db
 from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_compress import Compress
-from sentry_sdk.integrations.flask import FlaskIntegration
-import sentry_sdk
 
-from config import *
-
-if PRODUCTION:
-    sentry_sdk.init(
-        dsn=SENTRY,
-        integrations=[FlaskIntegration()],
-        traces_sample_rate=0.0,
-    )
+from managers import *
+from infrastructure import *
 
 app = Flask(__name__)
 
@@ -26,3 +17,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = db_string
 db.init_app(app)
 
 migrate = Migrate(app, db)
+
+contract_manager = ContractManager(medsenger_api, db)
+category_groups_manager = CategoryGroupsManager(medsenger_api, db)
+

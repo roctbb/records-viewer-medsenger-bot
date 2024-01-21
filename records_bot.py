@@ -1,12 +1,7 @@
-from flask import Flask, jsonify, redirect, url_for
+from flask import jsonify, redirect, url_for
 from helpers import *
-from managers.ContractsManager import ContractManager
-from managers.CategoryGroupsManager import CategoryGroupsManager
 from manage import *
-
-contract_manager = ContractManager(medsenger_api, db)
-category_groups_manager = CategoryGroupsManager(medsenger_api, db)
-
+from infrastructure import *
 
 @app.route('/status', methods=['POST'])
 def status():
