@@ -1,5 +1,5 @@
 from flask import Flask
-from models import db
+from infrastructure import db
 from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_compress import Compress
