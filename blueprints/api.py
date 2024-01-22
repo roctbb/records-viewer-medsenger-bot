@@ -53,7 +53,6 @@ def get_file(args, form, contract, file_id):
     if not file or file['state'] != 'ok':
         abort(404)
 
-    #todo check
     return jsonify(file)
 
 
