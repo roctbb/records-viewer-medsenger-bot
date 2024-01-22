@@ -35,7 +35,7 @@
                             <div class="row" v-for="file in record.attached_files">
                                 <img :src="images.file" height="20" style="margin-right: 5px"/>
                                 <a href="#" @click="get_file(file, 'download')">{{ file.name }} (скачать)</a>
-                                <more-info-block title="Просмотр" :id="`file_${i}_${record.id}_${file.id}`"
+                                <more-info-block title="Просмотр" :id="`file_${record.id}_${file.id}`"
                                                  v-if="file.type.includes('image')" class="col-12">
                                     <loading v-if="!files_to_show[file.id]"/>
                                     <img :src="`data:${file.type};base64,${files_to_show[file.id].base64}`"
@@ -185,8 +185,8 @@ export default {
         Event.listen('open-more-info', (id) => {
             if (id.includes('file')) {
                 let ids = id.split('_').filter(p => p != 'file').map(p => parseInt(p))
-                if (!this.files_to_show[ids[2]]) {
-                    let file = this.data[ids[0]].records.find(r => r.id == ids[1]).attached_files.find(f => f.id == ids[2])
+                if (!this.files_to_show[ids[1]]) {
+                    let file = this.data.find(r => r.id == ids[0]).attached_files.find(f => f.id == ids[1])
                     this.get_file(file, 'show')
                 }
             }
