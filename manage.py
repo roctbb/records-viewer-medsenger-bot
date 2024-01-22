@@ -5,6 +5,7 @@ from flask_compress import Compress
 
 from managers import *
 from infrastructure import *
+from config import *
 
 app = Flask(__name__)
 
@@ -13,6 +14,7 @@ Compress(app)
 
 db_string = "postgresql://{}:{}@{}:{}/{}".format(DB_LOGIN, DB_PASSWORD, DB_HOST, DB_PORT, DB_DATABASE)
 app.config['SQLALCHEMY_DATABASE_URI'] = db_string
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {"pool_pre_ping": True}
 
 db.init_app(app)
 

@@ -171,7 +171,8 @@ export default {
     },
     methods: {
         get_file: function (file, action) {
-            this.axios.post(this.direct_url('/api/settings/get_file'), file).then(response => {
+            this.axios
+                .get(this.direct_url('/api/get_file/' + file.id)).then(response => {
                 if (action == 'download')
                     downloadjs(`data:${file.type};base64,${response.data.base64}`, file.name, file.type);
                 else if (action == 'show')

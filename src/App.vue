@@ -61,7 +61,7 @@ export default {
         load: function () {
             this.loaded = false
             this.axios
-                .get(this.direct_url('/api/settings/get_patient'))
+                .get(this.direct_url('/api/get_patient'))
                 .then(this.process_load_answer);
 
             this.send_order('get_params', window.AGENTS.FORMS_AGENT_ID, {}, 'params-loaded')

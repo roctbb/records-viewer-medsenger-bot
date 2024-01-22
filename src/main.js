@@ -29,6 +29,7 @@ Vue.mixin({
     methods: {
         // urls
         url: function (action, agent_id) {
+            console.log(window.AGENT_TOKEN)
             let api_host = window.API_HOST;
             let agent_token = window.AGENT_TOKEN;
             let contract_id = window.CONTRACT_ID;
@@ -41,6 +42,7 @@ Vue.mixin({
             return api_host + '/api/client/agents/' + agent_id + '/?action=' + action + '&contract_id=' + contract_id + '&agent_token=' + agent_token
         },
         direct_url: function (action) {
+            console.log(window.AGENT_TOKEN)
             let host = window.LOCALHOST;
             let agent_token = window.AGENT_TOKEN;
             let contract_id = window.CONTRACT_ID;
@@ -205,7 +207,7 @@ Vue.mixin({
         send_order: function (order, agent_id, params, event_name) {
             let data = {order: order, agent_id: agent_id, params: params}
             this.axios
-                .post(this.url('/api/send_order'), data)
+                .post(this.url('/send_order'), data)
                 .then((response) => {
                     let result = response.data
 

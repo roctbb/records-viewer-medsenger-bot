@@ -29,10 +29,8 @@ def get_ui(contract, page='settings', object_id=None, source=None, role='doctor'
         else:
             token = contract.patient_agent_token
 
-    print('new', contract.id, contract.agent_token)
-
     return render_template('index.html',
-                           contract_id=contract_id, agent_token=contract.agent_token,
+                           contract_id=contract_id, agent_token=token,
                            mode=page, object_id=object_id, source=source,
                            params=json.dumps(params), agents=json.dumps(AGENTS),
                            api_host=MAIN_HOST.replace('8001', '8000'), js_host=JSHOST, localhost=LOCALHOST,
@@ -55,9 +53,6 @@ def toInt(value, default=None):
         return int(value)
     except:
         return default
-
-
-text_categories = ['symptom', 'medicine', 'patient_comment', 'information', 'side_effect']
 
 
 def get_records_list(contract_id, categories, dates, options=None):

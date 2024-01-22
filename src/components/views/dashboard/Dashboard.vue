@@ -158,40 +158,44 @@ export default {
             Event.fire('load-' + params.type, params)
         }
     },
+    created() {
+    },
     mounted() {
-        this.axios.get(this.direct_url('/api/categories')).then(response => {
-            this.categories = response.data.categories
-            this.categories.sort((a, b) => a.id - b.id)
-            this.groups = response.data.groups
-            this.groups.sort((a, b) => a.id - b.id)
+        this.axios
+            .get(this.direct_url('/api/categories'))
+            .then(response => {
+                this.categories = response.data.categories
+                this.categories.sort((a, b) => a.id - b.id)
+                this.groups = response.data.groups
+                this.groups.sort((a, b) => a.id - b.id)
 
-            if (window.OBJECT_ID) {
-                if (this.window_mode == 'graph-presenter') {
-                    if (window.OBJECT_ID == -1) {
-                        this.load_report(this.report_categories.filter(report => report.id == 1)[0]);
-                    } else {
-                        let category = this.categories.filter(c => c.id == window.OBJECT_ID)
-                        if (category.length) {
-                            let params = {
-                                title: category[0].description,
-                                categories: [category[0].name]
-                            }
-                            this.load_graph(params, 'line-graph')
-                        }
-                    }
-                } else if (['group-presenter', 'log'].includes(this.window_mode)) {
-                    let group = this.groups.filter(g => g.id == this.object_id)
-                    if (group.length) {
-                        if (group[0].type == 'report') {
-                            this.load_report(this.report_categories.filter(report => report.id == this.object_id)[0]);
+                if (window.OBJECT_ID) {
+                    if (this.window_mode == 'graph-presenter') {
+                        if (window.OBJECT_ID == -1) {
+                            this.load_report(this.report_categories.filter(report => report.id == 1)[0]);
                         } else {
-                            this.load_graph(group[0], group[0].type)
+                            let category = this.categories.filter(c => c.id == window.OBJECT_ID)
+                            if (category.length) {
+                                let params = {
+                                    title: category[0].description,
+                                    categories: [category[0].name]
+                                }
+                                this.load_graph(params, 'line-graph')
+                            }
+                        }
+                    } else if (['group-presenter', 'log'].includes(this.window_mode)) {
+                        let group = this.groups.filter(g => g.id == this.object_id)
+                        if (group.length) {
+                            if (group[0].type == 'report') {
+                                this.load_report(this.report_categories.filter(report => report.id == this.object_id)[0]);
+                            } else {
+                                this.load_graph(group[0], group[0].type)
+                            }
                         }
                     }
                 }
-            }
 
-        });
+            });
     }
 }
 </script>

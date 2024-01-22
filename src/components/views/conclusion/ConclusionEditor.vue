@@ -156,7 +156,7 @@ export default {
             },
             callback: confirm => {
               if (confirm) {
-                this.axios.post(this.url('/send-conclusion'), {conclusion: this.conclusion}).then(Event.fire('action-done'));
+                this.axios.post(this.url('/send_conclusion'), {conclusion: this.conclusion}).then(Event.fire('action-done'));
               }
             }
           }
