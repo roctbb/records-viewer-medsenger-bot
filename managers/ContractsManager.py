@@ -15,7 +15,8 @@ class ContractManager(Manager):
             self.db.session.add(contract)
 
         contract.is_active = True
-        contract.agent_token = self.medsenger_api.get_agent_token(contract_id).get('agent_token')
+
+        self.request_tokens(contract)
 
         self.__commit__()
 
@@ -46,10 +47,6 @@ class ContractManager(Manager):
 
         if not contract:
             return False
-
-        if contract.agent_token != token:
-            return False
-
         return True
 
     def not_exists(self, contract_id):
@@ -73,6 +70,16 @@ class ContractManager(Manager):
             return contract
         except Exception as e:
             log(e)
+
+    def request_tokens(self, contract, commit=False):
+        tokens = self.medsenger_api.get_agent_token(contract.id)
+
+        contract.patient_agent_token = tokens.get('patient_agent_token')
+        contract.doctor_agent_token = tokens.get('doctor_agent_token')
+
+        if commit:
+            self.__commit__()
+
 
     def get_active_ids(self):
         return [contract.id for contract in Contract.query.filter_by(is_active=True).all()]

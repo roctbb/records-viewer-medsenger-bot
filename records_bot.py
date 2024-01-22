@@ -2,6 +2,7 @@ from flask import jsonify, redirect, url_for
 from helpers import *
 from manage import *
 from infrastructure import *
+from decorators import verify_request, verify_args, verify_json, verify_agent_args
 
 @app.route('/status', methods=['POST'])
 def status():
@@ -247,8 +248,9 @@ def get_patient(args, form):
 
     if not contract_manager.check(contract_id, agent_token):
         abort(422)
+    patient = medsenger_api.get_patient_info(contract_id)
 
-    return jsonify(get_patient_data(contract_id))
+    return jsonify(patient)
 
 
 @app.route('/api/settings/get_file', methods=['POST'])
