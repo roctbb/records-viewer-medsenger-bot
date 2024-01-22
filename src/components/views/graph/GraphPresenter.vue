@@ -860,7 +860,6 @@ export default {
             if (this.options.graph_type.includes('line')) {
                 if (data.code == 'medicine') {
                     res = data.values.map((value) => {
-                        console.log(value)
                         return {
                             dataLabels: {
                                 enabled: false,
@@ -1080,11 +1079,8 @@ export default {
             return undefined;
         },
         get_comment: function (point, category) {
-            if (category == 'medicine')  console.log(point)
-
             let comment = `<u>${point.formatted_date}</u><br><b>${point.formatted_time}</b> - ${category}: ${point.value}`
 
-            if (category == 'medicine')  console.log(comment)
             this.comment_additions(point).forEach((value) => {
                 if (this.is_warning_addition(value)) {
                     comment += `<br><b style="color: red;">${value['addition']['comment']}</b>`
