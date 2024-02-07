@@ -1,1 +1,1 @@
-supervisorctl restart agents-records
+touch /etc/uwsgi/apps/records.ini
