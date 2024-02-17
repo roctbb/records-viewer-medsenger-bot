@@ -5,8 +5,6 @@
         <load-error v-else-if="state == 'load-error'"/>
         <action-done v-else-if="state == 'done'"/>
         <div v-else>
-            <dashboard-header :patient="patient" :state="state"/>
-
             <div>
                 <div class="container slim-container" style="margin-top: 15px;">
                     <dashboard :patient="patient" v-show="state == 'dashboard' || state == 'graph-category-chooser'"/>
