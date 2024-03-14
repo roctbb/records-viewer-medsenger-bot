@@ -4,7 +4,7 @@
 
         <!-- Настройки -->
         <filter-panel :page="options.graph.filter_type" :patient="patient"
-                      :disable_downloading="flags.no_data || flags.exporting"
+                      :disable_downloading="flags.no_data"
                       :options="options.graph.options"/>
 
 
@@ -66,8 +66,7 @@ export default {
             errors: [],
             flags: {
                 no_data: false,
-                loaded: false,
-                exporting: false
+                loaded: false
             },
             options: {
                 dates: undefined,
@@ -102,7 +101,6 @@ export default {
         reset_view: function () {
             this.flags.loaded = false
             this.flags.no_data = false
-            this.flags.exporting = false
 
             this.errors = []
         },
