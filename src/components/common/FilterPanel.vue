@@ -1,23 +1,22 @@
 <template>
     <div>
-        <div v-if="!mobile" style="margin: 0 5px">
+        <div v-if="!mobile">
             <div class="row">
                 <!-- Период -->
-                <div class="col">
-                    <select class="form-control form-control-sm" style="height: 33px"
-                            v-model="dates.period" @change="select_period()">
-                        <option :value="30" :disabled="!dates.range[1]">Месяц</option>
-                        <option :value="14" :disabled="!dates.range[1]">Две недели</option>
-                        <option :value="7" :disabled="!dates.range[1]">Неделя</option>
-                        <option :value="3" :disabled="!dates.range[1]">Три дня</option>
-                        <option :value="1" :disabled="!dates.range[1]">День</option>
-                        <option :value="-1" v-if="!page.includes('heatmap')">Все данные</option>
-                        <option :value="undefined" disabled>Период не выбран</option>
-                    </select>
-                </div>
+                <select class="col form-control form-control-sm" style="height: 34px"
+                        v-model="dates.period" @change="select_period()">
+                    <option :value="30" :disabled="!dates.range[1]">Месяц</option>
+                    <option :value="14" :disabled="!dates.range[1]">Две недели</option>
+                    <option :value="7" :disabled="!dates.range[1]">Неделя</option>
+                    <option :value="3" :disabled="!dates.range[1]">Три дня</option>
+                    <option :value="1" :disabled="!dates.range[1]">День</option>
+                    <option :value="-1" v-if="!page.includes('heatmap')">Все данные</option>
+                    <option :value="undefined" disabled>Период не выбран</option>
+                </select>
+
                 <!-- Даты -->
                 <div>
-                    <button class="btn btn-default btn-sm" style="margin-top: -2px"
+                    <button class="btn btn-default btn-sm"
                             @click="scroll_dates(true)" :disabled="dates.range.some(d => !d)">
                         &#8592;
                     </button>
@@ -27,7 +26,7 @@
                     <date-picker :class="`${page}${page == 'report' && window_mode == 'settings' ? '-settings' : ''}`"
                                  format="по DD.MM.YYYY" v-model="dates.range[1]" @change="select_dates(1)"/>
 
-                    <button class="btn btn-default btn-sm" style="margin-top: -2px"
+                    <button class="btn btn-default btn-sm"
                             @click="scroll_dates(false)" :disabled="dates.range.some(d => !d)">
                         &#8594;
                     </button>
@@ -38,32 +37,49 @@
                         @click="generate_report()">Скачать PDF
                 </button>
 
-                <!-- Настройки графика -->
-                <div class="col-12" v-if="page.includes('graph')">
-                    <input type="checkbox" id="hide_legend" v-model="legend_mode"
-                           @change="change_mode('legend', !legend_mode)"/>
-                    <label for="hide_legend">Скрыть легенду</label>
+                <!-- Назад -->
+                <a class="btn btn-sm btn-danger" v-if="!object_id" @click="go_back()" href="#">Назад</a>
+            </div>
 
-                    <input type="checkbox" id="collapse_points_median" v-model="median_mode"
-                           @change="change_mode('points-median', median_mode)" v-if="options && !options.disable_averaging"/>
-                    <label for="collapse_points_median" v-if="options && !options.disable_averaging">Медиана</label>
+            <!-- Настройки графика -->
+            <div v-if="constants.graph_types.includes(page)">
+                <input type="checkbox" id="hide_legend" v-model="legend_mode"
+                       @change="change_mode('legend', !legend_mode)"/>
+                <label for="hide_legend">Скрыть легенду</label>
 
-                    <input type="checkbox" id="collapse_points_sma" v-model="sma_mode"
-                           @change="change_mode('points-sma', sma_mode)" v-if="options && !options.disable_averaging"/>
-                    <label for="collapse_points_sma" v-if="options && !options.disable_averaging">Скользящая средняя (7 дней)</label>
+                <input type="checkbox" id="collapse_points_median" v-model="median_mode"
+                       @change="change_mode('points-median', median_mode)" v-if="options && !options.disable_averaging"/>
+                <label for="collapse_points_median" v-if="options && !options.disable_averaging">Медиана</label>
 
+                <input type="checkbox" id="collapse_points_sma" v-model="sma_mode"
+                       @change="change_mode('points-sma', sma_mode)" v-if="options && !options.disable_averaging"/>
+                <label for="collapse_points_sma" v-if="options && !options.disable_averaging">Скользящая средняя (7 дней)</label>
 
-                    <input type="checkbox" id="show_points_colors" v-model="colors_mode"
-                           @change="change_mode('points-color', colors_mode)" v-if="options && options.enable_dots_colors"/>
-                    <label for="show_points_colors" v-if="options && options.enable_dots_colors">Показать цветовые зоны</label>
-                </div>
+                <input type="checkbox" id="show_points_colors" v-model="colors_mode"
+                       @change="change_mode('points-colors', colors_mode)" v-if="options && options.enable_dots_colors"/>
+                <label for="show_points_colors" v-if="options && options.enable_dots_colors">Показать цветовые зоны</label>
 
-                <!-- Тепловая карта -->
-                <div v-if="page == 'symptoms-heatmap'" style="padding-top: 5px;">
-                    <input type="checkbox" id="show_medicines" @change="change_mode('medicines', medicines_mode)"
-                           v-model="medicines_mode"/>
-                    <label for="show_medicines">Показать лекарства</label>
-                </div>
+                <br>
+                <small class="text-muted">* Прокрутите страницу вниз для подробной информации</small>
+            </div>
+
+            <!-- Настройки суточного -->
+            <div v-if="constants.day_graph_types.includes(page)">
+                <input type="checkbox" id="hide_legend" v-model="legend_mode"
+                       @change="change_mode('legend', !legend_mode)"/>
+                <label for="hide_legend">Скрыть легенду</label>
+                <br>
+                <small class="text-muted">* Прокрутите страницу вниз для подробной информации</small>
+            </div>
+
+            <!-- Тепловая карта -->
+            <div v-if="options && options.has_additional" style="padding-top: 5px;">
+                <input type="checkbox" id="show_optional" @change="change_mode('optional', optional_mode)"
+                       v-model="optional_mode"/>
+                <label for="show_optional">Показать дополнительные категории</label>
+
+                <br>
+                <small class="text-muted">* Прокрутите страницу вниз для подробной информации</small>
             </div>
 
             <!-- Категории -->
@@ -83,26 +99,24 @@
 
         <!-- Мобильная версия -->
         <div v-else>
-            <div class="row" :style="`margin-left: ${window_mode != 'settings' ? -5 : 0}px`">
+            <div class="row">
                 <button class="btn btn-sm btn-danger" @click="go_back()" v-if="!object_id && window_mode == 'settings'">
                     Назад
                 </button>
                 <!-- Период -->
-                <div class="col">
-                    <select class="form-control form-control-sm" v-model="dates.period" @change="select_period()">
-                        <option :value="30" :disabled="!dates.range[1]">Месяц</option>
-                        <option :value="14" :disabled="!dates.range[1]">Две недели</option>
-                        <option :value="7" :disabled="!dates.range[1]">Неделя</option>
-                        <option :value="3" :disabled="!dates.range[1]">Три дня</option>
-                        <option :value="1" :disabled="!dates.range[1]">День</option>
-                        <option :value="-1">Все данные</option>
-                        <option :value="undefined" disabled>Период не выбран</option>
-                    </select>
-                </div>
+                <select class="col form-control form-control-sm" v-model="dates.period" @change="select_period()">
+                    <option :value="30" :disabled="!dates.range[1]">Месяц</option>
+                    <option :value="14" :disabled="!dates.range[1]">Две недели</option>
+                    <option :value="7" :disabled="!dates.range[1]">Неделя</option>
+                    <option :value="3" :disabled="!dates.range[1]">Три дня</option>
+                    <option :value="1" :disabled="!dates.range[1]">День</option>
+                    <option :value="-1">Все данные</option>
+                    <option :value="undefined" disabled>Период не выбран</option>
+                </select>
             </div>
 
             <!-- Даты -->
-            <div class="row" style="margin: 0">
+            <div class="row">
                 <button class="btn btn-default btn-sm" @click="scroll_dates(true)"
                         :disabled="dates.range.some(d => !d)">
                     &#8592;
@@ -121,7 +135,7 @@
                 </button>
             </div>
 
-            <div class="row" style="margin-left: -5px; margin-right: -5px; margin-top: 5px; margin-bottom: 5px;">
+            <div class="row">
                 <!-- Категории -->
                 <div class="col" v-if="page == 'report' && categories">
                     <multiselect v-model="selected_categories" :options="category_groups" :multiple="true"
@@ -134,32 +148,47 @@
                                  @input="update_categories"></multiselect>
                 </div>
 
-                <div style="padding-top: 5px; margin-left: 10px" v-else>
+                <div v-else>
                     <!-- Настройки графика -->
-                    <div v-if="page.includes('graph')">
-                        <input type="checkbox" id="hide_legend_mobile" v-model="legend_mode"
+                    <div v-if="constants.graph_types.includes(page)">
+                        <input type="checkbox" class="mobile-checkbox" id="hide_legend_mobile" v-model="legend_mode"
                                @change="change_mode('legend', !legend_mode)"/>
                         <label for="hide_legend_mobile">Скрыть легенду</label>
                         <br>
-                        <input type="checkbox" id="collapse_points_median_mobile" v-model="median_mode"
+                        <input type="checkbox" class="mobile-checkbox" id="collapse_points_median_mobile" v-model="median_mode"
                                @change="change_mode('points-median', median_mode)" v-if="options && !options.disable_averaging"/>
-                        <label for="collapse_points_median_mobile" v-if="options && !options.disable_averaging">Медиана</label>
+                        <label for="collapse_points_median_mobile"
+                               v-if="options && !options.disable_averaging">Медиана</label>
                         <br>
-                        <input type="checkbox" id="collapse_points_sma_mobile" v-model="sma_mode"
+                        <input type="checkbox" class="mobile-checkbox" id="collapse_points_sma_mobile" v-model="sma_mode"
                                @change="change_mode('points-sma', sma_mode)" v-if="options && !options.disable_averaging"/>
                         <label for="collapse_points_sma_mobile" v-if="options && !options.disable_averaging">Скользящая средняя (7 дней)</label>
                         <br>
-                        <input type="checkbox" id="show_points_colors_mobile" v-model="colors_mode"
-                               @change="change_mode('points-color', colors_mode)" v-if="options && options.enable_dots_colors"/>
+                        <input type="checkbox" class="mobile-checkbox" id="show_points_colors_mobile" v-model="colors_mode"
+                               @change="change_mode('points-colors', colors_mode)" v-if="options && options.enable_dots_colors"/>
                         <label for="show_points_colors_mobile" v-if="options && options.enable_dots_colors">Показать цветовые зоны</label>
+                        <br>
+                        <small class="text-muted">* Прокрутите страницу вниз для подробной информации</small>
+                    </div>
+
+                    <!-- Настройки суточного -->
+                    <div v-if="constants.day_graph_types.includes(page)">
+                        <input type="checkbox" id="hide_legend" v-model="legend_mode"
+                               @change="change_mode('legend', !legend_mode)"/>
+                        <label for="hide_legend">Скрыть легенду</label>
+                        <br>
+                        <small class="text-muted">* Прокрутите страницу вниз для подробной информации</small>
                     </div>
 
                     <!-- Тепловая карта -->
-                    <div v-if="page == 'symptoms-heatmap'">
-                        <input type="checkbox" id="show_medicines_mobile"
-                               @change="change_mode('medicines', medicines_mode)"
-                               v-model="medicines_mode"/>
-                        <label for="show_medicines_mobile">Показать лекарства</label>
+                    <div v-if="options && options.has_additional">
+                        <input type="checkbox" class="mobile-checkbox" id="show_optional_mobile"
+                               @change="change_mode('optional', optional_mode)"
+                               v-model="optional_mode"/>
+                        <label for="show_optional_mobile">Показать дополнительные категории</label>
+
+                        <br>
+                        <small class="text-muted">* Прокрутите страницу вниз для подробной информации</small>
                     </div>
                 </div>
             </div>
@@ -187,7 +216,7 @@ export default {
             median_mode: false,
             sma_mode: false,
             colors_mode: false,
-            medicines_mode: false,
+            optional_mode: false,
             show_collapse: false
         }
     },
@@ -219,7 +248,11 @@ export default {
             Event.fire('update-categories', this.selected_categories)
         },
         change_mode: function (target, mode) {
-            Event.fire('update-' + target, mode)
+            if (target.includes('points')) {
+                Event.fire('update-points', {mode: mode, target: target.replace('points-', '')})
+            } else {
+                Event.fire('update-' + target, mode)
+            }
         },
         scroll_dates: function (back) {
             let duration = this.dates_difference(this.dates.range[0], this.dates.range[1])
@@ -260,8 +293,12 @@ export default {
             }
             this.update_dates()
         },
+        go_back: function () {
+            Event.fire('back-to-dashboard')
+        }
     },
     created() {
+        console.log('filter-panel created', this.page)
         this.dates = {
             range: [],
             period: undefined,
@@ -289,22 +326,12 @@ export default {
             this.$forceUpdate()
         })
 
-        Event.listen('set-collapse-median-mode', mode => {
-            this.median_mode = mode
+        Event.listen('set-points-mode', (data) => {
+            this[data.target + '_mode'] = data.mode
             this.$forceUpdate()
         })
 
-        Event.listen('set-collapse-sma-mode', mode => {
-            this.sma_mode = mode
-            this.$forceUpdate()
-        })
-
-        Event.listen('set-points-color-mode', mode => {
-            this.colors_mode = mode
-            this.$forceUpdate()
-        })
-
-        Event.listen('set-dates', dates => {
+        Event.listen('set-dates', (dates) => {
             this.dates.range = [
                 dates[0] ? this.start_of_day(dates[0]) : undefined,
                 dates[1] ? this.end_of_day(dates[1]) : undefined
@@ -321,12 +348,8 @@ export default {
 </script>
 
 <style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
-<style>
-.row {
-    margin-bottom: 5px;
-    grid-column-gap: 5px;
-}
 
+<style scoped>
 .multiselect__tag {
     white-space: unset;
     margin-bottom: 0;
@@ -336,10 +359,27 @@ export default {
     white-space: unset;
 }
 
-</style>
+.row {
+    margin-bottom: 5px;
+    grid-column-gap: 5px;
+    margin-left: 0;
+    margin-right: 0;
+}
 
-<style scoped>
 .btn {
-    height: 32px;
+    height: 34px;
+}
+
+.mobile-checkbox {
+    margin: 0 5px 0 0;
+}
+
+input[type="checkbox" i] {
+    margin: 0 5px 0 2px;
+}
+
+label {
+    margin-bottom: 0;
+    margin-right: 15px;
 }
 </style>

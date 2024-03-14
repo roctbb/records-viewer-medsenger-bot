@@ -10,7 +10,7 @@
                     <dashboard :patient="patient" v-show="state == 'dashboard' || state == 'graph-category-chooser'"/>
                     <report :patient="patient" :last_date="last_date" v-show="state == 'report'"/>
                     <formalized-report :params="params" :patient="patient" :last_date="last_date" v-show="state == 'formalized-report'"/>
-                    <graph-presenter :patient="patient" :last_date="last_date" v-show="state == 'graph'"/>
+                    <graph-view :patient="patient" :last_date="last_date" v-show="state == 'graph'"/>
                     <conclusion-editor :patient="patient" v-show="state == 'conclusion'"/>
                 </div>
             </div>
@@ -24,16 +24,17 @@ import Loading from "./components/common/Loading.vue";
 import Report from "./components/views/report/Report.vue";
 import Dashboard from "./components/views/dashboard/Dashboard.vue";
 import LoadError from "./components/common/LoadError.vue";
-import GraphPresenter from "./components/views/graph/GraphPresenter.vue";
 import ConclusionEditor from "./components/views/conclusion/ConclusionEditor.vue";
 import ActionDone from "./components/common/ActionDone.vue";
 import FormalizedReport from "./components/views/formalized-report/FormalizedReport.vue";
+import GraphView from "./components/views/graph/GraphView.vue";
 
 export default {
     name: 'App',
     components: {
+        GraphView,
         ActionDone, Loading, LoadError,
-        GraphPresenter, Report, FormalizedReport,
+        Report, FormalizedReport,
         Dashboard, DashboardHeader,
         ConclusionEditor
     },
@@ -105,13 +106,7 @@ export default {
             this.state = 'formalized-report'
         })
 
-        Event.listen('load-line-graph', (params) => {
-            this.state = 'graph'
-        });
-        Event.listen('load-day-graph', (params) => {
-            this.state = 'graph'
-        });
-        Event.listen('load-heatmap', (params) => {
+        Event.listen('load-graph-view', (params) => {
             this.state = 'graph'
         });
 

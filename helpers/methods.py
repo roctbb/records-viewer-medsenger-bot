@@ -55,16 +55,18 @@ def toInt(value, default=None):
         return default
 
 
-def get_records_list(contract_id, categories, dates, options=None):
+def get_records_list(contract_id, categories, dates, options=None, required_categories=None):
     if options is None:
         options = {}
+    if required_categories is None:
+        required_categories = categories
     info = {
         'type': options.get('type'),
         'first_load': options.get('first_load')
     }
 
     if options.get('first_load'):
-        last_record = medsenger_api.get_records(contract_id, (','.join(categories) + ','), limit=1)
+        last_record = medsenger_api.get_records(contract_id, (','.join(required_categories) + ','), limit=1)
         if last_record and len(last_record):
             last_date = datetime.fromtimestamp(last_record[0]['timestamp']).replace(hour=23, minute=59, second=59)
         else:
@@ -73,7 +75,7 @@ def get_records_list(contract_id, categories, dates, options=None):
         dates = [last_timestamp - 14 * 24 * 60 * 60 + 1, last_timestamp]
     info['dates'] = dates
 
-    if options.get('type') == 'line':
+    if 'line' in options.get('type'):
         categories += text_categories
 
     limit = RECORDS_LIMIT if options.get('type') == 'report' else None

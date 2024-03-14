@@ -27,6 +27,9 @@ window.Event = new class {
 
 Vue.mixin({
     methods: {
+        delay: function (time) {
+            return new Promise(resolve => setTimeout(resolve, time));
+        },
         // urls
         url: function (action, agent_id) {
             let api_host = window.API_HOST;
@@ -148,24 +151,20 @@ Vue.mixin({
 
             return groups
         },
-        load_data: function (categories, dates, options = null) {
+        load_data: function (categories, dates, options = null, required_categories = null) {
+
             let data = {
                 categories: categories,
                 dates: dates, // [start, end]
-                options: options
+                options: options, // {type, first_load, get_pages_count, page}
+                required_categories: required_categories ? required_categories : categories
             }
             this.axios.post(this.direct_url('/api/get_records'), data).then(response => {
-                response.data.records = response.data.records.map((r) => {
-                    r.category_code = r.category_info.name
-                    r.y = r.value
-
-                    let d = new Date(r.timestamp * 1000)
-                    r.formatted_date = this.format_date(d)
-                    r.formatted_time = this.format_time(d)
-
-                    return r
-                })
+                response.data.records = response.data.records.map(this.process_record)
                 Event.fire('loaded', response.data)
+
+                let data_type = options.type.includes('report') ? options.type : 'graph'
+                Event.fire(data_type + '-data-loaded', response.data)
             });
         },
         load_additional_data: function (categories, end_date, period, type) {
@@ -189,18 +188,21 @@ Vue.mixin({
             this.axios
                 .post(this.direct_url('/api/get_records'), data)
                 .then((response) => {
-                    let records = response.data.records.map((r) => {
-                        r.category_code = r.category_info.name
-
-                        let d = new Date(r.timestamp * 1000)
-                        r.formatted_date = this.format_date(d)
-                        r.formatted_time = this.format_time(d)
-
-                        return r
-                    })
+                    let records = response.data.records.map(this.process_record)
 
                     Event.fire('additional-loaded', records)
                 })
+        },
+        process_record: function (r) {
+            r.category_code = r.category_info.name
+            r.category_type = r.category_info.type
+
+            let d = new Date(r.timestamp * 1000)
+            r.formatted_date = this.format_date(d)
+            r.formatted_time = this.format_time(d)
+            r.formatted_hours = r.formatted_date + ` ${d.getHours()}:00-${(d.getHours() + 1) % 24}:00`
+
+            return r
         },
         send_order: function (order, agent_id, params, event_name) {
             let data = {order: order, agent_id: agent_id, params: params}
@@ -255,14 +257,20 @@ Vue.mixin({
             if (arr[mid] == value)
                 return mid;
             if (r - l <= 0)
-                return r + (arr[r] > value ? 1 : 0);
+                return r + (arr[r] >= value ? 0 : 1);
 
             if (arr[mid] > value) {
-                l = (mid + 1) > r ? r : (mid + 1)
+                r = (mid - 1) < l ? l : (mid - 1)
                 return this.binary_search(arr, value, l, r);
             }
-            r = (mid - 1) < l ? l : (mid - 1)
+            l = (mid + 1) > r ? r : (mid + 1)
             return this.binary_search(arr, value, l, r);
+        },
+
+        copy: function (to, from) {
+            Object.keys(from).forEach(k => {
+                to[k] = from[k]
+            })
         },
 
         median: function (arr) {
@@ -296,6 +304,13 @@ Vue.mixin({
                 credible: period == filled_days,
                 filled_days: filled_days
             }
+        },
+        get_color_from_additions(point) {
+            let zone = this.zone_addition(point)
+            if (zone && zone['color']) {
+                return zone['color']
+            }
+            return this.colors.gray[1]
         },
 
         // dates
@@ -355,7 +370,7 @@ Vue.mixin({
         },
         color_transparency: function (color, percentage) {
             if (!color) return 'transparent'
-            if (color in this.colors) color = this.colors[color]
+            if (color in this.colors) color = this.colors[color][0]
 
             if (color.includes('rgb')) {
                 let p = percentage / 100
@@ -400,19 +415,37 @@ Vue.mixin({
             },
             error_messages: {
                 too_mach_points: 'За данный период в медицинской карте присутствует слишком большое количество записей (> 500). ',
-                averaged: 'Для удобства мы усреднили значения. Усреднение можно убрать с помощью выше, но в таком случае точные значения будут недоступны.',
+                averaged: 'Для удобства мы усреднили значения. Усреднение можно убрать с помощью галочки выше, но в таком случае точные значения будут недоступны.',
                 not_averaged: 'Чтобы увидеть комментарии к точкам и симптомы, загрузите период с меньшим количеством записей или усредните значения.',
                 incorrect_period: 'Выбран некорректный период',
                 not_more_30_days: 'Пожалуйста, выберите период <b>не больше</b> 30 дней.'
             },
             colors: {
-                red: '#fd3737',
-                orange: '#ff961e',
-                yellow: '#ffc800',
-                green: '#7dda06',
-                blue: '#36c3ff',
-                darkblue: '#095cf5',
-                purple: '#853cff'
+                background: ['#fcfcfc', "#ffffff"],
+                medsenger: ['#006c88', '#24a8b4', '#72d6e0'],
+                red: ['#dc0909', '#fd1f1f', '#f55353'],
+                orange: ['#f16400', '#f67e2a', '#ff9246'],
+                yellow: ['#ffc800', '#fce200', '#f7f86c'],
+                green: ['#50b432', '#4fde21', '#85ef62'],
+                blue: ['#058dc7', '#24cbe5', '#36c3ff'],
+                darkblue: ['#095cf5', '#3673e8', '#598def'],
+                purple: ['#721fff', '#853cff', '#9a63fd'],
+                pink: ['#aa27ce', '#c355ff', '#c677f5'],
+                gray: ['#646464', '#7d7d7d', '#969696', '#afafaf'],
+                scale: ['#50b432', '#66de21', '#89de21', '#a7e805',
+                    '#fce200', '#ffc800', '#f18100', '#f16400',
+                    '#f14000', '#fd1f1f', '#dc0909']
+            },
+            descriptions: {
+                months: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
+                weekdays: ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'],
+                shortMonths: ['Янв', 'Фев', 'Март', 'Апр', 'Май', 'Июнь', 'Июль', 'Авг', 'Сент', 'Окт', 'Ноя', 'Дек'],
+            },
+            constants: {
+                graph_types: ['line-graph', 'line'],
+                day_graph_types: ['day-line-graph', 'day-line', 'day-graph'],
+                heatmap_types: ['heatmap', 'symptom-heatmap'],
+                report_types: ['report', 'formalized-report'],
             },
             axios: require('axios'),
             category_list: undefined,

@@ -27,11 +27,16 @@
         window.PARAMS = JSON.parse('{{ params | safe }}');
         window.AGENTS = JSON.parse('{{ agents | safe }}')
     </script>
+    <style>
+        html, body {
+            overflow-x: hidden;
+        }
+    </style>
 </head>
 <body>
 <div>
     <div id="app"></div>
 </div>
-<script src="{{ js_host }}/static/build.js?c={{lc}}"></script>
+<script src="{{ js_host }}/static/build.js?c={{ lc }}"></script>
 </body>
 </html>

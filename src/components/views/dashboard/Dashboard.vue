@@ -107,6 +107,7 @@ export default {
                 custom.push({
                     title: category.description,
                     categories: [category.name],
+                    required_categories: [category.name],
                     type: 'line-graph',
                     options: {
                         disable_averaging: category.default_representation == 'day_sum'
@@ -116,20 +117,36 @@ export default {
 
             if (this.source == 'patient') custom = custom.filter(c => c.options && !c.options.only_doctor)
 
+            custom.forEach(c => {
+                c.filter_type = 'graph'
+                c.view = 'graph-view'
+            })
+
             return custom
         },
         plottable_heatmap_categories: function () {
             let heatmaps = this.groups.filter((group) => group.type == 'heatmap')
             if (this.source == 'patient') heatmaps = heatmaps.filter(c => c.options && !c.options.only_doctor)
 
+            heatmaps.forEach(c => {
+                c.filter_type = 'heatmap'
+                c.view = 'graph-view'
+            })
+
             return heatmaps
         },
         plottable_day_graphs: function () {
-            return this.groups.filter((group) => group.type == 'day-graph')
+            let custom = this.groups.filter((group) => group.type == 'day-graph')
+            custom.forEach(c => {
+                c.filter_type = 'day-graph'
+                c.view = 'graph-view'
+            })
+
+            return custom
         },
         report_categories: function () {
             let reports = this.groups
-                .filter((group) => ['report', 'formalized-report'].includes(group.type))
+                .filter((group) => this.constants.report_types.includes(group.type))
                 .filter(group => !group.options || !group.options.scenario || this.patient.scenario && group.options && group.options.scenario && group.options.scenario.includes(this.patient.scenario.id))
 
             reports = reports.map(report => {
@@ -139,6 +156,8 @@ export default {
                         report.categories = report.categories.filter(c => c != 'action')
                     report.filters = this.categories.filter(c => report.categories.includes(c.name))
                 }
+                report.filter_type = report.type
+                report.view = report.type
                 return report
             })
 
@@ -152,10 +171,10 @@ export default {
             Event.fire('load-' + params.type, params)
         },
         load_graph: function (params, type) {
-            Event.fire('load-' + type, params)
+            Event.fire('load-graph-view', params)
         },
         load_page: function (params) {
-            Event.fire('load-' + params.type, params)
+            Event.fire('load-' + params.view, params)
         }
     },
     created() {
@@ -165,9 +184,12 @@ export default {
             .get(this.direct_url('/api/categories'))
             .then(response => {
                 this.categories = response.data.categories
-                this.categories.sort((a, b) => a.id - b.id)
-                this.groups = response.data.groups
-                this.groups.sort((a, b) => a.id - b.id)
+                this.categories.sort((a, b) => a.description - b.description)
+                this.groups = response.data.groups.map((group) => {
+                    group.filter_type = group.type
+                    return group
+                })
+                this.groups.sort((a, b) => a.title - b.title)
 
                 if (window.OBJECT_ID) {
                     if (this.window_mode == 'graph-presenter') {
@@ -178,7 +200,8 @@ export default {
                             if (category.length) {
                                 let params = {
                                     title: category[0].description,
-                                    categories: [category[0].name]
+                                    categories: [category[0].name],
+                                    filter_type: 'line-graph'
                                 }
                                 this.load_graph(params, 'line-graph')
                             }
@@ -201,5 +224,8 @@ export default {
 </script>
 
 <style scoped>
-
+.row {
+    margin-bottom: 5px;
+    grid-column-gap: 0px;
+}
 </style>

@@ -25,8 +25,9 @@ def get_patient_records(args, form, contract):
     options = data.get('options', None)
     dates = data.get('dates', None)
     categories = data.get('categories', None)
+    required_categories = data.get('required_categories', None)
 
-    answer = get_records_list(contract.id, categories, dates, options)
+    answer = get_records_list(contract.id, categories, dates, options, required_categories)
 
     return jsonify(answer)
 
