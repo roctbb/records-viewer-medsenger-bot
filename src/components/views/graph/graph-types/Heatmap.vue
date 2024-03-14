@@ -81,9 +81,7 @@ export default {
 
         // График
         set_export_options: function () {
-            console.log(this.highcharts_options.series[this.highcharts_options.series.length - 1])
             this.export_options = JSON.parse(JSON.stringify(this.highcharts_options))
-            console.log(this.export_options.series[this.highcharts_options.series.length - 1])
 
             this.export_options.chart.width = 700
             this.export_options.chart.height -= 3
@@ -251,7 +249,6 @@ export default {
                 let records_by_param = this.get_records_by_category_by_key(category, param, max_value, is_text_category)
 
                 let tmp = Object.entries(records_by_param).map(([rec, rec_data]) => {
-                    console.log(rec)
                     rec_data.forEach(data => {
                         data.points.sort((a, b) => a.timestamp - b.timestamp)
                         data.points.forEach(p => {
