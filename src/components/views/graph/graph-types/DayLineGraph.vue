@@ -384,7 +384,6 @@ export default {
 
         // Первая отрисовка графика
         Event.listen('draw-graph', (options) => {
-            console.log(this.graph.type)
             if (!this.constants.day_graph_types.includes(this.graph.type)) return
             this.reset_view()
 
