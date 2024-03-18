@@ -32,7 +32,8 @@ def __get_contract(contract_manager, contract_id):
 
         return contract
 
-    except:
+    except Exception as e:
+        print(e)
         return None
 
 
@@ -41,8 +42,6 @@ def verify_request(contract_manager, expected_role):
     def request_verifier(func):
         def wrapper(*args, **kargs):
             contract_id, api_key, agent_token, source = __get_params()
-
-            print(contract_id, api_key, agent_token, source, expected_role, APP_KEY == api_key)
 
             contract = None
             has_access = False
