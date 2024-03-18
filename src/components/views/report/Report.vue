@@ -170,10 +170,6 @@ export default {
                 ]
             }
 
-            if (!this.options.dates[0] && data.records.length) {
-                this.options.dates[0] = new Date(data.records[data.records.length - 1].timestamp * 1000)
-            }
-
             // Сохранение записей
             this.records.all = data.records.sort((a, b) => {
                 return a.timestamp > b.timestamp ? -1 : a.timestamp < b.timestamp ? 1 : 0

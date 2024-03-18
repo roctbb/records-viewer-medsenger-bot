@@ -80,9 +80,6 @@ def get_records_list(contract_id, categories, dates, options=None, required_cate
 
     limit = RECORDS_LIMIT if options.get('type') == 'report' else None
     offset = options.get('page', 0) * RECORDS_LIMIT
-
-    print(dates,','.join(categories) + ',', limit, offset)
-
     records = medsenger_api.get_records(contract_id, time_from=dates[0], time_to=dates[1],
                                         category_name=(','.join(categories) + ','),
                                         limit=limit, offset=offset)
