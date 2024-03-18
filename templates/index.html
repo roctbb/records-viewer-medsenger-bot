@@ -25,7 +25,8 @@
         window.OBJECT_ID = parseInt('{{ object_id }}');
         window.SOURCE = '{{ source }}';
         window.PARAMS = JSON.parse('{{ params | safe }}');
-        window.AGENTS = JSON.parse('{{ agents | safe }}')
+        window.AGENTS = JSON.parse('{{ agents | safe }}');
+        window.IS_ADMIN = {{ is_admin }};
     </script>
     <style>
         html, body {

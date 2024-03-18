@@ -1,49 +1,33 @@
 <template>
     <div v-if="options.report">
         <h4>{{ options.report.title }}</h4>
-        <filter-panel page="report" :categories="options.report.filters" :patient="patient"
-                      :disable_downloading="!records || !records.length" :last_date="last_date"/>
-        <loading v-if="!options.loaded"/>
-        <div v-else>
-            <!-- Ошибки -->
-            <error-block :errors="errors" v-if="errors.length"></error-block>
-            <!-- Записи -->
-            <records-list :data="records"/>
 
-            <!-- Список страниц -->
-            <div style="text-align: center" v-if="options.page_count">
-                <button class="btn btn-link btn-sm" @click="select_page(0)"
-                        v-if="options.selected_page > 9">
-                    &#8676;
-                </button>
-                <button class="btn btn-link btn-sm" @click="select_page(options.selected_page - 1)"
-                        v-if="options.selected_page > 0">
-                    &#8592;
-                </button>
-                <a class="btn btn-link btn-sm" @click="select_page(page - 1)" v-for="(page, index) in pages"
-                   :style="page == (options.selected_page + 1) ? 'font-weight: bold; text-decoration: underline; color: black;' : ''">{{
-                        page
-                    }}</a>
-                <button class="btn btn-link btn-sm" @click="select_page(options.selected_page + 1)"
-                        v-if="options.selected_page < options.page_count - 2">
-                    &#8594;
-                </button>
-                <button class="btn btn-link btn-sm" @click="select_page(options.page_count - 1)"
-                        v-if="options.selected_page < options.page_count - 10">
-                    &#8677;
-                </button>
-            </div>
+        <!-- Настройки -->
+        <filter-panel :page="options.report.filter_type" :categories="options.report.filters" :patient="patient"
+                      :disable_downloading="flags.no_data" :last_date="last_date"
+                      :options="options.report.options"/>
+        <br>
+        <loading v-if="!flags.loaded"/>
+        <nothing-found v-if="flags.no_data"/>
 
-            <!-- Для экспорта -->
-            <div v-show="false" v-if="options.loaded && records">
-                <div ref="to-export" class="to-export">
-                    <h4>{{ options.report.title }}</h4>
-                    <br>
-                    <h6>Пациент: {{ patient.name }} ({{ patient.birthday }})</h6>
-                    <hr>
-                    <records-list :data="records" :to_export="true"/>
-                </div>
-            </div>
+        <!-- Ошибки -->
+        <error-block :errors="errors" v-if="errors.length"/>
+
+        <!-- Список страниц -->
+        <pagination :selected_page="options.selected_page + 1" :page_cnt="options.page_count"
+                    v-if="flags.loaded && !flags.no_data && options.page_count > 1"/>
+
+        <!-- Таблица -->
+        <records-table :data="records.all"/>
+
+        <!-- Список страниц -->
+        <pagination :selected_page="options.selected_page + 1" :page_cnt="options.page_count"
+                    v-if="flags.loaded && !flags.no_data && options.page_count > 1"/>
+
+
+        <!-- Для экспорта -->
+        <div v-show="false">
+            <report-export :data="records.all" :dates="options.dates" :patient="patient"/>
         </div>
 
     </div>
@@ -55,10 +39,14 @@ import FilterPanel from "../../common/FilterPanel.vue";
 import html2pdf from "html2pdf.js";
 import Loading from "../../common/Loading.vue";
 import ErrorBlock from "../../common/ErrorBlock.vue";
+import RecordsTable from "./parts/RecordsTable.vue";
+import NothingFound from "../../common/NothingFound.vue";
+import Pagination from "./parts/Pagination.vue";
+import ReportExport from "./ReportExport.vue";
 
 export default {
     name: "Report",
-    components: {Loading, FilterPanel, ErrorBlock, RecordsList},
+    components: {ReportExport, Pagination, NothingFound, RecordsTable, Loading, FilterPanel, ErrorBlock, RecordsList},
     props: {
         patient: {
             required: true
@@ -69,15 +57,20 @@ export default {
     },
     data() {
         return {
-            options: {
+            flags: {
                 loaded: false,
-                report: undefined,
+                no_data: false,
+            },
+            options: {
                 dates: undefined,
+                report: {filter_type: ''},
                 selected_page: 0,
                 page_count: undefined,
                 selected_categories: [],
             },
-            records: [],
+            records: {
+                all: undefined
+            },
             errors: []
         }
     },
@@ -94,36 +87,38 @@ export default {
         }
     },
     methods: {
-        load: function (get_pages_count = false) {
-            this.options.loaded = false
-            this.errors = []
+        reset_view: function () {
+            this.flags.loaded = false
+            this.flags.no_data = false
+            this.flags.exporting = false
 
+            this.errors = []
+        },
+
+        // Данные
+        load: function (first_load = false, get_pages_count = false) {
+            this.reset_view()
             let categories = this.options.selected_categories.length ? this.options.selected_categories.map(c => c.name) : this.categories
+
             let dates = this.options.dates.map(date => date ? Math.round(date.getTime() / 1000) : date)
             let options = {
                 type: 'report',
                 page: this.options.selected_page,
-                get_pages_count: get_pages_count
+                get_pages_count: get_pages_count,
+                first_load: first_load
             }
             this.load_data(categories, dates, options)
         },
+        process_load_answer: function () {
+            Event.fire('set-dates', this.options.dates)
+            Event.fire('refresh-records-table', this.records.all)
+            this.flags.loaded = true
+        },
+
         select_page: function (p) {
+            if (this.options.selected_page == p) return
             this.options.selected_page = p
             this.load()
-        },
-        generate_report: function () {
-            let element = this.$refs['to-export']
-
-            let opt = {
-                margin: 0.5,
-                filename: this.patient.name + '.pdf',
-                page_break: {mode: 'css'},
-                // image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas: {dpi: 192, letterRendering: true},
-                jsPDF: {unit: 'in', format: 'a4', orientation: 'portrait'}
-            };
-
-            html2pdf().set(opt).from(element).save();
         }
     },
     mounted() {
@@ -134,57 +129,86 @@ export default {
         ]
     },
     created() {
-        Event.listen('loaded', (data) => {
-            if (data.info.type != 'report') return
-            this.records = data.records
-            Event.fire('set-dates', this.options.dates)
+        console.log('report-view created')
 
-            if (data.info.page_count)
-                this.options.page_count = data.info.page_count
-            this.options.loaded = true
-        })
-
+        // Страница с отчетом открыта
         Event.listen('load-report', (report) => {
-            this.options.selected_page = 0
             this.options.report = report
 
+            this.options.selected_page = 0
             this.options.selected_categories = []
 
+            // Даты, если установлены в ссылке
             if (window.PARAMS && window.PARAMS.date_from && window.PARAMS.date_to) {
                 this.options.dates = [
                     new Date(window.PARAMS.date_from),
                     new Date(window.PARAMS.date_to)
                 ]
+            } else {
+                // Даты по умолчанию
+                this.options.dates = [
+                    undefined,
+                    this.last_date
+                ]
             }
 
-            this.load(true)
+            // Обновление дат в строке фильтров
+            Event.fire('set-dates', this.options.dates)
+
+            this.load(!window.PARAMS.mode, true)
+            this.$forceUpdate()
         })
 
+        // Записи получены
+        Event.listen('report-data-loaded', (data) => {
+            this.reset_view()
+
+            // Обновление дат
+            if (data.info.first_load) {
+                this.options.dates = [
+                    new Date(data.info.dates[0] * 1000),
+                    new Date(data.info.dates[1] * 1000)
+                ]
+            }
+
+            if (!this.options.dates[0] && data.records.length) {
+                this.options.dates[0] = new Date(data.records[data.records.length - 1].timestamp * 1000)
+            }
+
+            // Сохранение записей
+            this.records.all = data.records.sort((a, b) => {
+                return a.timestamp > b.timestamp ? -1 : a.timestamp < b.timestamp ? 1 : 0
+            })
+
+            this.flags.no_data = !data.records.length
+
+            if (data.info.page_count)
+                this.options.page_count = data.info.page_count
+
+            this.process_load_answer()
+        })
+
+        // Обновление дат
         Event.listen('report-update-dates', (dates) => {
             this.options.selected_page = 0
             this.options.dates = dates
-            this.load(true)
+            this.load(false, true)
         })
 
-        Event.listen('update-categories', (categories) => {
-            this.options.selected_page = 0
-            this.options.selected_categories = categories
-            this.load(true)
-        })
-
-        Event.listen('generate-report', () => {
-            if (this.options.loaded)
-                this.generate_report()
-        })
-
+        // Неверные даты
         Event.listen('incorrect-dates', (duration) => {
             this.errors = this.add_error(this.error_messages.incorrect_period)
         })
 
-        Event.listen('back-to-dashboard', () => {
-            this.options.loaded = false;
-        });
+        // Обновление категорий
+        Event.listen('update-categories', (categories) => {
+            this.options.selected_page = 0
+            this.options.selected_categories = categories
+            this.load(false, true)
+        })
 
+        // Страница
+        Event.listen('select-page', (p) => this.select_page(p - 1))
     },
 }
 </script>

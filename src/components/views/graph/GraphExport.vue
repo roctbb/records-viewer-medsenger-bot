@@ -3,8 +3,8 @@
         <h5>Отчет по мониторингу пациента {{ patient.name }} ({{ patient.birthday }})</h5>
         <span>
             <b>Период: </b>{{
-                dates[0] ? ` с ${dates[0].toLocaleDateString()}` : ''
-            }} {{ dates[1] ? ` по ${dates[1].toLocaleDateString()}` : '' }}
+                dates && dates[0] ? ` с ${dates[0].toLocaleDateString()}` : ''
+            }} {{ dates && dates[1] ? ` по ${dates[1].toLocaleDateString()}` : '' }}
         </span>
         <hr>
         <h6>{{ options.graph.title }}</h6>
@@ -24,7 +24,7 @@
         <!-- Табличка с симптомами -->
         <div class="center" v-if="list_data.length">
             <h5 class="text-center">Симптомы и события</h5>
-            <records-list :data="list_data"/>
+            <records-table :data="list_data"/>
         </div>
     </div>
 </template>
@@ -36,10 +36,11 @@ import StatsTable from "./parts/StatsTable.vue";
 import RecordsList from "../report/parts/RecordsList.vue";
 import html2pdf from "html2pdf.js";
 import DayLineGraph from "./graph-types/DayLineGraph.vue";
+import RecordsTable from "../report/parts/RecordsTable.vue";
 
 export default {
     name: "GraphExport",
-    components: {DayLineGraph, Heatmap, RecordsList, StatsTable, LineGraph},
+    components: {RecordsTable, DayLineGraph, Heatmap, RecordsList, StatsTable, LineGraph},
     props: {
         patient: {required: true},
         dates: {required: true},
@@ -97,6 +98,7 @@ export default {
             this.$forceUpdate()
         });
 
+        // Загрузка файла
         Event.listen('generate-report', () => {
             this.generate_report()
         });

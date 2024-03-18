@@ -87,7 +87,4 @@ export default {
 </script>
 
 <style scoped>
-.row {
-    grid-column-gap: 0;
-}
 </style>

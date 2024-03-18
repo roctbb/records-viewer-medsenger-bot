@@ -1,6 +1,6 @@
 <template>
     <svg
-        :style="size"
+        :style="size + 'margin-bottom: 5px;'"
         :viewBox="`50 29 ${originalWidth} ${originalHeight}`"
         :id="`human-map-${id}`">
         <path
@@ -242,9 +242,9 @@
             y="36.685871"
             :id="`text2353-${id}`"><tspan
      :id="`tspan2351-${id}`"
-     style="font-size:9.87778px;stroke-width:0.264583;fill:#000000"
+     style="font-size:10px;stroke-width:0.264583;fill:#000000"
      x="156.56134"
-     y="36.685871">L</tspan>
+     y="36.685871">Л</tspan>
         </text>
         <text
             xml:space="preserve"
@@ -254,9 +254,9 @@
             :id="`text2353-7-${id}`">
             <tspan
                 :id="`tspan2351-2-${id}`"
-                style="font-size:9.87778px;stroke-width:0.264583;fill:#000000"
+                style="font-size:10px;stroke-width:0.264583;fill:#000000"
                 x="49.589191"
-                y="36.654991">R</tspan>
+                y="36.654991">П</tspan>
         </text>
     </svg>
 </template>
@@ -273,12 +273,20 @@ export default {
     },
     computed: {
         size() {
-            let w = this.mobile ? window.innerWidth * 0.7 : 250
-            return `width: ${w}px; height: ${this.originalHeight * this.proportion}px;`
+            if (this.mobile) {
+                let w = window.innerWidth * 0.7
+                return `width: ${w}px; height: ${this.originalHeight * this.proportion}px;`
+            }
+            let h = 325
+            return `width: ${this.originalWidth * this.proportion + 10}px; height: ${h}px;`
         },
         proportion() {
-            let w = this.mobile ? window.innerWidth * 0.7 : 250
-            return w / this.originalWidth
+            if (this.mobile) {
+                let w = window.innerWidth * 0.7
+                return w / this.originalWidth
+            }
+            let h = 325
+            return h / this.originalHeight
         }
     },
     methods: {

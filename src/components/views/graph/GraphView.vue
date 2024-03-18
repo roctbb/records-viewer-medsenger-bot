@@ -16,7 +16,7 @@
         <line-graph :data='records' :dates="options.dates" :graph="options.graph" :to_export="false"
                     v-show="options.graph.type == 'line-graph' && flags.loaded && !flags.no_data"/>
         <day-line-graph :data='records' :dates="options.dates" :graph="options.graph" :to_export="false"
-                    v-show="options.graph.type == 'day-graph' && flags.loaded && !flags.no_data"/>
+                        v-show="options.graph.type == 'day-graph' && flags.loaded && !flags.no_data"/>
         <heatmap :data='records' :dates="options.dates" :graph="options.graph" :to_export="false"
                  v-show="options.graph.type == 'heatmap' && flags.loaded && !flags.no_data"/>
 
@@ -30,7 +30,7 @@
         <!-- Табличка с симптомами -->
         <div class="center" v-if="list_data.length">
             <h5 class="text-center">Симптомы и события</h5>
-            <records-list :data="list_data"/>
+            <records-table :data="list_data"/>
         </div>
 
         <!-- Для экспорта -->
@@ -53,10 +53,11 @@ import RecordsList from "../report/parts/RecordsList.vue";
 import Heatmap from "./graph-types/Heatmap.vue";
 import GraphExport from "./GraphExport.vue";
 import DayLineGraph from "./graph-types/DayLineGraph.vue";
+import RecordsTable from "../report/parts/RecordsTable.vue";
 
 export default {
     name: "GraphView",
-    components: {DayLineGraph, GraphExport, Heatmap, RecordsList, StatsTable, NothingFound, LineGraph, Loading, ErrorBlock, FilterPanel},
+    components: {RecordsTable, DayLineGraph, GraphExport, Heatmap, RecordsList, StatsTable, NothingFound, LineGraph, Loading, ErrorBlock, FilterPanel},
     props: {
         patient: {required: true},
         last_date: {required: true}
@@ -211,11 +212,13 @@ export default {
             }
         }
     },
+    mounted() {
+        this.options.dates = [
+            this.start_of_day(this.add_days(this.last_date, -13)),
+            this.last_date
+        ]
+    },
     created() {
-        this.options.dates = {
-            range: [],
-            period: 14
-        }
         console.log('graph-view created')
 
         // Страница с графиком открыта
@@ -254,13 +257,10 @@ export default {
                     new Date(data.info.dates[0] * 1000),
                     new Date(data.info.dates[1] * 1000)
                 ]
-
-                Event.fire('set-dates', this.options.dates)
             }
 
             if (!this.options.dates[0]) {
                 this.options.dates[0] = new Date(data.records[data.records.length - 1].timestamp * 1000)
-                Event.fire('set-dates', this.options.dates)
             }
 
             // Сохранение записей
@@ -268,7 +268,6 @@ export default {
                 return a.timestamp > b.timestamp ? -1 : a.timestamp < b.timestamp ? 1 : 0
             })
             this.records.by_categories = this.group_by(this.records.all, 'category_code')
-
             this.flags.no_data = this.options.graph.required_categories.every((c) => !this.records.by_categories[c])
 
             this.process_load_answer()

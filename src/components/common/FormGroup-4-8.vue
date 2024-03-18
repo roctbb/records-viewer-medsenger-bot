@@ -37,7 +37,4 @@ strong.big {
     content: ' *';
     font-size: 18px;
 }
-.row {
-    grid-column-gap: 0;
-}
 </style>

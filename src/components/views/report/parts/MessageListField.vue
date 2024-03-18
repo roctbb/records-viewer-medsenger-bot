@@ -128,12 +128,6 @@ export default {
 </script>
 
 <style scoped>
-.row {
-    margin-left: 0;
-    margin-right: 0;
-    column-gap: 0;
-}
-
 .alert {
     height: 100%;
     margin-bottom: 5px;

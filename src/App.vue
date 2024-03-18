@@ -1,8 +1,9 @@
 <template>
     <div style="padding-bottom: 15px;">
         <vue-confirm-dialog/>
+        <load-error/>
+
         <loading v-if="!loaded"/>
-        <load-error v-else-if="state == 'load-error'"/>
         <action-done v-else-if="state == 'done'"/>
         <div v-else>
             <div>
@@ -26,7 +27,7 @@ import Dashboard from "./components/views/dashboard/Dashboard.vue";
 import LoadError from "./components/common/LoadError.vue";
 import ConclusionEditor from "./components/views/conclusion/ConclusionEditor.vue";
 import ActionDone from "./components/common/ActionDone.vue";
-import FormalizedReport from "./components/views/formalized-report/FormalizedReport.vue";
+import FormalizedReport from "./components/views/report/FormalizedReport.vue";
 import GraphView from "./components/views/graph/GraphView.vue";
 
 export default {
@@ -87,7 +88,7 @@ export default {
             this.loaded = true
         },
         process_load_error: function (response) {
-            this.state = 'load-error'
+            this.$modal.show('load-error', {})
         },
     },
     created() {
@@ -95,7 +96,8 @@ export default {
         this.load();
 
         Event.listen('back-to-dashboard', () => this.state = 'dashboard');
-        Event.listen('load-error', () => this.state = 'load-error')
+        Event.listen('load-error', () => this.$modal.show('load-error', {})
+        )
         Event.listen('action-done', () => this.state = 'done')
 
         Event.listen('load-report', (report) => {
@@ -130,7 +132,6 @@ export default {
 </script>
 
 <style>
-
 input[type=checkbox] {
     /* Double-sized Checkboxes */
     -ms-transform: scale(1.2); /* IE */
@@ -148,5 +149,69 @@ input[type=checkbox] {
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
+}
+
+.row {
+    margin-left: 0;
+    margin-right: 0;
+    column-gap: 0;
+}
+
+table {
+    border-collapse: collapse;
+    border: 1px solid #fcfcfc;
+    border-bottom: 3px solid #24a8b4;
+}
+
+
+table th {
+    padding: 5px 10px !important;
+}
+
+table td {
+    padding: 5px 10px !important;
+    font-size: 14px;
+}
+
+table tr {
+    break-inside: avoid;
+}
+
+table tr:hover {
+    background: #f4f4f4;
+}
+
+table tr:hover td {
+    color: #555;
+}
+
+table th, table td {
+    border-collapse: collapse;
+}
+
+table th {
+    background: #24a8b4;
+    color: #fff;
+}
+
+img {
+    object-fit: contain;
+    object-position: left top;
+}
+
+.alert-danger-outline {
+    color: #b60909;
+    border-left: 3px solid #dc0909;
+    border-radius: 0 5px 5px 0;
+    padding: 5px 15px;
+    background-color: #f5535333;
+}
+
+.alert-info-outline {
+    color: #006c88;
+    border-left: 3px solid #24a8b4;
+    border-radius: 0 5px 5px 0;
+    padding: 5px 15px;
+    background-color: #72d6e033;
 }
 </style>

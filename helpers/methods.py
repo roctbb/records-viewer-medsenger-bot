@@ -30,7 +30,7 @@ def get_ui(contract, page='settings', object_id=None, source=None, role='doctor'
             token = contract.patient_agent_token
 
     return render_template('index.html',
-                           contract_id=contract_id, agent_token=token,
+                           contract_id=contract_id, agent_token=token, is_admin=str(bool(contract.is_admin)).lower(),
                            mode=page, object_id=object_id, source=source,
                            params=json.dumps(params), agents=json.dumps(AGENTS),
                            api_host=MAIN_HOST.replace('8001', '8000'), js_host=JSHOST, localhost=LOCALHOST,
@@ -80,6 +80,8 @@ def get_records_list(contract_id, categories, dates, options=None, required_cate
 
     limit = RECORDS_LIMIT if options.get('type') == 'report' else None
     offset = options.get('page', 0) * RECORDS_LIMIT
+
+    print(dates,','.join(categories) + ',', limit, offset)
 
     records = medsenger_api.get_records(contract_id, time_from=dates[0], time_to=dates[1],
                                         category_name=(','.join(categories) + ','),

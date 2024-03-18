@@ -13,7 +13,7 @@
                 </colgroup>
 
                 <thead>
-                <tr class="table-info">
+                <tr>
                     <th scope="col">Показатель</th>
                     <th scope="col">Среднее</th>
                     <th scope="col">Мин</th>
@@ -22,7 +22,7 @@
                 </thead>
                 <tbody>
                 <tr v-for="stat in statistics">
-                    <th scope="row" style="text-align: left;">{{ stat.name }}</th>
+                    <td style="text-align: left;"><b>{{ stat.name }}</b></td>
                     <td>{{ stat.avg.toFixed(2) * 1 }}</td>
                     <td>{{ stat.min.toFixed(2) * 1 }}</td>
                     <td>{{ stat.max.toFixed(2) * 1 }}</td>
@@ -40,7 +40,7 @@
                         <col span="1" style="width: 33%;">
                     </colgroup>
                     <thead>
-                    <tr class="table-info">
+                    <tr>
                         <th scope="col">Среднее</th>
                         <th scope="col">Мин</th>
                         <th scope="col">Макс</th>

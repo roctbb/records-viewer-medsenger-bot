@@ -226,6 +226,5 @@ export default {
 <style scoped>
 .row {
     margin-bottom: 5px;
-    grid-column-gap: 0px;
 }
 </style>
