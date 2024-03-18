@@ -425,7 +425,7 @@ Vue.mixin({
                 medsenger: ['#006c88', '#24a8b4', '#72d6e0'],
                 red: ['#dc0909', '#fd1f1f', '#f55353'],
                 orange: ['#f16400', '#f67e2a', '#ff9246'],
-                yellow: ['#ffc800', '#fce200', '#f7f86c'],
+                yellow: ['#ffc800', '#fbd433', '#fce200'],
                 green: ['#50b432', '#4fde21', '#85ef62'],
                 blue: ['#058dc7', '#24cbe5', '#36c3ff'],
                 darkblue: ['#095cf5', '#3673e8', '#598def'],
@@ -433,7 +433,7 @@ Vue.mixin({
                 pink: ['#aa27ce', '#c355ff', '#c677f5'],
                 gray: ['#646464', '#7d7d7d', '#969696', '#afafaf', '#d3d3d3'],
                 scale: ['#50b432', '#66de21', '#89de21', '#a7e805',
-                    '#fce200', '#ffc800', '#f18100', '#f16400',
+                    '#fbd433', '#ffc800', '#f18100', '#f16400',
                     '#f14000', '#fd1f1f', '#dc0909']
             },
             descriptions: {
