@@ -42,7 +42,7 @@ def verify_request(contract_manager, expected_role):
         def wrapper(*args, **kargs):
             contract_id, api_key, agent_token, source = __get_params()
 
-            print(contract_id, api_key, agent_token, source)
+            print(contract_id, api_key, agent_token, source, expected_role, APP_KEY == api_key)
 
             contract = None
             has_access = False
