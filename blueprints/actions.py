@@ -43,10 +43,10 @@ def single_graph_page(args, form, contract, category_id):
     return get_ui(contract, 'graph-presenter', object_id=category_id)
 
 
-@actions_blueprint.route('/group/<group_id>', methods=['GET'])
+@actions_blueprint.route('/group/<category_id>', methods=['GET'])
 @verify_request(contract_manager, 'patient')
-def group_page_with_args(args, form, contract, group_id):
-    return get_ui(contract, 'group-presenter', object_id=group_id)
+def group_page_with_args(args, form, contract, category_id):
+    return get_ui(contract, 'group-presenter', object_id=category_id)
 
 
 @actions_blueprint.route('/graph/<category_id>', methods=['GET'])
