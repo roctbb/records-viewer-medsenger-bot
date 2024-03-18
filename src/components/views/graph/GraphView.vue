@@ -30,8 +30,7 @@
         <!-- Табличка с симптомами -->
         <div class="center" v-if="list_data.length">
             <h5 class="text-center">Симптомы и события</h5>
-            {{ list_data }}
-            <records-table/>
+            <records-table :data="list_data"/>
         </div>
 
         <!-- Для экспорта -->

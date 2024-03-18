@@ -1,5 +1,5 @@
 <template>
-    <div v-if="records.all">
+    <div>
         <div v-for="(info, date) in records.by_dates">
             <table :class="`table table-hover ${info.last_date ? 'last-table' : ''}`">
                 <colgroup>
@@ -128,7 +128,7 @@ import moment from "moment/moment";
 export default {
     name: "RecordsTable",
     components: {NothingFound, InteractiveMap, Loading, MoreInfoBlock},
-    props: ['to_export'],
+    props: ['data', 'to_export'],
     data() {
         return {
             files_to_show: {},
@@ -241,9 +241,14 @@ export default {
         }
     },
     mounted() {
+        this.records.all = this.data
+        if (this.records.all)
+            this.records.by_dates = this.records_by_dates()
+
         Event.listen('refresh-records-table', (data) => {
             this.records.all = data
             this.records.by_dates = this.records_by_dates()
+            this.$forceUpdate()
         })
 
         Event.listen('file-not-found', (id) => {

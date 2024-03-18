@@ -6,7 +6,6 @@
         <filter-panel :page="options.report.filter_type" :categories="options.report.filters" :patient="patient"
                       :disable_downloading="flags.no_data" :last_date="last_date"
                       :options="options.report.options"/>
-        <br>
         <loading v-if="!flags.loaded"/>
         <nothing-found v-if="flags.no_data"/>
 
