@@ -24,7 +24,7 @@
         <!-- Табличка с симптомами -->
         <div class="center" v-if="list_data.length">
             <h5 class="text-center">Симптомы и события</h5>
-            <records-table :data="list_data"/>
+            <records-table/>
         </div>
     </div>
 </template>
@@ -52,7 +52,7 @@ export default {
                 exporting: false
             },
             options: {
-                graph: {filter_type: ''},
+                graph: {},
                 text_categories: ['symptom', 'medicine', 'patient_comment', 'information', 'side_effect'],
                 dates: [new Date(), new Date()]
             }
@@ -100,8 +100,10 @@ export default {
 
         // Загрузка файла
         Event.listen('generate-report', () => {
-            this.generate_report()
+            if (this.options.graph.title) this.generate_report()
         });
+
+        Event.listen('back-to-dashboard', () => this.options.graph = {});
     }
 }
 

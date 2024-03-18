@@ -1,5 +1,5 @@
 <template>
-    <div v-if="data">
+    <div v-if="records.all">
         <div v-for="(info, date) in records.by_dates">
             <table :class="`table table-hover ${info.last_date ? 'last-table' : ''}`">
                 <colgroup>
@@ -128,7 +128,7 @@ import moment from "moment/moment";
 export default {
     name: "RecordsTable",
     components: {NothingFound, InteractiveMap, Loading, MoreInfoBlock},
-    props: ['data', 'to_export'],
+    props: ['to_export'],
     data() {
         return {
             files_to_show: {},
@@ -145,49 +145,53 @@ export default {
     },
     computed: {
         img_width() {
+            if (this.to_export) return 500
             return Math.floor(window.innerWidth * (this.mobile ? 0.5 : 0.6))
         },
         img_height() {
+            if (this.to_export) return 500
             return Math.floor(window.innerHeight * (this.mobile ? 0.5 : 0.6))
         }
     },
     methods: {
         process_records: function (records) {
             return records.map((record) => {
-                if (record.attached_files) {
-                    if (record.attached_files[0] && record.value == record.attached_files[0].name)
-                        record.value = "Загружен файл"
-                    record.attached_files.forEach((file) => {
+                let new_rec = {}
+                this.copy(new_rec, record)
+                if (new_rec.attached_files) {
+                    if (new_rec.attached_files[0] && new_rec.value == new_rec.attached_files[0].name)
+                        new_rec.value = "Загружен файл"
+                    new_rec.attached_files.forEach((file) => {
                         if (file.type.includes('image'))
                             this.get_file(file, 'show')
                     })
                 }
 
-                if (record.category_info.unit)
-                    record.value += `, ${record.category_info.unit}`
+                if (new_rec.category_info.unit)
+                    new_rec.value += `, ${new_rec.category_info.unit}`
 
-                let warnings = this.comment_additions(record).map((a) => a.addition.comment)
+                let warnings = this.comment_additions(new_rec).map((a) => a.addition.comment)
                 if (warnings.length)
-                    record.warnings = warnings
+                    new_rec.warnings = warnings
 
-                if (record.params) {
-                    if (record.params.dose)
-                        record.value += ` (доза: ${record.params.dose})`
+                if (new_rec.params) {
+                    if (new_rec.params.dose)
+                        new_rec.value += ` (доза: ${new_rec.params.dose})`
 
-                    if (record.params.group_scores)
-                        record.group_scores = record.params.group_scores
+                    if (new_rec.params.group_scores)
+                        new_rec.group_scores = record.params.group_scores
 
-                    if (record.params.map)
-                        record.map = record.params.map
+                    if (new_rec.params.map)
+                        new_rec.map = new_rec.params.map
 
-                    if (record.params.comment)
-                        record.comment = record.params.comment
+                    if (new_rec.params.comment)
+                        new_rec.comment = new_rec.params.comment
 
-                    if (record.params.algorithm_params && record.params.algorithm_params.length)
-                        record.algorithm_params = record.params.algorithm_params
+                    if (new_rec.params.algorithm_params && new_rec.params.algorithm_params.length)
+                        new_rec.algorithm_params = new_rec.params.algorithm_params
                 }
 
-                return record
+                return new_rec
             }).sort((a, b) => a.timestamp - b.timestamp)
         },
         records_by_dates: function () {
@@ -244,15 +248,13 @@ export default {
 
         Event.listen('file-not-found', (id) => {
             this.files_to_show[id] = 'not-found'
-
-            console.log(this.files_to_show)
         })
 
         Event.listen('open-more-info', (id) => {
             if (id.includes('file')) {
                 let ids = id.split('_').filter(p => p != 'file').map(p => parseInt(p))
                 if (!this.files_to_show[ids[1]]) {
-                    let file = this.data.find(r => r.id == ids[0]).attached_files.find(f => f.id == ids[1])
+                    let file = this.records.all.find(r => r.id == ids[0]).attached_files.find(f => f.id == ids[1])
                     this.get_file(file, 'show')
                 }
             }

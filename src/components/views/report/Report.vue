@@ -18,7 +18,7 @@
                     v-if="flags.loaded && !flags.no_data && options.page_count > 1"/>
 
         <!-- Таблица -->
-        <records-table :data="records.all"/>
+        <records-table/>
 
         <!-- Список страниц -->
         <pagination :selected_page="options.selected_page + 1" :page_cnt="options.page_count"

@@ -30,7 +30,8 @@
         <!-- Табличка с симптомами -->
         <div class="center" v-if="list_data.length">
             <h5 class="text-center">Симптомы и события</h5>
-            <records-table :data="list_data"/>
+            {{ list_data }}
+            <records-table/>
         </div>
 
         <!-- Для экспорта -->
@@ -57,7 +58,19 @@ import RecordsTable from "../report/parts/RecordsTable.vue";
 
 export default {
     name: "GraphView",
-    components: {RecordsTable, DayLineGraph, GraphExport, Heatmap, RecordsList, StatsTable, NothingFound, LineGraph, Loading, ErrorBlock, FilterPanel},
+    components: {
+        RecordsTable,
+        DayLineGraph,
+        GraphExport,
+        Heatmap,
+        RecordsList,
+        StatsTable,
+        NothingFound,
+        LineGraph,
+        Loading,
+        ErrorBlock,
+        FilterPanel
+    },
     props: {
         patient: {required: true},
         last_date: {required: true}
@@ -126,8 +139,8 @@ export default {
 
             this.flags.loaded = true
             if (!this.flags.no_data) {
-
                 Event.fire('draw-graph', this.options.highcharts_options)
+                Event.fire('refresh-records-table', this.list_data)
             }
         },
 

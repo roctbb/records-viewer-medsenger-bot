@@ -10,7 +10,7 @@
         <h6>{{ options.report.title }}</h6>
 
         <!-- Таблица -->
-        <records-table :data="data" :to_export="true"/>
+        <records-table :to_export="true"/>
 
     </div>
 </template>
@@ -33,7 +33,7 @@ export default {
                 exporting: false
             },
             options: {
-                report: {filter_type: ''},
+                report: {},
             },
         }
     },
@@ -67,8 +67,10 @@ export default {
 
         // Загрузка файла
         Event.listen('generate-report', () => {
-            this.generate_report()
+            if (this.options.report.title) this.generate_report()
         });
+
+        Event.listen('back-to-dashboard', () => this.options.report = {});
     },
 }
 </script>
