@@ -163,7 +163,7 @@ export default {
                         new_rec.value = "Загружен файл"
                     new_rec.attached_files.forEach((file) => {
                         if (file.type.includes('image'))
-                            this.get_file(file, 'show')
+                            this.get_file(file, 'show', false)
                     })
                 }
 
@@ -220,7 +220,7 @@ export default {
             return dates
         },
 
-        get_file: function (file, action) {
+        get_file: function (file, action, show_error=true) {
             this.axios
                 .get(this.direct_url('/api/get_file/' + file.id))
                 .then(response => {
@@ -233,7 +233,7 @@ export default {
                 .catch((e) => {
                     this.files_to_show[file.id] = 'not-found'
                     this.$forceUpdate()
-                    Event.fire('load-error')
+                    if (show_error) Event.fire('load-error')
                 });
         },
         load_images: function () {

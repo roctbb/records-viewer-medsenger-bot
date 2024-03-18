@@ -32,15 +32,14 @@
 <script>
 import LineGraph from "./graph-types/LineGraph.vue";
 import Heatmap from "./graph-types/Heatmap.vue";
-import StatsTable from "./parts/StatsTable.vue";
-import RecordsList from "../report/parts/RecordsList.vue";
+import StatsTable from "./parts/StatsTable.vue"
 import html2pdf from "html2pdf.js";
 import DayLineGraph from "./graph-types/DayLineGraph.vue";
 import RecordsTable from "../report/parts/RecordsTable.vue";
 
 export default {
     name: "GraphExport",
-    components: {RecordsTable, DayLineGraph, Heatmap, RecordsList, StatsTable, LineGraph},
+    components: {RecordsTable, DayLineGraph, Heatmap, StatsTable, LineGraph},
     props: {
         patient: {required: true},
         dates: {required: true},

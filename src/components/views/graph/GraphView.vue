@@ -49,7 +49,6 @@ import Loading from "../../common/Loading.vue";
 import LineGraph from "./graph-types/LineGraph.vue";
 import NothingFound from "../../common/NothingFound.vue";
 import StatsTable from "./parts/StatsTable.vue";
-import RecordsList from "../report/parts/RecordsList.vue";
 import Heatmap from "./graph-types/Heatmap.vue";
 import GraphExport from "./GraphExport.vue";
 import DayLineGraph from "./graph-types/DayLineGraph.vue";
@@ -62,7 +61,6 @@ export default {
         DayLineGraph,
         GraphExport,
         Heatmap,
-        RecordsList,
         StatsTable,
         NothingFound,
         LineGraph,

@@ -12,17 +12,18 @@
         <!-- Ошибки -->
         <error-block :errors="errors" v-if="errors.length"/>
 
-        <!-- Список страниц -->
-        <pagination :selected_page="options.selected_page + 1" :page_cnt="options.page_count"
-                    v-if="flags.loaded && !flags.no_data && options.page_count > 1"/>
+        <div v-show="flags.loaded && !flags.no_data">
+            <!-- Список страниц -->
+            <pagination :selected_page="options.selected_page + 1" :page_cnt="options.page_count"
+                        v-if="flags.loaded && !flags.no_data && options.page_count > 1"/>
 
-        <!-- Таблица -->
-        <records-table/>
+            <!-- Таблица -->
+            <records-table/>
 
-        <!-- Список страниц -->
-        <pagination :selected_page="options.selected_page + 1" :page_cnt="options.page_count"
-                    v-if="flags.loaded && !flags.no_data && options.page_count > 1"/>
-
+            <!-- Список страниц -->
+            <pagination :selected_page="options.selected_page + 1" :page_cnt="options.page_count"
+                        v-if="flags.loaded && !flags.no_data && options.page_count > 1"/>
+        </div>
 
         <!-- Для экспорта -->
         <div v-show="false">
@@ -33,7 +34,6 @@
 </template>
 
 <script>
-import RecordsList from "./parts/RecordsList.vue";
 import FilterPanel from "../../common/FilterPanel.vue";
 import html2pdf from "html2pdf.js";
 import Loading from "../../common/Loading.vue";
@@ -45,7 +45,7 @@ import ReportExport from "./ReportExport.vue";
 
 export default {
     name: "Report",
-    components: {ReportExport, Pagination, NothingFound, RecordsTable, Loading, FilterPanel, ErrorBlock, RecordsList},
+    components: {ReportExport, Pagination, NothingFound, RecordsTable, Loading, FilterPanel, ErrorBlock},
     props: {
         patient: {
             required: true
