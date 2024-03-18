@@ -62,6 +62,7 @@ def verify_request(contract_manager, expected_role):
                     has_access = True
 
             if expected_role == 'patient' and contract:
+                print(api_key, APP_KEY, source)
                 if api_key == APP_KEY and source in ['patient', 'doctor']:
                     has_access = True
 
