@@ -8,9 +8,11 @@ class ContractManager(Manager):
         super(ContractManager, self).__init__(*args)
 
     def add(self, contract_id):
+        is_new = False
         contract = Contract.query.filter_by(id=contract_id).first()
 
         if not contract:
+            is_new = True
             contract = Contract(id=contract_id)
             self.db.session.add(contract)
 
@@ -20,7 +22,7 @@ class ContractManager(Manager):
 
         self.__commit__()
 
-        return contract
+        return contract, is_new
 
     def remove(self, contract_id):
         try:
