@@ -152,6 +152,7 @@ Vue.mixin({
             return groups
         },
         load_data: function (categories, dates, options = null, required_categories = null) {
+            if (!options.type) options.type = 'graph'
 
             let data = {
                 categories: categories,
@@ -159,6 +160,7 @@ Vue.mixin({
                 options: options, // {type, first_load, get_pages_count, page}
                 required_categories: required_categories ? required_categories : categories
             }
+
             this.axios.post(this.direct_url('/api/get_records'), data).then(response => {
                 response.data.records = response.data.records.map(this.process_record)
                 Event.fire('loaded', response.data)
@@ -432,9 +434,9 @@ Vue.mixin({
                 purple: ['#721fff', '#853cff', '#9a63fd'],
                 pink: ['#aa27ce', '#c355ff', '#c677f5'],
                 gray: ['#646464', '#7d7d7d', '#969696', '#afafaf', '#d3d3d3'],
-                scale: ['#50b432', '#66de21', '#89de21', '#a7e805',
-                    '#fbd433', '#ffc800', '#f18100', '#f16400',
-                    '#f14000', '#fd1f1f', '#dc0909']
+                scale: ['#50B432', '#73B828', '#96BC1E', '#B9C014',
+                    '#DCC40A', '#FFC800', '#F8A202', '#F17C04',
+                    '#EA5505', '#E32F07', '#dc0909']
             },
             descriptions: {
                 months: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
