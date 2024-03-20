@@ -75,7 +75,7 @@ def get_records_list(contract_id, categories, dates, options=None, required_cate
         dates = [last_timestamp - 14 * 24 * 60 * 60 + 1, last_timestamp]
     info['dates'] = dates
 
-    if 'line' in options.get('type'):
+    if 'line' in options.get('type', ""):
         categories += text_categories
 
     limit = RECORDS_LIMIT if options.get('type') == 'report' else None
