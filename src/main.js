@@ -152,8 +152,6 @@ Vue.mixin({
             return groups
         },
         load_data: function (categories, dates, options = null, required_categories = null) {
-            if (!options.type) options.type = 'graph'
-
             let data = {
                 categories: categories,
                 dates: dates, // [start, end]
