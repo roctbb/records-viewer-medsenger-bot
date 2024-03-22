@@ -196,7 +196,11 @@ export default {
                                 let params = {
                                     title: category[0].description,
                                     categories: [category[0].name],
-                                    filter_type: 'line-graph'
+                                    required_categories: [category[0].name],
+                                    options: {},
+                                    type: 'line-graph',
+                                    filter_type: 'line-graph',
+                                    view: 'graph-view'
                                 }
                                 this.load_graph(params, 'line-graph')
                             }
