@@ -9,6 +9,13 @@
                         <a @click="load_page(report)" href="#" class="btn btn-default">Открыть</a>
                     </card>
                 </div>
+
+                 <div v-for="(category, i) in plottable_heatmap_categories" :key="'heatmap_' + i"
+                     class="col-lg-3 col-md-3">
+                    <card :image="images.heatmap" :title="'Тепловая карта ' + category.title">
+                        <a @click="load_page(category)" href="#" class="btn btn-default">Открыть</a>
+                    </card>
+                </div>
             </div>
         </div>
 
@@ -30,18 +37,6 @@
                 <div v-for="(category, i) in plottable_day_graphs" :key="'day_graph_' + i"
                      class="col-lg-3 col-md-3">
                     <card :image="images.graph" :title="category.title">
-                        <a @click="load_page(category)" href="#" class="btn btn-default">Открыть</a>
-                    </card>
-                </div>
-            </div>
-        </div>
-
-        <div v-if="plottable_heatmap_categories.length">
-            <h5>Тепловые карты</h5>
-            <div class="row">
-                <div v-for="(category, i) in plottable_heatmap_categories" :key="'heatmap_' + i"
-                     class="col-lg-3 col-md-3">
-                    <card :image="images.heatmap" :title="category.title">
                         <a @click="load_page(category)" href="#" class="btn btn-default">Открыть</a>
                     </card>
                 </div>
