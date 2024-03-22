@@ -12,7 +12,7 @@
 
                  <div v-for="(category, i) in plottable_heatmap_categories" :key="'heatmap_' + i"
                      class="col-lg-3 col-md-3">
-                    <card :image="images.heatmap" :title="'Тепловая карта ' + category.title">
+                    <card :image="images.heatmap" :title="category.title">
                         <a @click="load_page(category)" href="#" class="btn btn-default">Открыть</a>
                     </card>
                 </div>
