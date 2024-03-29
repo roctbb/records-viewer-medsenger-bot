@@ -92,6 +92,10 @@ export default {
             this.export_options.yAxis[0].labels.style = {fontSize: '10px'}
         },
         set_heatmap_options: function () {
+            let new_axis = {}
+            this.copy(this.highcharts_options.yAxis[0], new_axis)
+            this.highcharts_options.yAxis[0] = new_axis
+
             // chart
             this.highcharts_options.chart.type = 'heatmap'
             this.highcharts_options.chart.marginLeft = undefined
