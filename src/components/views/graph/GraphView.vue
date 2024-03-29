@@ -11,14 +11,22 @@
         <!-- График -->
         <loading v-if="!flags.loaded"/>
         <nothing-found v-if="flags.no_data"/>
-        <small class="text-muted" v-show="mobile && flags.loaded && !flags.no_data">* Поверните экран, чтобы расширить график</small>
+        <small class="text-muted" v-show="mobile && flags.loaded && !flags.no_data">* Поверните экран, чтобы расширить
+            график</small>
 
         <line-graph :data='records' :dates="options.dates" :graph="options.graph" :to_export="false"
                     v-show="options.graph.type == 'line-graph' && flags.loaded && !flags.no_data"/>
         <day-line-graph :data='records' :dates="options.dates" :graph="options.graph" :to_export="false"
                         v-show="options.graph.type == 'day-graph' && flags.loaded && !flags.no_data"/>
+
+        <!--        <div v-for="(heatmap, i) in heatmaps">-->
+        <!--            <heatmap :title='heatmap.title' :data='records' :dates="options.dates" :graph="options.graph"-->
+        <!--                     :to_export="false"-->
+        <!--                     v-show="options.graph.type == 'heatmap' && flags.loaded && !flags.no_data"/>-->
+        <!--        </div>-->
         <heatmap :data='records' :dates="options.dates" :graph="options.graph" :to_export="false"
                  v-show="options.graph.type == 'heatmap' && flags.loaded && !flags.no_data"/>
+
 
         <!-- Ошибки -->
         <error-block :errors="errors"/>
@@ -88,7 +96,8 @@ export default {
             records: {
                 all: undefined,
                 by_categories: undefined
-            }
+            },
+            heatmaps: []
         }
     },
     computed: {
@@ -278,6 +287,33 @@ export default {
                 return a.timestamp > b.timestamp ? -1 : a.timestamp < b.timestamp ? 1 : 0
             })
             this.records.by_categories = this.group_by(this.records.all, 'category_code')
+
+            if (this.options.graph.type === 'heatmap') {
+                let subcategories = {}
+                const subcategory_extractor = (record) => {
+                    if (!record.params.subcategory) {
+                        record.params.subcategory = 'Общее'
+                    }
+                    if (!subcategories[record.params.subcategory]) {
+                        subcategories[record.params.subcategory] = [record]
+                    } else {
+                        subcategories[record.params.subcategory].push(record)
+                    }
+                }
+
+                this.records.all.map(subcategory_extractor)
+
+                Object.keys(subcategories).forEach((subcategory_title) => {
+                    this.heatmaps.push({
+                        title: subcategory_title,
+                        records: {
+                            all: subcategories[subcategory_title],
+                            by_categories: this.group_by(this.records.all, 'category_code')
+                        }
+                    })
+                })
+            }
+
             this.flags.no_data = this.options.graph.required_categories.every((c) => !this.records.by_categories[c])
 
             this.process_load_answer()

@@ -1,6 +1,8 @@
 <template>
     <div>
+        {{ flags }}
         <loading v-if="!flags.ready"/>
+        <h6 v-if="title">{{ title }}</h6>
         <highcharts constructor-type="stockChart" class="highcharts"
                     :options="to_export ? export_options : highcharts_options" v-else/>
     </div>
@@ -25,7 +27,8 @@ export default {
     props: {
         data: {required: true},
         graph: {required: true},
-        to_export: {required: false}
+        to_export: {required: false},
+        title: {required: false}
     },
     data() {
         return {
@@ -72,6 +75,8 @@ export default {
                     if (this.to_export) {
                         this.set_export_options()
                     }
+
+                    console.log("should be ready!")
 
                     this.flags.ready = true
                     this.$forceUpdate()
@@ -383,7 +388,6 @@ export default {
             this.records.all = this.data.all
             this.records.by_categories = this.data.by_categories
             this.records.optional = undefined
-
 
             this.copy(this.highcharts_options, options)
             this.set_heatmap_options()
