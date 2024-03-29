@@ -310,7 +310,7 @@ export default {
                         title: subcategory_title,
                         records: {
                             all: subcategories[subcategory_title],
-                            by_categories: this.group_by(this.records.all, 'category_code')
+                            by_categories: this.group_by(subcategories[subcategory_title], 'category_code')
                         }
                     })
                 })
