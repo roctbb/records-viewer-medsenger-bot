@@ -1,8 +1,6 @@
 <template>
     <div>
-        {{ flags }}
         <loading v-if="!flags.ready"/>
-        <h6 v-if="title">{{ title }}</h6>
         <highcharts constructor-type="stockChart" class="highcharts"
                     :options="to_export ? export_options : highcharts_options" v-else/>
     </div>
@@ -27,8 +25,7 @@ export default {
     props: {
         data: {required: true},
         graph: {required: true},
-        to_export: {required: false},
-        title: {required: false}
+        to_export: {required: false}
     },
     data() {
         return {

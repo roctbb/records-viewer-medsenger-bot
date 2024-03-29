@@ -19,13 +19,13 @@
         <day-line-graph :data='records' :dates="options.dates" :graph="options.graph" :to_export="false"
                         v-show="options.graph.type == 'day-graph' && flags.loaded && !flags.no_data"/>
 
-        <!--        <div v-for="(heatmap, i) in heatmaps">-->
-        <!--            <heatmap :title='heatmap.title' :data='records' :dates="options.dates" :graph="options.graph"-->
-        <!--                     :to_export="false"-->
-        <!--                     v-show="options.graph.type == 'heatmap' && flags.loaded && !flags.no_data"/>-->
-        <!--        </div>-->
-        <heatmap :data='records' :dates="options.dates" :graph="options.graph" :to_export="false"
-                 v-show="options.graph.type == 'heatmap' && flags.loaded && !flags.no_data"/>
+        <div v-for="(current_heatmap, i) in heatmaps" v-if="options.graph.type == 'heatmap' && heatmaps.length > 0">
+            <h6 v-if="heatmaps.length > 0">{{ current_heatmap.title }}</h6>
+
+            <heatmap :data='current_heatmap.records' :dates="options.dates" :graph="options.graph"
+                     :to_export="false"
+                     v-show="flags.loaded && !flags.no_data"/>
+        </div>
 
 
         <!-- Ошибки -->
@@ -61,6 +61,7 @@ import Heatmap from "./graph-types/Heatmap.vue";
 import GraphExport from "./GraphExport.vue";
 import DayLineGraph from "./graph-types/DayLineGraph.vue";
 import RecordsTable from "../report/parts/RecordsTable.vue";
+
 
 export default {
     name: "GraphView",
@@ -289,6 +290,7 @@ export default {
             this.records.by_categories = this.group_by(this.records.all, 'category_code')
 
             if (this.options.graph.type === 'heatmap') {
+                this.heatmaps = []
                 let subcategories = {}
                 const subcategory_extractor = (record) => {
                     if (!record.params.subcategory) {
@@ -316,7 +318,7 @@ export default {
 
             this.flags.no_data = this.options.graph.required_categories.every((c) => !this.records.by_categories[c])
 
-            this.process_load_answer()
+            this.delay(0).then(this.process_load_answer)
         })
 
         // Неверные даты
