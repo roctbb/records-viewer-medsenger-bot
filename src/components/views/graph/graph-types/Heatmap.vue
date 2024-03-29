@@ -92,7 +92,7 @@ export default {
             this.export_options.yAxis[0].labels.style = {fontSize: '10px'}
         },
         set_heatmap_options: function () {
-            this.highcharts_options.yAxis[0] = JSON.parse(JSON.stringify(this.highcharts_options.yAxis[0]))
+            this.highcharts_options  = JSON.parse(JSON.stringify(this.highcharts_options))
 
             // chart
             this.highcharts_options.chart.type = 'heatmap'
