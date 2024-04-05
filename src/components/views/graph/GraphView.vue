@@ -19,7 +19,7 @@
         <day-line-graph :data='records' :dates="options.dates" :graph="options.graph" :to_export="false"
                         v-show="options.graph.type == 'day-graph' && flags.loaded && !flags.no_data"/>
 
-        <div v-for="(current_heatmap, i) in heatmaps" v-if="options.graph.type == 'heatmap' && heatmaps.length > 0">
+        <div v-for="(current_heatmap, i) in heatmaps" v-show="options.graph.type == 'heatmap' && heatmaps.length > 0">
             <h6 v-if="heatmaps.length > 1">{{ current_heatmap.title }}</h6>
 
             <heatmap :data='current_heatmap.records' :dates="options.dates" :graph="options.graph"
@@ -146,7 +146,7 @@ export default {
 
             this.flags.loaded = true
             if (!this.flags.no_data) {
-                Event.fire('draw-graph', this.options.highcharts_options)
+                Event.fire('draw-graph', this.get_highcharts_options())
                 Event.fire('refresh-records-table', this.list_data)
             }
         },

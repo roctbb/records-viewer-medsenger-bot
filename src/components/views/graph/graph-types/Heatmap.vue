@@ -61,7 +61,6 @@ export default {
         },
         update_heatmap: function () {
             if (!this.highcharts_options) return
-            this.highcharts_options = JSON.parse(JSON.stringify(this.highcharts_options))
 
             this.flags.ready = false
             this.highcharts_options.series = this.get_series()
@@ -93,8 +92,6 @@ export default {
             this.export_options.yAxis[0].labels.style = {fontSize: '10px'}
         },
         set_heatmap_options: function () {
-            this.highcharts_options  = JSON.parse(JSON.stringify(this.highcharts_options))
-
             // chart
             this.highcharts_options.chart.type = 'heatmap'
             this.highcharts_options.chart.marginLeft = undefined
@@ -389,7 +386,7 @@ export default {
             this.records.by_categories = this.data.by_categories
             this.records.optional = undefined
 
-            this.copy(this.highcharts_options, options)
+            this.highcharts_options = options
             this.set_heatmap_options()
         })
 
