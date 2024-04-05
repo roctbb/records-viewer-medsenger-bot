@@ -61,6 +61,7 @@ export default {
         },
         update_heatmap: function () {
             if (!this.highcharts_options) return
+            this.highcharts_options = JSON.parse(JSON.stringify(this.highcharts_options))
 
             this.flags.ready = false
             this.highcharts_options.series = this.get_series()
