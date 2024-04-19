@@ -46,26 +46,8 @@
                         <span>{{ record.value }}</span>
 
                         <!-- Файлы -->
-                        <div v-for="file in record.attached_files">
-                            <span class="text-muted" v-if="files_to_show[file.id] == 'not-found'">Файл не найден...</span>
-                            <div class="row" v-else-if="!to_export">
-                                <img :src="images.file" height="20" style="margin-right: 5px"/>
-                                <a href="#" @click="get_file(file, 'download')">{{ file.name }} (скачать)</a>
-                            </div>
-
-                            <div v-if="to_export && file.type.includes('image') && files_to_show[file.id] && files_to_show[file.id] != 'not-found'">
-                                <img :src="`data:${file.type};base64,${files_to_show[file.id].base64}`"
-                                     :style="`max-width: ${img_width}px; max-height: ${img_height}px;`"/>
-                            </div>
-
-                            <more-info-block title="Просмотр изображения" :id="`file_${record.id}_${file.id}`"
-                                             v-if="!to_export && file.type.includes('image') && files_to_show[file.id] != 'not-found'">
-
-                                <loading v-if="!files_to_show[file.id]"/>
-                                <img :src="`data:${file.type};base64,${files_to_show[file.id].base64}`"
-                                     :style="`max-width: ${img_width}px; max-height: ${img_height}px;`" v-else/>
-
-                            </more-info-block>
+                        <div v-for="file in record.attached_files" v-if="record.category_code != 'action'">
+                            <file-downloader :show_img="to_export" :file_description="file"/>
                         </div>
 
                         <!-- Комментарии -->
@@ -103,9 +85,27 @@
                             </ul>
                         </div>
 
+                        <!-- Ответ на форму -->
+                        <div v-if="record.params && record.params.form_answers">
+                            <more-info-block title="Посмотреть ответы"
+                                             :id="`form_answers_${record.id}_${record.params.form_id}`"
+                                             v-if="!to_export">
+                                <span class="text-muted" v-if="forms_to_show[record.params.form_id] == 'not-found'">Опросник не найден...</span>
+                                <loading v-if="!forms_to_show[record.params.form_id] || forms_to_show[record.params.form_id] == 'loading'"/>
+                                <form-presenter :data="forms_to_show[record.params.form_id]" :record_id="record.id"
+                                                :answers="record.params.form_answers" :files="record.attached_files"/>
+                            </more-info-block>
+
+                            <div v-else>
+                                <span class="text-muted" v-if="forms_to_show[record.params.form_id] == 'not-found'">Опросник не найден...</span>
+                                <form-presenter :data="forms_to_show[record.params.form_id]"  :record_id="record.id"
+                                                :answers="record.params.form_answers" :files="record.attached_files"/>
+                            </div>
+                        </div>
+
                         <!-- Технические параметры -->
                         <more-info-block title="Технические параметры" :id="'params' + record.id"
-                                         v-show="record.params && is_admin">
+                                         v-show="record.params && is_admin && !to_export">
                             <span class="text-muted" style="font-size: small">{{ record.params }}</span>
                         </more-info-block>
                     </td>
@@ -124,14 +124,16 @@ import Loading from "../../../common/Loading.vue";
 import InteractiveMap from "./InteractiveMap.vue";
 import NothingFound from "../../../common/NothingFound.vue";
 import moment from "moment/moment";
+import FormPresenter from "./FormPresenter.vue";
+import FileDownloader from "./FileDownloader.vue";
 
 export default {
     name: "RecordsTable",
-    components: {NothingFound, InteractiveMap, Loading, MoreInfoBlock},
+    components: {FileDownloader, FormPresenter, NothingFound, InteractiveMap, Loading, MoreInfoBlock},
     props: ['data', 'to_export'],
     data() {
         return {
-            files_to_show: {},
+            forms_to_show: {},
             options: {
                 text_categories: [
                     {code: 'symptom', description: 'Симптомы'},
@@ -144,14 +146,6 @@ export default {
         }
     },
     computed: {
-        img_width() {
-            if (this.to_export) return 500
-            return Math.floor(window.innerWidth * (this.mobile ? 0.5 : 0.6))
-        },
-        img_height() {
-            if (this.to_export) return 500
-            return Math.floor(window.innerHeight * (this.mobile ? 0.5 : 0.6))
-        }
     },
     methods: {
         process_records: function (records) {
@@ -161,10 +155,13 @@ export default {
                 if (new_rec.attached_files) {
                     if (new_rec.attached_files[0] && new_rec.value == new_rec.attached_files[0].name)
                         new_rec.value = "Загружен файл"
-                    new_rec.attached_files.forEach((file) => {
-                        if (file.type.includes('image'))
-                            this.get_file(file, 'show', false)
-                    })
+                }
+
+                if (new_rec.params && new_rec.params.form_answers) {
+                    if (!this.forms_to_show[new_rec.params.form_id]) {
+                        this.forms_to_show[new_rec.params.form_id] = 'loading'
+                        this.get_form(new_rec.params.form_id, new_rec.id)
+                    }
                 }
 
                 if (new_rec.category_info.unit)
@@ -192,7 +189,7 @@ export default {
                 }
 
                 return new_rec
-            }).sort((a, b) => a.timestamp - b.timestamp)
+            })
         },
         records_by_dates: function () {
             let all_records = this.records.all.sort((a, b) => b.timestamp - a.timestamp)
@@ -219,25 +216,8 @@ export default {
 
             return dates
         },
-
-        get_file: function (file, action, show_error=true) {
-            this.axios
-                .get(this.direct_url('/api/get_file/' + file.id))
-                .then(response => {
-                    if (action == 'download')
-                        downloadjs(`data:${file.type};base64,${response.data.base64}`, file.name, file.type);
-                    else if (action == 'show')
-                        this.files_to_show[file.id] = response.data
-                    this.$forceUpdate()
-                })
-                .catch((e) => {
-                    this.files_to_show[file.id] = 'not-found'
-                    this.$forceUpdate()
-                    if (show_error) Event.fire('load-error')
-                });
-        },
-        load_images: function () {
-
+        get_form: function (form_id, record_id) {
+            this.send_order('get_form', 'FORMS', {form_id: form_id, record_id: record_id}, 'form-loaded', false)
         }
     },
     mounted() {
@@ -251,24 +231,18 @@ export default {
             this.$forceUpdate()
         })
 
-        Event.listen('file-not-found', (id) => {
-            this.files_to_show[id] = 'not-found'
+
+        Event.listen('form-loaded', (data) => {
+            this.forms_to_show[data.form.id] = data.form
+            this.$forceUpdate()
         })
 
         Event.listen('open-more-info', (id) => {
-            if (id.includes('file')) {
-                let ids = id.split('_').filter(p => p != 'file').map(p => parseInt(p))
-                if (!this.files_to_show[ids[1]]) {
-                    let file = this.records.all.find(r => r.id == ids[0]).attached_files.find(f => f.id == ids[1])
-                    this.get_file(file, 'show')
-                }
+            if (id.includes('form_answers')) {
+                let ids = id.replace('form_answers_', '').split('_').map(p => parseInt(p))
+                if (!this.forms_to_show[ids[1]]) this.get_form(ids[1], ids[0])
             }
         })
-
-        // Загрузка файла
-        Event.listen('generate-report', () => {
-            this.load_images()
-        });
 
     }
 }

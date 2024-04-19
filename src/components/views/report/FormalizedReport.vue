@@ -349,7 +349,7 @@ export default {
             if ('medicine_description' in this.options.data_format_codes) {
                 this.options.loaded = false
 
-                this.send_order('get_medicines', window.AGENTS.FORMS_AGENT_ID, {
+                this.send_order('get_medicines', 'FORMS', {
                     from_timestamp: Math.floor(this.options.dates[0].getTime() / 1000),
                     to_timestamp: Math.floor(this.options.dates[1].getTime() / 1000)
                 }, 'prescriptions-loaded')

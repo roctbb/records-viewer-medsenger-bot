@@ -56,7 +56,6 @@ def get_file(args, form, contract, file_id):
 
     return jsonify(file)
 
-
 @api_blueprint.route('/params', methods=['GET'])
 @verify_request(contract_manager, 'patient')
 def get_params(args, form, contract):

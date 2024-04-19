@@ -8,7 +8,7 @@
                         {{ bar.text }}
                     </div>
                     <div class="col-md-9">
-                        <div class="progress" style="height: 30px;">
+                        <div class="progress" style="height: 20px;">
                             <div class="progress-bar" role="progressbar"
                                  :style="get_part_style(bar, part)"
                                  :aria-valuenow="data.stats.zones[bar.category][part.zone_index].percent"

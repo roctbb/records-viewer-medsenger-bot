@@ -64,7 +64,7 @@ export default {
                 .get(this.direct_url('/api/get_patient'))
                 .then(this.process_load_answer);
 
-            this.send_order('get_params', window.AGENTS.FORMS_AGENT_ID, {}, 'params-loaded')
+            this.send_order('get_params', 'FORMS', {}, 'params-loaded')
         },
         process_load_answer: function (response) {
             this.patient = response.data
@@ -199,6 +199,10 @@ img {
     object-position: left top;
 }
 
+.alert {
+    margin-bottom: 5px;
+}
+
 .alert-danger-outline {
     color: #b60909;
     border-left: 3px solid #dc0909;
@@ -213,5 +217,12 @@ img {
     border-radius: 0 5px 5px 0;
     padding: 5px 15px;
     background-color: #72d6e033;
+}
+
+.alert-secondary-outline {
+    border-left: 3px solid #4b4b4b;
+    border-radius: 0 5px 5px 0;
+    padding: 5px 15px;
+    background-color: #7d7d7d80;
 }
 </style>

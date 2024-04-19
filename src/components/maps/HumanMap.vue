@@ -264,7 +264,7 @@
 <script>
 export default {
     name: "HumanMap",
-    props: ['parts', 'width', 'id'],
+    props: ['parts', 'width', 'id', 'in_table'],
     data() {
         return {
             originalWidth: 112,
@@ -273,6 +273,10 @@ export default {
     },
     computed: {
         size() {
+            if (this.mobile && this.in_table) {
+                let w = window.innerWidth * 0.5
+                return `width: ${w}px; height: ${this.originalHeight * this.proportion}px;`
+            }
             if (this.mobile) {
                 let w = window.innerWidth * 0.7
                 return `width: ${w}px; height: ${this.originalHeight * this.proportion}px;`
@@ -281,6 +285,10 @@ export default {
             return `width: ${this.originalWidth * this.proportion + 10}px; height: ${h}px;`
         },
         proportion() {
+            if (this.mobile && this.in_table) {
+                let w = window.innerWidth * 0.5
+                return w / this.originalWidth
+            }
             if (this.mobile) {
                 let w = window.innerWidth * 0.7
                 return w / this.originalWidth
@@ -298,5 +306,4 @@ export default {
 </script>
 
 <style scoped>
-
 </style>

@@ -1,7 +1,7 @@
 <template>
   <div>
     <input class="btn btn-link btn-sm text-muted shadow-none" type="button" data-toggle="collapse" aria-expanded="false"
-           :value="`${closed ? '+' : '–'} ${title}`" :data-target="'#collapse' + id"
+           :value="`${closed ? '+' : '–'} ${title}`" :data-target="'#collapse' + id" style="padding-left: 0"
            :aria-controls="'collapse' + id" @click="click()">
     <div class="collapse" :id="'collapse' + id">
       <div class="card card-body" style="padding: -20px">

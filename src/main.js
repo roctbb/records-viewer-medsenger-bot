@@ -30,6 +30,10 @@ Vue.mixin({
         delay: function (time) {
             return new Promise(resolve => setTimeout(resolve, time));
         },
+        br: function (doc) {
+            if (!doc) return doc;
+            return doc.replace(/([^>])\n/g, '$1<br/>')
+        },
         // urls
         url: function (action, agent_id) {
             let api_host = window.API_HOST;
@@ -204,8 +208,8 @@ Vue.mixin({
 
             return r
         },
-        send_order: function (order, agent_id, params, event_name) {
-            let data = {order: order, agent_id: agent_id, params: params}
+        send_order: function (order, agent, params, event_name, returns_records = true) {
+            let data = {order: order, agent_id: window.AGENTS[`${agent}_AGENT_ID`], params: params}
             this.axios
                 .post(this.url('/send_order'), data)
                 .then((response) => {
@@ -236,15 +240,23 @@ Vue.mixin({
                         })
                     }
 
+                    if (order == 'get_form') {
+                        result = {
+                            record_id: params.record_id,
+                            form: result
+                        }
+                    }
 
-                    result = result.map((p, i) => {
-                        let d = p.date ? p.date : new Date()
+                    if (returns_records) {
+                        result = result.map((p, i) => {
+                            let d = p.date ? p.date : new Date()
 
-                        p.formatted_date = this.format_date(d)
-                        p.formatted_time = this.format_time(d)
+                            p.formatted_date = this.format_date(d)
+                            p.formatted_time = this.format_time(d)
 
-                        return p
-                    })
+                            return p
+                        })
+                    }
 
                     Event.fire(event_name, result)
                 })
@@ -411,7 +423,10 @@ Vue.mixin({
                 message: this.image_url('icons8-communication-96.png'),
                 medicines: this.image_url('icons8-medicines-96.png'),
                 fill_form: this.image_url('icons8-fill-in-form-48.png'),
-                checkmark: this.image_url('icons8-checkmark-96.png')
+                pills: this.image_url('icons8-pills-96.png'),
+                checkmark: this.image_url('icons8-checkmark-96.png'),
+                checked: this.image_url('icons8-checked-checkmark-96.png'),
+                unchecked: this.image_url('icons8-unchecked-checkmark-96.png')
             },
             error_messages: {
                 too_mach_points: 'За данный период в медицинской карте присутствует слишком большое количество записей (> 500). ',
