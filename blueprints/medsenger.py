@@ -96,14 +96,17 @@ def send_order(args, form, contract):
     data = request.json
     answer = medsenger_api.send_order(contract.id, data['order'], receiver_id=data['agent_id'], params=data['params'])
 
-    results = answer.get('results', {})
+    if answer and type(answer) is dict:
+        results = answer.get('results', {})
 
-    if isinstance(results, list):
-        results = {}
+        if isinstance(results, list):
+            results = {}
 
-    result = results.get(str(data['agent_id']), [])
+        result = results.get(str(data['agent_id']), [])
 
-    return result
+        return result
+    else:
+        return None
 
 
 @medsenger_blueprint.route('/send_message', methods=['POST'])
