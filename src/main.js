@@ -457,7 +457,7 @@ Vue.mixin({
                 shortMonths: ['Янв', 'Фев', 'Март', 'Апр', 'Май', 'Июнь', 'Июль', 'Авг', 'Сент', 'Окт', 'Ноя', 'Дек'],
             },
             constants: {
-                graph_types: ['line-graph', 'line'],
+                graph_types: ['line-graph', 'line', 'graph'],
                 day_graph_types: ['day-line-graph', 'day-line', 'day-graph'],
                 heatmap_types: ['heatmap', 'symptom-heatmap'],
                 report_types: ['report', 'formalized-report'],
