@@ -57,6 +57,7 @@ export default {
             records: {
                 all: undefined,
                 by_categories: undefined,
+                by_groups: undefined,
                 additional: undefined
             }
         }
@@ -293,10 +294,11 @@ export default {
 
             let get_clear_series = () => {
                 series = []
-                Object.entries(this.records.by_categories).forEach(([category, records]) => {
+                Object.entries(this.records.by_groups).forEach(([category, records]) => {
                     if (records[0].category_type != 'string') {
                         let series_data = {
                             name: category,
+                            records: records,
                             description: records[0].category_info.description,
                             marker: 'circle'
                         }
@@ -358,7 +360,7 @@ export default {
 
         prepare_series: function (data) {
             if (!data.records)
-                data.records = this.records.by_categories[data.name]
+                data.records = this.records.by_groups[data.name]
 
             if (!data.records) return undefined
 
@@ -396,6 +398,7 @@ export default {
                 series.yAxis = 0
                 series.showInNavigator = true
                 series.dashStyle = 'ShortDot'
+                series.marker.radius = 4
                 series.lineWidth = 2
             }
 
@@ -622,7 +625,7 @@ export default {
             }
         },
         get_radius: function (point) {
-            return point.additions ? 6 : undefined
+            return point.additions ? 6 : 4
         },
         get_comment: function (point, category) {
             let comment = `<u>${point.formatted_date}</u><br><b>${point.formatted_time}</b> - ${category}: ${point.value}`
@@ -670,6 +673,29 @@ export default {
 
             this.records.all = this.data.all
             this.records.by_categories = this.data.by_categories
+
+            this.records.by_groups = {}
+            Object.entries(this.records.by_categories).forEach(([category, records]) => {
+                if (this.graph.options && this.graph.options.record_groups && this.graph.options.record_groups[category]) {
+                    records = records.map((rec) => {
+                        rec.group_param = rec.params ? rec.params[this.graph.options.record_groups[category]] : undefined
+                        if (!rec.group_param) rec.group_param = rec.category_info.description
+
+                        rec.category_info.description = rec.group_param
+                        return rec
+                    })
+                    let groups = this.group_by(records, 'group_param')
+
+                    let i = 0
+                    Object.entries(groups).forEach(([group, group_records]) => {
+                        this.records.by_groups[`${category}_${i}`] = group_records
+                        i += 1
+                    })
+                } else {
+                    this.records.by_groups[category] = records
+                }
+            })
+
             this.records.additional = undefined
 
             if (this.too_much_points) {
