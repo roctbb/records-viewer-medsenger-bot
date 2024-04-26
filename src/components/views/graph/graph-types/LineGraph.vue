@@ -558,7 +558,7 @@ export default {
 
             series.name += (' (Среднее скользящее за 7 дней)')
             series.data = data.map((p) => p.sma)
-            range_series.type = 'spline'
+            series.type = 'spline'
             series.dashStyle = 'Solid'
             series.color = this.options.colors[i]
 
