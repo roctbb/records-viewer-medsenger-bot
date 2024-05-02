@@ -271,8 +271,6 @@ export default {
                 series = series.concat(tmp)
             })
 
-            console.log("catseries", this.subtitle, series)
-
             return series
         },
         prepare_series: function (data) {
@@ -380,6 +378,8 @@ export default {
 
         // Первая отрисовка графика
         Event.listen('draw-graph', (options) => {
+            console.log(this.subtitle, options)
+
             if (!this.constants.heatmap_types.includes(this.graph.type)) return
             this.reset_view()
 

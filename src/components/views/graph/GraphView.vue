@@ -146,7 +146,9 @@ export default {
 
             this.flags.loaded = true
             if (!this.flags.no_data) {
-                Event.fire('draw-graph', this.get_highcharts_options())
+                let options = this.get_highcharts_options()
+                console.log("sending options", options)
+                Event.fire('draw-graph', options)
                 Event.fire('refresh-records-table', this.list_data)
             }
         },
