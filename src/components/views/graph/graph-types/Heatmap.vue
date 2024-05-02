@@ -14,7 +14,6 @@ import boost from "highcharts/modules/boost";
 import 'highcharts/modules/heatmap.src.js';
 import heatmap from "highcharts/modules/heatmap";
 import Loading from "../../../common/Loading.vue";
-import {cloneDeep} from 'lodash.clonedeep'
 
 stockInit(Highcharts)
 boost(Highcharts)
@@ -65,8 +64,10 @@ export default {
             if (!this.highcharts_options) return
 
             this.flags.ready = false
-            this.highcharts_options = cloneDeep(this.highcharts_options)
             this.highcharts_options.series = this.get_series()
+
+            console.log(this.subtitle, this.highcharts_options)
+            console.log(this.subtitle, this.highcharts_options.series)
 
             this.delay(0).then(() => {
                 if (this.highcharts_options.series) {
@@ -389,7 +390,7 @@ export default {
             this.records.by_categories = this.data.by_categories
             this.records.optional = undefined
 
-            this.highcharts_options = cloneDeep(options)
+            this.highcharts_options = options
             this.set_heatmap_options()
         })
 
