@@ -73,8 +73,6 @@ export default {
                         this.set_export_options()
                     }
 
-                    console.log("should be ready!")
-
                     this.flags.ready = true
                     this.$forceUpdate()
                 }
@@ -385,6 +383,8 @@ export default {
             this.records.all = this.data.all
             this.records.by_categories = this.data.by_categories
             this.records.optional = undefined
+
+            console.log("got Draw-Graph with:", this.records)
 
             this.highcharts_options = options
             this.set_heatmap_options()
