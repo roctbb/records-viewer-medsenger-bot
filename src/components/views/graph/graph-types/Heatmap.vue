@@ -386,7 +386,6 @@ export default {
             this.records.optional = undefined
 
             this.highcharts_options = options_getter()
-            console.log(this.subtitle, this.highcharts_options)
             this.set_heatmap_options()
         })
 
