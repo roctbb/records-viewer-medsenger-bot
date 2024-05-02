@@ -66,9 +66,6 @@ export default {
             this.flags.ready = false
             this.highcharts_options.series = this.get_series()
 
-            console.log(this.subtitle, this.highcharts_options)
-            console.log(this.subtitle, this.highcharts_options.series)
-
             this.delay(0).then(() => {
                 if (this.highcharts_options.series) {
                     this.set_axis_height()
@@ -383,6 +380,8 @@ export default {
 
         // Первая отрисовка графика
         Event.listen('draw-graph', (options) => {
+            console.log(this.subtitle, options)
+
             if (!this.constants.heatmap_types.includes(this.graph.type)) return
             this.reset_view()
 
