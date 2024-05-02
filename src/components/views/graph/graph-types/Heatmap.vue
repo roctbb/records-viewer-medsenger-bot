@@ -380,8 +380,6 @@ export default {
 
         // Первая отрисовка графика
         Event.listen('draw-graph', (options) => {
-            console.log(this.subtitle, options)
-
             if (!this.constants.heatmap_types.includes(this.graph.type)) return
             this.reset_view()
 

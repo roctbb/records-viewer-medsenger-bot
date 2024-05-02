@@ -153,7 +153,7 @@ export default {
 
         // Графики
         get_highcharts_options: function () {
-            let options = {
+            return {
                 chart: {
                     boostThreshold: 500,
                     turboThreshold: 0,
@@ -219,8 +219,6 @@ export default {
                 navigator: {enabled: false},
                 scrollbar: {enabled: false}
             }
-
-            return options
         },
         get_y_axis: function (index) {
             return {
