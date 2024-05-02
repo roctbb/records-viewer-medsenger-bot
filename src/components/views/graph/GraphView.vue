@@ -22,7 +22,7 @@
         <div v-for="(current_heatmap, i) in heatmaps" v-show="options.graph.type == 'heatmap' && heatmaps.length > 0">
             <h6 v-if="heatmaps.length > 1">{{ current_heatmap.title }}</h6>
 
-            <heatmap :data='current_heatmap.records' :dates="options.dates" :graph="options.graph"
+            <heatmap :subtitle="current_heatmap.title" :data='current_heatmap.records' :dates="options.dates" :graph="options.graph"
                      :to_export="false"
                      v-show="flags.loaded && !flags.no_data"/>
         </div>

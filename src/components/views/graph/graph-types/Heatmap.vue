@@ -25,7 +25,8 @@ export default {
     props: {
         data: {required: true},
         graph: {required: true},
-        to_export: {required: false}
+        to_export: {required: false},
+        subtitle: {required: false}
     },
     data() {
         return {
@@ -269,7 +270,7 @@ export default {
 
                 series = series.concat(tmp)
             })
-            console.log(series)
+            console.log(this.subtitle, series)
             return series
         },
         prepare_series: function (data) {
