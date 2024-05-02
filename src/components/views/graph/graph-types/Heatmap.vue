@@ -66,6 +66,8 @@ export default {
             this.flags.ready = false
             this.highcharts_options.series = this.get_series()
 
+            console.log(this.subtitle, this.highcharts_options)
+
             this.delay(0).then(() => {
                 if (this.highcharts_options.series) {
                     this.set_axis_height()
@@ -270,7 +272,6 @@ export default {
 
                 series = series.concat(tmp)
             })
-            console.log(this.subtitle, series)
             return series
         },
         prepare_series: function (data) {
