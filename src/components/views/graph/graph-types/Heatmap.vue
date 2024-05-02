@@ -233,6 +233,8 @@ export default {
             series = series.concat(optional)
             series = series.filter((s) => s != undefined)
 
+            console.log("get series", this.subtitle, series)
+
             return series
         },
         get_category_series: function (categories, y_offset = 0) {
@@ -272,6 +274,9 @@ export default {
 
                 series = series.concat(tmp)
             })
+
+            console.log("catseries", this.subtitle, series)
+
             return series
         },
         prepare_series: function (data) {
