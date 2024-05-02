@@ -667,7 +667,7 @@ export default {
         });
 
         // Первая отрисовка графика
-        Event.listen('draw-graph', (options) => {
+        Event.listen('draw-graph', (options_getter) => {
             if (!this.constants.graph_types.includes(this.graph.type)) return
             this.reset_view()
 
@@ -703,7 +703,7 @@ export default {
                 Event.fire('set-points-mode', {mode: true, target: 'median'})
             }
 
-            this.copy(this.highcharts_options, options)
+            this.highcharts_options = options_getter()
             this.set_line_graph_options()
         })
 

@@ -383,14 +383,14 @@ export default {
         });
 
         // Первая отрисовка графика
-        Event.listen('draw-graph', (options) => {
+        Event.listen('draw-graph', (options_getter) => {
             if (!this.constants.day_graph_types.includes(this.graph.type)) return
             this.reset_view()
 
             this.records.all = this.data.all
             this.records.by_categories = this.data.by_categories
 
-            this.copy(this.highcharts_options, options)
+            this.highcharts_options = options_getter()
             this.set_day_line_graph_options()
         })
 

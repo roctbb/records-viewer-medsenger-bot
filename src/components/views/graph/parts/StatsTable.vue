@@ -152,7 +152,7 @@ export default {
     },
     mounted() {
         // Первая отрисовка графика
-        Event.listen('draw-graph', (options) => {
+        Event.listen('draw-graph', (options_getter) => {
             this.reset_view()
 
             this.records.all = this.data.all

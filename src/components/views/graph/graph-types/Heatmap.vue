@@ -377,7 +377,7 @@ export default {
         });
 
         // Первая отрисовка графика
-        Event.listen('draw-graph', (options) => {
+        Event.listen('draw-graph', (options_getter) => {
             console.log(this.subtitle, options)
 
             if (!this.constants.heatmap_types.includes(this.graph.type)) return
@@ -387,7 +387,7 @@ export default {
             this.records.by_categories = this.data.by_categories
             this.records.optional = undefined
 
-            this.highcharts_options = options
+            this.highcharts_options = options_getter()
             this.set_heatmap_options()
         })
 
