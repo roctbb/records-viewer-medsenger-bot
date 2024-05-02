@@ -64,12 +64,13 @@ export default {
             if (!this.highcharts_options) return
 
             this.flags.ready = false
-            this.highcharts_options.series = JSON.parse(JSON.stringify(this.get_series()))
-
-            console.log(this.subtitle, this.highcharts_options)
-            console.log(this.subtitle, this.highcharts_options.series)
 
             this.delay(0).then(() => {
+                this.highcharts_options.series = this.get_series()
+
+                console.log(this.subtitle, this.highcharts_options)
+                console.log(this.subtitle, this.highcharts_options.series)
+
                 if (this.highcharts_options.series) {
                     this.set_axis_height()
 
