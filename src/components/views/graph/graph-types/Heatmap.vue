@@ -64,11 +64,9 @@ export default {
             if (!this.highcharts_options) return
 
             this.flags.ready = false
-            let S = this.get_series()
-            console.log(this.subtitle, this.S)
-            this.highcharts_options.series = S
+            this.highcharts_options.series = this.get_series()
 
-            console.log(this.subtitle, this.highcharts_options.series)
+            console.log(this.subtitle, this.highcharts_options)
 
             this.delay(0).then(() => {
                 if (this.highcharts_options.series) {
