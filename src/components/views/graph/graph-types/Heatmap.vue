@@ -269,7 +269,7 @@ export default {
 
                 series = series.concat(tmp)
             })
-
+            console.log(series)
             return series
         },
         prepare_series: function (data) {
@@ -383,8 +383,6 @@ export default {
             this.records.all = this.data.all
             this.records.by_categories = this.data.by_categories
             this.records.optional = undefined
-
-            console.log("got Draw-Graph with:", this.records)
 
             this.highcharts_options = options
             this.set_heatmap_options()
