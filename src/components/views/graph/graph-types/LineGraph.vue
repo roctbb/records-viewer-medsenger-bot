@@ -278,7 +278,7 @@ export default {
 
                 series.push(this.prepare_series({
                         name: 'medicine',
-                        description: 'Прием препарата ' + medicine,
+                        description: medicine,
                         marker: 'square',
                         y: y,
                         records: records
