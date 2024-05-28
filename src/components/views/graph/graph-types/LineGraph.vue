@@ -189,6 +189,8 @@ export default {
             this.highcharts_options.tooltip.formatter = undefined
             if (!this.mobile) {
                 this.highcharts_options.tooltip.positioner = undefined
+            } else  {
+                this.highcharts_options.tooltip.shape = 'square'
             }
 
             // plot

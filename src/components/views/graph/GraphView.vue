@@ -190,6 +190,7 @@ export default {
                     this.get_y_axis(1)
                 ],
                 tooltip: {
+                    borderWidth: 2,
                     useHTML: true,
                     formatter: function () {
                         let point = this.point ? this.point : this.points[0];
@@ -201,16 +202,12 @@ export default {
                             return p.comment
                         }).join('<br>')
                     },
-                    style: {
-                        width: this.mobile ? Math.ceil(window.innerWidth * 0.8) + 'px' : undefined
-                    },
-
                     positioner: function () {
-                        return {x: 10, y: 10};
+                        return {x: 30, y: 10};
                     },
                     shadow: false,
                     backgroundColor: 'rgba(255,255,255,0.8)',
-                    shared: false,
+                    shared: true,
                     headerFormat: null
                 },
                 legend: {width: '100%'},
